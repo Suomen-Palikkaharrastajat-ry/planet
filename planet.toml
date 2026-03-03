@@ -53,3 +53,8 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCevQ7uLnqJYWeTDLtc8I
 # Vilzu
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIDvVMnuu8WAeIXA_GsnNwA"
+
+[[feeds]]
+# Megsu_Begsu
+type = "youtube"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSOLS4IYjrkEknhaabpr9Ow"
