@@ -1,6 +1,7 @@
 .env
 dist-newstyle/
 .stack-work/
+.claude/
 .devenv*
 public/
 /planet

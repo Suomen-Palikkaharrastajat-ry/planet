@@ -13,8 +13,15 @@ build: ## Build the executable
 	cabal build
 	cp $(shell cabal list-bin planet) ./planet
 
-develop: ## Launch opinionated IDE
-	devenv --profile full-vim shell -- code .
+.PHONY: develop
+develop: devenv.local.nix devenv.local.yaml ## Bootstrap opinionated development environment
+	devenv shell --profile=devcontainer -- code .
+
+devenv.local.nix:
+	cp devenv.local.nix.example devenv.local.nix
+
+devenv.local.yaml:
+	cp devenv.local.yaml.example devenv.local.yaml
 
 run: ## Run the planet generator to update site
 	cabal run
