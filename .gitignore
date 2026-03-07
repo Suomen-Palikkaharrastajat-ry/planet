@@ -3,6 +3,8 @@ dist-newstyle/
 .stack-work/
 .claude/
 .devenv*
+devenv.local.nix
+devenv.local.yaml
 public/
 /planet
 /src/Main
