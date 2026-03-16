@@ -410,7 +410,7 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.findAll [ Selector.tag "button", Selector.containing [ Selector.text "📝" ] ]
+                        |> Query.findAll [ Selector.tag "button", Selector.attribute (Html.Attributes.attribute "aria-label" "Syöte") ]
                         |> Query.first
                         |> Query.has [ Selector.class "cursor-pointer" ]
             , test "renders view mode toggle button with correct text" <|
@@ -483,7 +483,7 @@ suite =
                     View.view model
                         |> Query.fromHtml
                         |> Query.has [ Selector.attribute (Html.Attributes.attribute "aria-label" "Sulje valikko") ]
-            , test "renders hamburger menu button with x when sidebar open" <|
+            , test "renders hamburger menu button with close icon when sidebar open" <|
                 \_ ->
                     let
                         model =
@@ -499,7 +499,9 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.has [ Selector.text "✕" ]
+                        |> Query.findAll [ Selector.tag "button", Selector.attribute (Html.Attributes.attribute "aria-label" "Sulje valikko"), Selector.containing [ Selector.tag "svg" ] ]
+                        |> Query.first
+                        |> Query.has [ Selector.class "md:hidden" ]
             , test "renders mobile sidebar when visible" <|
                 \_ ->
                     let

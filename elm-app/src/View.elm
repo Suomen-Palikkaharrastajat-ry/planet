@@ -8,13 +8,13 @@ module View exposing (view)
 
 import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (formatDate)
-import Html exposing (Html, a, button, div, footer, h1, h2, h3, img, input, label, li, main_, nav, node, p, span, text, ul)
+import FeatherIcons
+import Html exposing (Html, a, button, div, footer, h2, h3, img, input, label, li, main_, nav, node, p, span, text, ul)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Keyed
-import Html.Lazy exposing (lazy2)
 import I18n
-import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..), ViewModel)
+import Types exposing (MonthGroup, Msg(..), ViewMode(..), ViewModel)
 
 
 {-| Main view function
@@ -33,12 +33,14 @@ view model =
             [ Events.onClick ToggleSidebar
             , Attr.class "md:hidden fixed top-4 right-4 z-40 p-3 rounded-lg text-white"
             , Attr.style "cursor" "pointer"
-            , Attr.style "font-size" "2em"
-            , Attr.style "padding-top" "0"
             , Attr.style "mix-blend-mode" "difference"
             , Attr.attribute "aria-label" (if model.isSidebarVisible then I18n.translate model.lang I18n.CloseMenu else I18n.translate model.lang I18n.OpenMenu)
             ]
-            [ text (if model.isSidebarVisible then I18n.translate model.lang I18n.Close else I18n.translate model.lang I18n.Open) ]
+            [ if model.isSidebarVisible then
+                FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+              else
+                FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+            ]
         , div [ Attr.class "flex" ]
             [ -- Timeline navigation
               renderTimelineNav model.lang model.visibleGroups
@@ -76,11 +78,10 @@ view model =
                 [ Events.onClick ScrollToTop
                 , Attr.class "fixed bottom-4 md:right-52 right-4 z-50 p-3 text-white"
                 , Attr.style "mix-blend-mode" "difference"
-                , Attr.style "font-size" "2em"
                 , Attr.style "cursor" "pointer"
                 , Attr.attribute "aria-label" (I18n.translate model.lang I18n.ScrollToTop)
                 ]
-                [ text "↑" ]
+                [ FeatherIcons.arrowUp |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml [] ]
           else
             text ""
         ]
@@ -128,7 +129,7 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 (\feedType ->
                     button
                         [ Events.onClick (ToggleFeedType feedType)
-                        , Attr.class ("cursor-pointer text-2xl p-2 rounded-lg border " ++
+                        , Attr.class ("cursor-pointer p-2 rounded-lg border " ++
                             if List.member feedType selectedFeedTypes then
                                 "bg-brand-yellow border-brand text-brand"
                             else
@@ -137,7 +138,7 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                         , Attr.title (feedTypeToString lang feedType)
                         , Attr.attribute "aria-label" (feedTypeToString lang feedType)
                         ]
-                        [ text (feedTypeIcon feedType) ]
+                        [ feedTypeIcon feedType ]
                 )
                 [ Feed, YouTube, Image ]
             )
@@ -195,7 +196,7 @@ renderMobileSidebar model =
                     (\feedType ->
                         button
                             [ Events.onClick (ToggleFeedType feedType)
-                            , Attr.class ("cursor-pointer text-2xl p-2 rounded-lg border " ++
+                            , Attr.class ("cursor-pointer p-2 rounded-lg border " ++
                                 if List.member feedType model.selectedFeedTypes then
                                     "bg-brand-yellow border-brand text-brand"
                                 else
@@ -204,7 +205,7 @@ renderMobileSidebar model =
                             , Attr.title (feedTypeToString model.lang feedType)
                             , Attr.attribute "aria-label" (feedTypeToString model.lang feedType)
                             ]
-                            [ text (feedTypeIcon feedType) ]
+                            [ feedTypeIcon feedType ]
                     )
                     [ Feed, YouTube, Image ]
                 )
@@ -336,7 +337,11 @@ renderFullCard lang item =
 
             Nothing ->
                 div [ Attr.class "aspect-[4/3] bg-gray-50 flex items-center justify-center" ]
-                    [ span [ Attr.class "text-4xl", Attr.attribute "aria-label" (feedTypeName lang item.itemType) ] [ text (feedTypeIcon item.itemType) ]
+                    [ span
+                        [ Attr.class "text-gray-400"
+                        , Attr.attribute "aria-label" (feedTypeName lang item.itemType)
+                        ]
+                        [ feedTypeIcon item.itemType ]
                     ]
         , -- Card content
           div [ Attr.class "p-4" ]
@@ -375,15 +380,19 @@ renderFullCard lang item =
                     text ""
             ]
         , -- Card meta (date and type icon)
-          div [ Attr.class "px-4 pb-3 flex justify-between items-center text-xs text-gray-500" ]
+          div [ Attr.class "px-4 pb-3 flex justify-between items-center" ]
             [ case item.itemDate of
                 Just date ->
-                    span [ Attr.class "text-sm font-medium" ] [ text (formatDate date) ]
+                    span [ Attr.class "text-sm font-medium text-gray-500" ] [ text (formatDate date) ]
 
                 Nothing ->
                     text ""
-            , span [ Attr.class "text-lg", Attr.title (feedTypeName lang item.itemType), Attr.attribute "aria-label" (feedTypeName lang item.itemType) ]
-                [ text (feedTypeIcon item.itemType) ]
+            , span
+                [ Attr.class "text-gray-400"
+                , Attr.title (feedTypeName lang item.itemType)
+                , Attr.attribute "aria-label" (feedTypeName lang item.itemType)
+                ]
+                [ feedTypeIcon item.itemType ]
             ]
         ]
 
@@ -408,25 +417,29 @@ renderThumbnailCard lang item =
             Nothing ->
                 div [ Attr.class "aspect-[4/3] bg-gray-50 flex items-center justify-center" ]
                     [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ I18n.translate lang I18n.OpenInNewWindow) ]
-                        [ span [ Attr.class "text-2xl", Attr.attribute "aria-label" (feedTypeName lang item.itemType) ] [ text (feedTypeIcon item.itemType) ]
+                        [ span
+                            [ Attr.class "text-gray-400"
+                            , Attr.attribute "aria-label" (feedTypeName lang item.itemType)
+                            ]
+                            [ feedTypeIcon item.itemType ]
                         ]
                     ]
         ]
 
 
-{-| Get emoji icon for feed type
+{-| Get feather icon for feed type
 -}
-feedTypeIcon : FeedType -> String
+feedTypeIcon : FeedType -> Html Msg
 feedTypeIcon feedType =
     case feedType of
         Feed ->
-            "📝"
+            FeatherIcons.rss |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml []
 
         YouTube ->
-            "🎥"
+            FeatherIcons.youtube |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml []
 
         Image ->
-            "📷"
+            FeatherIcons.camera |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml []
 
 
 {-| Get human-readable name for feed type
@@ -442,43 +455,6 @@ feedTypeName lang feedType =
 
         Image ->
             I18n.translate lang I18n.ImageName
-
-
-{-| Very basic HTML tag stripping (iterative to avoid stack overflow)
--}
-stripHtml : String -> String
-stripHtml str =
-    let
-        step char ( inTag, acc ) =
-            if char == '<' then
-                ( True, acc )
-
-            else if char == '>' then
-                ( False, ' ' :: acc )
-
-            else if inTag then
-                ( True, acc )
-
-            else
-                ( False, char :: acc )
-
-        ( _, reversed ) =
-            String.foldl step ( False, [] ) str
-    in
-    reversed
-        |> List.reverse
-        |> String.fromList
-        |> String.trim
-
-
-{-| Truncate text to max length with ellipsis
--}
-truncateText : Int -> String -> String
-truncateText maxLen str =
-    if String.length str <= maxLen then
-        str
-    else
-        String.left maxLen str ++ "..."
 
 
 renderFooter : Types.Lang -> String -> Html Msg
