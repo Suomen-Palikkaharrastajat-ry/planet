@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Outfit variable font */
+@font-face {
+  font-family: 'Outfit';
+  src: url('/fonts/Outfit-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Custom styles matching the original Haskell-generated HTML */
 
 /* Timeline navigation */
@@ -25,7 +34,10 @@
   overflow: hidden;
 }
 
-/* Card hover effects */
-.card-hover:hover {
-  transform: translateY(-2px);
+/* Card hover effects — only when reduced motion is not preferred */
+@media (prefers-reduced-motion: no-preference) {
+  .card-hover:hover {
+    transform: translateY(-2px);
+    transition: transform 300ms cubic-bezier(0.4, 0.0, 0.2, 1.0);
+  }
 }

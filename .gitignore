@@ -6,6 +6,9 @@ dist-newstyle/
 devenv.local.nix
 devenv.local.yaml
 public/
+!elm-app/public/
+elm-app/public/*
+!elm-app/public/fonts/
 /planet
 /src/Main
 /elm-app/src/Data.elm

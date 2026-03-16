@@ -9,8 +9,8 @@ import qualified Data.Text as T
 css :: Text
 css =
     T.unlines
-        [ "body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }"
-        , ".layout { display: flex; max-width: 1400px; margin: 0 auto; gap: 20px; }"
+        [ "body { font-family: 'Outfit', system-ui, sans-serif; line-height: 1.6; color: #05131D; margin: 0; padding: 0; background-color: #ffffff; }"
+        , ".layout { display: flex; max-width: 1024px; margin: 0 auto; gap: 20px; padding: 0 1rem; }"
         , -- Timeline Navigation
           ".timeline { width: 180px; flex-shrink: 0; position: sticky; top: 14px; align-self: start; height: calc(100vh - 40px); overflow-y: auto; padding-right: 10px; }"
         , ".timeline-header { font-weight: 900; font-size: 2rem; color: #eaeaea; margin-bottom: 20px; text-align: right; line-height: 1; }"
@@ -21,21 +21,24 @@ css =
         , -- Main Content
           ".main-content { flex-grow: 1; min-width: 0; }" -- min-width 0 prevents flex overflow
         , ".intro { }"
-        , "h1 { font-weight: 700; color: #111; margin: 0; font-size: 2.5rem; }"
-        , "h2.month-title { font-weight: 600; color: #444; border-bottom: 2px solid #333; padding-bottom: 10px; margin: 40px 0 20px 0; font-size: 1.5rem; }"
+        , ".logo-link { display: block; margin-bottom: 8px; }"
+        , ".site-logo { min-width: 200px; max-width: 300px; height: auto; }"
+        , "@media (prefers-reduced-motion: reduce) { .site-logo { animation: none !important; } }"
+        , "h1 { font-weight: 700; color: #05131D; margin: 0; font-size: 1.875rem; }"
+        , "h2.month-title { font-weight: 700; color: #444; border-bottom: 2px solid #333; padding-bottom: 10px; margin: 40px 0 20px 0; font-size: 1.5rem; line-height: 1.3; }"
         , -- Grid & Cards
           ".grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }"
-        , ".card { background: white; border: 1px solid #eaeaea; padding: 20px; transition: box-shadow 0.2s; display: flex; flex-direction: column; position: relative; overflow: hidden; }"
+        , ".card { background: white; border: 1px solid #E5E7EB; padding: 20px; border-radius: 8px; transition: box-shadow 0.2s; display: flex; flex-direction: column; position: relative; overflow: hidden; }"
         , ".card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }"
         , ".card-content { display: flex; flex-direction: column; height: 100%; text-overflow: ellipsis; }"
-        , ".source { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px; display: block; }"
+        , ".source { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 8px; display: block; }"
         , ".card a.source { color: #666; }"
         , ".card-image { width: 100%; height: 180px; overflow: hidden; margin-bottom: 15px; border-radius: 4px; position: relative; }"
         , ".card-image img { width: 100%; height: 100%; object-fit: contain; display: none; }"
         , ".card-image img.loaded { display: block; }"
-        , ".card h3 { margin: 0 0 10px 0; font-size: 1.1rem; line-height: 1.4; }"
-        , ".card a { color: #111; text-decoration: none; }"
-        , ".card a:hover { color: #0070f3; }"
+        , ".card h3 { margin: 0 0 10px 0; font-size: 1.25rem; font-weight: 600; line-height: 1.4; }"
+        , ".card a { color: #05131D; text-decoration: none; }"
+        , ".card a:hover { color: #05131D; text-decoration: underline; }"
         , ".date { font-size: 0.85rem; color: #888; }"
         , ".card-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }"
         , ".description { font-size: 0.95rem; color: #555; margin: 0; overflow: hidden; flex-grow: 1; }"
@@ -59,8 +62,8 @@ css =
         , ".consent-content p { margin: 0; font-size: 0.9rem; }"
         , -- Swapped Button Styles
           -- Consent: Primary (Blue)
-          "#consent-btn { background: #0070f3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; margin-left: 10px; }"
-        , "#consent-btn:hover { background: #0051a2; }"
+          "#consent-btn { background: #F2CD37; color: #05131D; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; margin-left: 10px; }"
+        , "#consent-btn:hover { background: #e0bc1f; }"
         , -- Reject: Secondary (Transparent/White Border)
           "#reject-btn { background: transparent; color: white; border: 1px solid white; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }"
         , "#reject-btn:hover { background: rgba(255,255,255,0.1); }"
@@ -71,5 +74,5 @@ css =
         , -- Accessibility
           ".sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }"
         , ".skip-link { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }"
-        , ".skip-link:focus { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); width: auto; height: auto; padding: 8px 16px; margin: 0; overflow: visible; clip: auto; white-space: normal; background: #0070f3; color: white; text-decoration: none; border-radius: 4px; z-index: 1001; font-weight: 600; }"
+        , ".skip-link:focus { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); width: auto; height: auto; padding: 8px 16px; margin: 0; overflow: visible; clip: auto; white-space: normal; background: #05131D; color: white; text-decoration: none; border-radius: 4px; z-index: 1001; font-weight: 600; }"
         ]

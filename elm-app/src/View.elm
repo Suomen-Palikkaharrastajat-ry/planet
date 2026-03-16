@@ -8,7 +8,7 @@ module View exposing (view)
 
 import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (formatDate)
-import Html exposing (Html, a, button, div, footer, h1, h2, h3, img, input, label, li, main_, nav, p, span, text, ul)
+import Html exposing (Html, a, button, div, footer, h1, h2, h3, img, input, label, li, main_, nav, node, p, span, text, ul)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Keyed
@@ -21,17 +21,17 @@ import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..), ViewModel)
 -}
 view : ViewModel -> Html Msg
 view model =
-    div [ Attr.class "min-h-screen bg-gray-50" ]
+    div [ Attr.class "min-h-screen bg-white" ]
         [ -- Skip to content link for accessibility
           a
             [ Attr.href "#main-content"
-            , Attr.class "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-none"
+            , Attr.class "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand focus:text-white focus:rounded-lg"
             ]
             [ text (I18n.translate model.lang I18n.SkipToContent) ]
         , -- Hamburger menu button for mobile
           button
             [ Events.onClick ToggleSidebar
-            , Attr.class "md:hidden fixed top-4 right-4 z-40 p-3 rounded-none text-white"
+            , Attr.class "md:hidden fixed top-4 right-4 z-40 p-3 rounded-lg text-white"
             , Attr.style "cursor" "pointer"
             , Attr.style "font-size" "2em"
             , Attr.style "padding-top" "0"
@@ -45,7 +45,7 @@ view model =
             , -- Main content
               main_
                 [ Attr.id "main-content"
-                , Attr.class "flex-1 p-6"
+                , Attr.class "flex-1 p-6 max-w-5xl mx-auto px-4"
                 ]
                 [ renderIntro model.lang
                 , Html.Keyed.node "div"
@@ -96,7 +96,7 @@ renderTimelineNav lang groups =
                     li []
                         [ button
                             [ Events.onClick (NavigateToSection group.monthId)
-                            , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline text-left w-full"
+                            , Attr.class "text-sm text-gray-600 hover:text-brand hover:underline text-left w-full"
                             , Attr.style "cursor" "pointer"
                             , Attr.attribute "aria-label" (I18n.translate lang I18n.NavigateTo ++ group.monthLabel)
                             ]
@@ -119,7 +119,7 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 , Attr.placeholder (I18n.translate lang I18n.SearchPlaceholder)
                 , Attr.value searchText
                 , Events.onInput UpdateSearchText
-                , Attr.class "w-full px-3 py-2 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                , Attr.class "w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
                 ]
                 []
             ]
@@ -128,11 +128,11 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 (\feedType ->
                     button
                         [ Events.onClick (ToggleFeedType feedType)
-                        , Attr.class ("cursor-pointer text-2xl p-2 rounded-none border " ++
+                        , Attr.class ("cursor-pointer text-2xl p-2 rounded-lg border " ++
                             if List.member feedType selectedFeedTypes then
-                                "bg-blue-100 border-blue-300 text-blue-700"
+                                "bg-brand-yellow border-brand text-brand"
                             else
-                                "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
+                                "bg-gray-100 border-gray-200 text-gray-500 opacity-50"
                             )
                         , Attr.title (feedTypeToString lang feedType)
                         , Attr.attribute "aria-label" (feedTypeToString lang feedType)
@@ -145,11 +145,11 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
             [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.View) ]
             , button
                 [ Events.onClick (ToggleViewMode (if viewMode == Full then Thumbnail else Full))
-                , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-none border w-full " ++
+                , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full " ++
                     if viewMode == Full then
-                        "bg-blue-100 border-blue-300 text-blue-700"
+                        "bg-brand-yellow border-brand text-brand"
                     else
-                        "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
+                        "bg-gray-100 border-gray-200 text-gray-500 opacity-50"
                     )
                 , Attr.attribute "aria-label" (I18n.translate lang I18n.Descriptions)
                 ]
@@ -161,7 +161,7 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
 renderMobileSidebar : ViewModel -> Html Msg
 renderMobileSidebar model =
     div
-        [ Attr.class ("md:hidden fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-40 transform overflow-y-auto " ++
+        [ Attr.class ("md:hidden fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-40 transform overflow-y-auto transition-transform duration-300 ease-in-out motion-reduce:transition-none " ++
             if model.isSidebarVisible then
                 "translate-x-0"
             else
@@ -186,7 +186,7 @@ renderMobileSidebar model =
                     , Attr.placeholder (I18n.translate model.lang I18n.SearchPlaceholder)
                     , Attr.value model.searchText
                     , Events.onInput UpdateSearchText
-                    , Attr.class "w-full px-3 py-2 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    , Attr.class "w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
                     ]
                     []
                 ]
@@ -195,11 +195,11 @@ renderMobileSidebar model =
                     (\feedType ->
                         button
                             [ Events.onClick (ToggleFeedType feedType)
-                            , Attr.class ("cursor-pointer text-2xl p-2 rounded-none border " ++
+                            , Attr.class ("cursor-pointer text-2xl p-2 rounded-lg border " ++
                                 if List.member feedType model.selectedFeedTypes then
-                                    "bg-blue-100 border-blue-300 text-blue-700"
+                                    "bg-brand-yellow border-brand text-brand"
                                 else
-                                    "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
+                                    "bg-gray-100 border-gray-200 text-gray-500 opacity-50"
                                 )
                             , Attr.title (feedTypeToString model.lang feedType)
                             , Attr.attribute "aria-label" (feedTypeToString model.lang feedType)
@@ -212,11 +212,11 @@ renderMobileSidebar model =
                 [ label [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.View) ]
                 , button
                     [ Events.onClick (ToggleViewMode (if model.viewMode == Full then Thumbnail else Full))
-                    , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-none border w-full " ++
+                    , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full " ++
                         if model.viewMode == Full then
-                            "bg-blue-100 border-blue-300 text-blue-700"
+                            "bg-brand-yellow border-brand text-brand"
                         else
-                            "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
+                            "bg-gray-100 border-gray-200 text-gray-500 opacity-50"
                         )
                     , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
                     ]
@@ -224,7 +224,7 @@ renderMobileSidebar model =
                 ]
             ]
         , -- Timeline navigation
-          nav [ Attr.class "p-4 border-t border-gray-300" ]
+          nav [ Attr.class "p-4 border-t border-gray-200" ]
             [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Timeline) ]
             , ul [ Attr.class "space-y-2" ]
                 (List.map
@@ -232,7 +232,7 @@ renderMobileSidebar model =
                         li []
                             [ button
                                 [ Events.onClick (NavigateToSection group.monthId)
-                                , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline text-left w-full"
+                                , Attr.class "text-sm text-gray-600 hover:text-brand hover:underline text-left w-full"
                                 , Attr.style "cursor" "pointer"
                                 , Attr.attribute "aria-label" (I18n.translate model.lang I18n.NavigateTo ++ group.monthLabel)
                                 ]
@@ -261,7 +261,31 @@ feedTypeToString lang feedType =
 renderIntro : Types.Lang -> Html Msg
 renderIntro lang =
     div [ Attr.class "mb-8" ]
-        [ a [ Attr.href "/", Attr.class "text-3xl font-bold text-gray-800 hover:text-blue-600" ] [ text (I18n.translate lang I18n.Title) ]
+        [ -- Horizontal logo with SVG-first, WebP+PNG fallback; contains the site title text for screen readers
+          a [ Attr.href "/", Attr.class "block mb-2" ]
+            [ node "picture"
+                []
+                [ node "source"
+                    [ Attr.attribute "type" "image/webp"
+                    , Attr.attribute "srcset" "https://logo.palikkaharrastajat.fi/logo/horizontal/webp/horizontal-full.webp"
+                    ]
+                    []
+                , node "source"
+                    [ Attr.attribute "type" "image/png"
+                    , Attr.attribute "srcset" "https://logo.palikkaharrastajat.fi/logo/horizontal/png/horizontal-full.png"
+                    ]
+                    []
+                , img
+                    [ Attr.src "https://logo.palikkaharrastajat.fi/logo/horizontal/svg/horizontal-full.svg"
+                    , Attr.alt (I18n.translate lang I18n.Title)
+                    , Attr.style "min-width" "200px"
+                    , Attr.style "max-width" "300px"
+                    , Attr.style "height" "auto"
+                    ]
+                    []
+                ]
+            , span [ Attr.class "text-3xl font-bold text-brand" ] [ text (I18n.translate lang I18n.Title) ]
+            ]
         ]
 
 
@@ -272,7 +296,7 @@ renderMonthSection lang viewMode group =
         , Attr.class "mb-8"
         , Attr.style "scroll-margin-top" "80px"
         ]
-        [ h2 [ Attr.class "text-xl font-semibold text-gray-700 mb-4 border-b pb-2" ]
+        [ h2 [ Attr.class "text-2xl font-bold text-gray-700 mb-4 border-b border-gray-200 pb-2" ]
             [ text group.monthLabel ]
         , Html.Keyed.node "div"
             [ Attr.class "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" ]
@@ -295,11 +319,11 @@ renderCard lang viewMode item =
 
 renderFullCard : Types.Lang -> AppItem -> Html Msg
 renderFullCard lang item =
-    div [ Attr.class "bg-white rounded-none shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
+    div [ Attr.class "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
         [ -- Card image
           case item.itemThumbnail of
             Just url ->
-                div [ Attr.class "aspect-[4/3] bg-gray-100" ]
+                div [ Attr.class "aspect-[4/3] bg-gray-50" ]
                     [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ I18n.translate lang I18n.OpenInNewWindow) ]
                         [ img
                             [ Attr.src url
@@ -311,12 +335,12 @@ renderFullCard lang item =
                     ]
 
             Nothing ->
-                div [ Attr.class "aspect-[4/3] bg-gray-200 flex items-center justify-center" ]
+                div [ Attr.class "aspect-[4/3] bg-gray-50 flex items-center justify-center" ]
                     [ span [ Attr.class "text-4xl", Attr.attribute "aria-label" (feedTypeName lang item.itemType) ] [ text (feedTypeIcon item.itemType) ]
                     ]
         , -- Card content
           div [ Attr.class "p-4" ]
-            [ -- Source link
+            [ -- Source link (Overline style)
               case item.itemSourceLink of
                 Just url ->
                     a
@@ -324,27 +348,27 @@ renderFullCard lang item =
                         , Attr.target "_blank"
                         , Attr.rel "noopener noreferrer"
                         , Attr.attribute "aria-label" (item.itemSourceTitle ++ I18n.translate lang I18n.OpenInNewWindow)
-                        , Attr.class "text-xs text-blue-600 hover:underline"
+                        , Attr.class "text-xs font-semibold uppercase tracking-wider text-gray-500 hover:underline"
                         ]
                         [ text item.itemSourceTitle ]
 
                 Nothing ->
-                    span [ Attr.class "text-xs text-gray-500" ] [ text item.itemSourceTitle ]
+                    span [ Attr.class "text-xs font-semibold uppercase tracking-wider text-gray-500" ] [ text item.itemSourceTitle ]
             , -- Title
-              h3 [ Attr.class "font-semibold text-gray-800 mt-1 line-clamp-2" ]
+              h3 [ Attr.class "text-xl font-semibold text-brand mt-1 line-clamp-2" ]
                 [ a
                     [ Attr.href item.itemLink
                     , Attr.target "_blank"
                     , Attr.rel "noopener noreferrer"
                     , Attr.attribute "aria-label" (item.itemTitle ++ I18n.translate lang I18n.OpenInNewWindow)
-                    , Attr.class "hover:text-blue-600"
+                    , Attr.class "hover:underline"
                     ]
                     [ text item.itemTitle ]
                 ]
             , -- Description (truncated)
               case item.itemDescSnippet of
                 Just desc ->
-                    p [ Attr.class "text-sm text-gray-600 mt-2 line-clamp-2" ]
+                    p [ Attr.class "text-sm font-medium text-gray-500 mt-2 line-clamp-2" ]
                         [ text desc ]
 
                 Nothing ->
@@ -354,7 +378,7 @@ renderFullCard lang item =
           div [ Attr.class "px-4 pb-3 flex justify-between items-center text-xs text-gray-500" ]
             [ case item.itemDate of
                 Just date ->
-                    span [] [ text (formatDate date) ]
+                    span [ Attr.class "text-sm font-medium" ] [ text (formatDate date) ]
 
                 Nothing ->
                     text ""
@@ -366,11 +390,11 @@ renderFullCard lang item =
 
 renderThumbnailCard : Types.Lang -> AppItem -> Html Msg
 renderThumbnailCard lang item =
-    div [ Attr.class "bg-white rounded-none shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
+    div [ Attr.class "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
         [ -- Card image only
           case item.itemThumbnail of
             Just url ->
-                div [ Attr.class "aspect-[4/3] bg-gray-100" ]
+                div [ Attr.class "aspect-[4/3] bg-gray-50" ]
                     [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ I18n.translate lang I18n.OpenInNewWindow) ]
                         [ img
                             [ Attr.src url
@@ -382,7 +406,7 @@ renderThumbnailCard lang item =
                     ]
 
             Nothing ->
-                div [ Attr.class "aspect-[4/3] bg-gray-200 flex items-center justify-center" ]
+                div [ Attr.class "aspect-[4/3] bg-gray-50 flex items-center justify-center" ]
                     [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ I18n.translate lang I18n.OpenInNewWindow) ]
                         [ span [ Attr.class "text-2xl", Attr.attribute "aria-label" (feedTypeName lang item.itemType) ] [ text (feedTypeIcon item.itemType) ]
                         ]
@@ -459,7 +483,7 @@ truncateText maxLen str =
 
 renderFooter : Types.Lang -> String -> Html Msg
 renderFooter lang timestamp =
-    footer [ Attr.class "mt-12 pt-6 border-t text-center text-gray-500 text-sm" ]
+    footer [ Attr.class "mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm" ]
         [ p [] [ text (I18n.translate lang I18n.Description) ]
         , p [ Attr.class "mt-1" ] [ text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | "), a [ Attr.href "opml.xml", Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ] ]
         ]
