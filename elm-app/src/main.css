@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
-/* Outfit variable font */
+/* ============================================================
+   DESIGN GUIDE: Suomen Palikkaharrastajat ry
+   Source: https://logo.palikkaharrastajat.fi/design-guide/
+   ============================================================ */
+
+/* Outfit variable font (local, OFL-licensed) */
 @font-face {
   font-family: 'Outfit';
   src: url('/fonts/Outfit-VariableFont_wght.ttf') format('truetype');
@@ -9,9 +14,38 @@
   font-display: swap;
 }
 
-/* Custom styles matching the original Haskell-generated HTML */
+/* Tailwind v4 theme — all brand tokens defined here (tailwind.config.js is ignored by v4) */
+@theme {
+  /* Typography: Outfit as default sans-serif */
+  --font-sans: 'Outfit', system-ui, sans-serif;
 
-/* Timeline navigation */
+  /* Brand core colors */
+  --color-brand: #05131D;
+  --color-brand-yellow: #F2CD37;
+  --color-brand-red: #C91A09;
+
+  /* Nougat palette */
+  --color-nougat-light: #F6D7B3;
+  --color-nougat: #D09168;
+  --color-nougat-dark: #AD6140;
+
+  /* Motion tokens */
+  --transition-duration-fast: 150ms;
+  --transition-duration-base: 300ms;
+}
+
+/* Apply Outfit as default body font */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+  }
+}
+
+/* ============================================================
+   Custom component styles
+   ============================================================ */
+
+/* Timeline navigation scrollbar */
 .timeline-nav {
   scrollbar-width: thin;
   scrollbar-color: #ccc transparent;
@@ -26,7 +60,7 @@
   border-radius: 3px;
 }
 
-/* Line clamp support for older browsers */
+/* Line clamp for older browsers */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -34,7 +68,7 @@
   overflow: hidden;
 }
 
-/* Card hover effects — only when reduced motion is not preferred */
+/* Card hover — only when reduced motion is not preferred */
 @media (prefers-reduced-motion: no-preference) {
   .card-hover:hover {
     transform: translateY(-2px);

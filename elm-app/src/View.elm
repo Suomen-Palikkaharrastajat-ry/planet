@@ -9,7 +9,7 @@ module View exposing (view)
 import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (formatDate)
 import FeatherIcons
-import Html exposing (Html, a, button, div, footer, h2, h3, img, input, label, li, main_, nav, node, p, span, text, ul)
+import Html exposing (Html, a, button, div, footer, h2, h3, img, input, label, li, main_, nav, p, span, text, ul)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Keyed
@@ -28,18 +28,29 @@ view model =
             , Attr.class "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand focus:text-white focus:rounded-lg"
             ]
             [ text (I18n.translate model.lang I18n.SkipToContent) ]
-        , -- Hamburger menu button for mobile
-          button
-            [ Events.onClick ToggleSidebar
-            , Attr.class "md:hidden fixed top-4 right-4 z-40 p-3 rounded-lg text-white"
-            , Attr.style "cursor" "pointer"
-            , Attr.style "mix-blend-mode" "difference"
-            , Attr.attribute "aria-label" (if model.isSidebarVisible then I18n.translate model.lang I18n.CloseMenu else I18n.translate model.lang I18n.OpenMenu)
-            ]
-            [ if model.isSidebarVisible then
-                FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
-              else
-                FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+        , -- Mobile top bar: logo + title on left, hamburger on right (same height)
+          div [ Attr.class "md:hidden flex items-center justify-between px-4 h-14 bg-white border-b border-gray-200 sticky top-0 z-40" ]
+            [ a [ Attr.href "/", Attr.class "flex items-center gap-2" ]
+                [ img
+                    [ Attr.src "/logo/square/square-smile.svg"
+                    , Attr.alt ""
+                    , Attr.attribute "aria-hidden" "true"
+                    , Attr.class "h-8 w-8"
+                    ]
+                    []
+                , span [ Attr.class "text-lg font-bold text-brand" ] [ text (I18n.translate model.lang I18n.Title) ]
+                ]
+            , button
+                [ Events.onClick ToggleSidebar
+                , Attr.class "p-2 rounded-lg text-brand"
+                , Attr.style "cursor" "pointer"
+                , Attr.attribute "aria-label" (if model.isSidebarVisible then I18n.translate model.lang I18n.CloseMenu else I18n.translate model.lang I18n.OpenMenu)
+                ]
+                [ if model.isSidebarVisible then
+                    FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+                  else
+                    FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+                ]
             ]
         , div [ Attr.class "flex" ]
             [ -- Timeline navigation
@@ -129,7 +140,7 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 (\feedType ->
                     button
                         [ Events.onClick (ToggleFeedType feedType)
-                        , Attr.class ("cursor-pointer p-2 rounded-lg border font-semibold transition-colors duration-fast " ++
+                        , Attr.class ("cursor-pointer p-2 rounded-lg border font-semibold transition-colors duration-150 " ++
                             if List.member feedType selectedFeedTypes then
                                 "bg-brand-yellow border-brand text-brand"
                             else
@@ -147,7 +158,7 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
             [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.View) ]
             , button
                 [ Events.onClick (ToggleViewMode (if viewMode == Full then Thumbnail else Full))
-                , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-fast " ++
+                , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-150 " ++
                     if viewMode == Full then
                         "bg-brand-yellow border-brand text-brand"
                     else
@@ -198,7 +209,7 @@ renderMobileSidebar model =
                     (\feedType ->
                         button
                             [ Events.onClick (ToggleFeedType feedType)
-                            , Attr.class ("cursor-pointer p-2 rounded-lg border font-semibold transition-colors duration-fast " ++
+                            , Attr.class ("cursor-pointer p-2 rounded-lg border font-semibold transition-colors duration-150 " ++
                                 if List.member feedType model.selectedFeedTypes then
                                     "bg-brand-yellow border-brand text-brand"
                                 else
@@ -216,7 +227,7 @@ renderMobileSidebar model =
                 [ label [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.View) ]
                 , button
                     [ Events.onClick (ToggleViewMode (if model.viewMode == Full then Thumbnail else Full))
-                    , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-fast " ++
+                    , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-150 " ++
                         if model.viewMode == Full then
                             "bg-brand-yellow border-brand text-brand"
                         else
@@ -265,25 +276,16 @@ feedTypeToString lang feedType =
 
 renderIntro : Types.Lang -> Html Msg
 renderIntro lang =
-    div [ Attr.class "mb-8" ]
-        [ -- Horizontal logo with SVG-first, PNG fallback (local assets); contains the site title text for screen readers
-          a [ Attr.href "/", Attr.class "block mb-2" ]
-            [ node "picture"
-                []
-                [ node "source"
-                    [ Attr.attribute "type" "image/png"
-                    , Attr.attribute "srcset" "/logo/horizontal/horizontal-full.png"
-                    ]
-                    []
-                , img
-                    [ Attr.src "/logo/horizontal/horizontal-full.svg"
-                    , Attr.alt (I18n.translate lang I18n.Title)
-                    , Attr.style "min-width" "200px"
-                    , Attr.style "max-width" "300px"
-                    , Attr.style "height" "auto"
-                    ]
-                    []
+    div [ Attr.class "mb-8 hidden md:block" ]
+        [ a [ Attr.href "/", Attr.class "flex items-center gap-4 w-fit" ]
+            [ -- Square-smile logo (local SVG, minimum 80px per design guide for desktop)
+              img
+                [ Attr.src "/logo/square/square-smile.svg"
+                , Attr.alt ""
+                , Attr.attribute "aria-hidden" "true"
+                , Attr.class "w-20 h-20"
                 ]
+                []
             , span [ Attr.class "text-3xl font-bold text-brand" ] [ text (I18n.translate lang I18n.Title) ]
             ]
         ]

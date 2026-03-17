@@ -36,7 +36,7 @@ renderHead :: Config -> H.Html
 renderHead config = H.head $ do
     H.meta H.! A.charset "UTF-8"
     H.meta H.! A.name "viewport" H.! A.content "width=device-width, initial-scale=1.0"
-    H.title (H.toHtml $ configTitle config)
+    H.title (H.toHtml $ configTitle config <> " \x2014 Suomen Palikkaharrastajat ry")
     H.link H.! A.rel "icon" H.! A.href "/favicon/favicon.ico"
     H.link H.! A.rel "icon" H.! A.type_ "image/png" H.! A.sizes "32x32" H.! A.href "/favicon/favicon-32.png"
     H.link H.! A.rel "apple-touch-icon" H.! A.sizes "180x180" H.! A.href "/favicon/apple-touch-icon.png"
@@ -64,15 +64,13 @@ renderTimelineNav msgs locale now localTZ groups = H.nav H.! A.class_ "timeline"
         H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
 
 renderIntro :: Config -> H.Html
-renderIntro config = H.div H.! A.class_ "intro" $ do
-    H.a H.! A.href "/" H.! A.class_ "logo-link" $
-        H.picture $ do
-            H.source H.! H.customAttribute "type" "image/png"
-                     H.! H.customAttribute "srcset" "/logo/horizontal/horizontal-full.png"
-            H.img H.! A.src "/logo/horizontal/horizontal-full.svg"
-                  H.! A.alt (H.toValue $ configTitle config)
-                  H.! A.class_ "site-logo"
-    H.h1 (H.toHtml $ configTitle config)
+renderIntro config = H.div H.! A.class_ "intro" $
+    H.a H.! A.href "/" H.! A.class_ "site-header-link" $ do
+        H.img H.! A.src "/logo/square/square-smile.svg"
+              H.! A.alt ""
+              H.! H.customAttribute "aria-hidden" "true"
+              H.! A.class_ "site-logo"
+        H.h1 (H.toHtml $ configTitle config)
 
 renderMonthSection :: TimeLocale -> (Text, Text, [AppItem]) -> H.Html
 renderMonthSection locale (monthLabel, monthId, groupItems) = H.div H.! A.id (H.toValue monthId) H.! A.class_ "month-section" $ do

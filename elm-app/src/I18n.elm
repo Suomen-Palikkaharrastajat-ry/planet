@@ -86,7 +86,7 @@ translate lang key =
                     "Koottu "
 
                 Description ->
-                    "Suomen Palikkayhteisö ry:n tuottama syötekooste"
+                    "Suomen Palikkaharrastajat ry:n tuottama syötekooste"
 
                 DownloadOpml ->
                     "Lataa OPML"
@@ -154,7 +154,7 @@ translate lang key =
                     "Compiled "
 
                 Description ->
-                    "Feed aggregator produced by Suomen Palikkayhteisö ry"
+                    "Feed aggregator produced by Suomen Palikkaharrastajat ry"
 
                 DownloadOpml ->
                     "Download OPML"

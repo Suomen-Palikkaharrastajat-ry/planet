@@ -132,7 +132,8 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.find [ Selector.tag "a", Selector.attribute (Html.Attributes.href "/") ]
+                        |> Query.findAll [ Selector.tag "a", Selector.attribute (Html.Attributes.href "/") ]
+                        |> Query.first
                         |> Query.has [ Selector.text "Palikkalinkit" ]
             , test "renders items in cards" <|
                 \_ ->
@@ -501,7 +502,7 @@ suite =
                         |> Query.fromHtml
                         |> Query.findAll [ Selector.tag "button", Selector.attribute (Html.Attributes.attribute "aria-label" "Sulje valikko"), Selector.containing [ Selector.tag "svg" ] ]
                         |> Query.first
-                        |> Query.has [ Selector.class "md:hidden" ]
+                        |> Query.has [ Selector.class "rounded-lg" ]
             , test "renders mobile sidebar when visible" <|
                 \_ ->
                     let

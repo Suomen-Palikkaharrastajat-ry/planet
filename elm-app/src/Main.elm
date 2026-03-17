@@ -152,7 +152,7 @@ main =
 -}
 view : Model -> Browser.Document Msg
 view model =
-    { title = "Palikkalinkit"
+    { title = "Palikkalinkit — Suomen Palikkaharrastajat ry"
     , body = [ View.view (modelToViewModel model) ]
     }
 
