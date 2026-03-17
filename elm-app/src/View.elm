@@ -13,6 +13,7 @@ import Html exposing (Html, a, button, div, footer, h2, h3, img, input, label, l
 import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Keyed
+import Json.Decode as Decode
 import I18n
 import Types exposing (MonthGroup, Msg(..), ViewMode(..), ViewModel)
 
@@ -30,7 +31,7 @@ view model =
             [ text (I18n.translate model.lang I18n.SkipToContent) ]
         , -- Mobile top bar: logo + title on left, hamburger on right (same height)
           div [ Attr.class "md:hidden flex items-center justify-between px-4 h-14 bg-white border-b border-gray-200 sticky top-0 z-40" ]
-            [ a [ Attr.href "/", Attr.class "flex items-center gap-2" ]
+            [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-2" ]
                 [ img
                     [ Attr.src "/logo/square/square-smile.svg"
                     , Attr.alt ""
@@ -281,7 +282,7 @@ feedTypeToString lang feedType =
 renderIntro : Types.Lang -> Html Msg
 renderIntro lang =
     div [ Attr.class "mb-8 hidden md:block" ]
-        [ a [ Attr.href "/", Attr.class "flex items-center gap-4 w-fit" ]
+        [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-4 w-fit" ]
             [ -- Square-smile logo (local SVG, minimum 80px per design guide for desktop)
               img
                 [ Attr.src "/logo/square/square-smile.svg"
