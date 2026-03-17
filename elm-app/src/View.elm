@@ -158,7 +158,7 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
             [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.View) ]
             , button
                 [ Events.onClick (ToggleViewMode (if viewMode == Full then Thumbnail else Full))
-                , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-150 " ++
+                , Attr.class ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-150 " ++
                     if viewMode == Full then
                         "border-brand text-brand"
                     else
@@ -167,10 +167,8 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 , Attr.attribute "aria-label" (I18n.translate lang I18n.Descriptions)
                 , Attr.attribute "aria-pressed" (if viewMode == Full then "true" else "false")
                 ]
-                [ span [ Attr.class "flex items-center justify-center gap-2" ]
-                    [ span [] [ text "👁️" ]
-                    , span [] [ text (I18n.translate lang I18n.DescriptionsText) ]
-                    ]
+                [ span [] [ text "👁️" ]
+                , span [] [ text (I18n.translate lang I18n.DescriptionsText) ]
                 ]
             ]
         ]
@@ -231,7 +229,7 @@ renderMobileSidebar model =
                 [ label [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.View) ]
                 , button
                     [ Events.onClick (ToggleViewMode (if model.viewMode == Full then Thumbnail else Full))
-                    , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-150 " ++
+                    , Attr.class ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-150 " ++
                         if model.viewMode == Full then
                             "border-brand text-brand"
                         else
@@ -240,10 +238,8 @@ renderMobileSidebar model =
                     , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
                     , Attr.attribute "aria-pressed" (if model.viewMode == Full then "true" else "false")
                     ]
-                    [ span [ Attr.class "inline-flex items-center justify-center gap-2" ]
-                        [ text "👁️"
-                        , text (" " ++ I18n.translate model.lang I18n.DescriptionsText)
-                        ]
+                    [ span [] [ text "👁️" ]
+                    , span [] [ text (I18n.translate model.lang I18n.DescriptionsText) ]
                     ]
                 ]
             ]
