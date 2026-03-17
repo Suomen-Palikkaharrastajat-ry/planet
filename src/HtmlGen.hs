@@ -37,11 +37,11 @@ renderHead config = H.head $ do
     H.meta H.! A.charset "UTF-8"
     H.meta H.! A.name "viewport" H.! A.content "width=device-width, initial-scale=1.0"
     H.title (H.toHtml $ configTitle config)
-    H.link H.! A.rel "icon" H.! A.href "https://logo.palikkaharrastajat.fi/favicon/favicon.ico"
-    H.link H.! A.rel "icon" H.! A.type_ "image/png" H.! A.sizes "32x32" H.! A.href "https://logo.palikkaharrastajat.fi/favicon/favicon-32.png"
-    H.link H.! A.rel "apple-touch-icon" H.! A.sizes "180x180" H.! A.href "https://logo.palikkaharrastajat.fi/favicon/apple-touch-icon.png"
-    H.link H.! A.rel "icon" H.! A.type_ "image/png" H.! A.sizes "192x192" H.! A.href "https://logo.palikkaharrastajat.fi/favicon/icon-192.png"
-    H.link H.! A.rel "icon" H.! A.type_ "image/png" H.! A.sizes "512x512" H.! A.href "https://logo.palikkaharrastajat.fi/favicon/icon-512.png"
+    H.link H.! A.rel "icon" H.! A.href "/favicon/favicon.ico"
+    H.link H.! A.rel "icon" H.! A.type_ "image/png" H.! A.sizes "32x32" H.! A.href "/favicon/favicon-32.png"
+    H.link H.! A.rel "apple-touch-icon" H.! A.sizes "180x180" H.! A.href "/favicon/apple-touch-icon.png"
+    H.link H.! A.rel "icon" H.! A.type_ "image/png" H.! A.sizes "192x192" H.! A.href "/favicon/icon-192.png"
+    H.link H.! A.rel "icon" H.! A.type_ "image/png" H.! A.sizes "512x512" H.! A.href "/favicon/icon-512.png"
     H.style $ H.toHtml css
 
 renderCookieConsent :: Messages -> H.Html
@@ -67,11 +67,9 @@ renderIntro :: Config -> H.Html
 renderIntro config = H.div H.! A.class_ "intro" $ do
     H.a H.! A.href "/" H.! A.class_ "logo-link" $
         H.picture $ do
-            H.source H.! H.customAttribute "type" "image/webp"
-                     H.! H.customAttribute "srcset" "https://logo.palikkaharrastajat.fi/logo/horizontal/webp/horizontal-full.webp"
             H.source H.! H.customAttribute "type" "image/png"
-                     H.! H.customAttribute "srcset" "https://logo.palikkaharrastajat.fi/logo/horizontal/png/horizontal-full.png"
-            H.img H.! A.src "https://logo.palikkaharrastajat.fi/logo/horizontal/svg/horizontal-full.svg"
+                     H.! H.customAttribute "srcset" "/logo/horizontal/horizontal-full.png"
+            H.img H.! A.src "/logo/horizontal/horizontal-full.svg"
                   H.! A.alt (H.toValue $ configTitle config)
                   H.! A.class_ "site-logo"
     H.h1 (H.toHtml $ configTitle config)

@@ -1,4 +1,5 @@
 .env
+.devcontainer.json
 dist-newstyle/
 .stack-work/
 .claude/
@@ -9,6 +10,8 @@ public/
 !elm-app/public/
 elm-app/public/*
 !elm-app/public/fonts/
+!elm-app/public/logo/
+!elm-app/public/favicon/
 /planet
 /src/Main
 /elm-app/src/Data.elm

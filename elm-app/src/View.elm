@@ -129,14 +129,15 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 (\feedType ->
                     button
                         [ Events.onClick (ToggleFeedType feedType)
-                        , Attr.class ("cursor-pointer p-2 rounded-lg border " ++
+                        , Attr.class ("cursor-pointer p-2 rounded-lg border font-semibold transition-colors duration-fast " ++
                             if List.member feedType selectedFeedTypes then
                                 "bg-brand-yellow border-brand text-brand"
                             else
-                                "bg-gray-100 border-gray-200 text-gray-500 opacity-50"
+                                "bg-white border-gray-200 text-gray-400 hover:border-brand hover:text-brand"
                             )
                         , Attr.title (feedTypeToString lang feedType)
                         , Attr.attribute "aria-label" (feedTypeToString lang feedType)
+                        , Attr.attribute "aria-pressed" (if List.member feedType selectedFeedTypes then "true" else "false")
                         ]
                         [ feedTypeIcon feedType ]
                 )
@@ -146,13 +147,14 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
             [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.View) ]
             , button
                 [ Events.onClick (ToggleViewMode (if viewMode == Full then Thumbnail else Full))
-                , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full " ++
+                , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-fast " ++
                     if viewMode == Full then
                         "bg-brand-yellow border-brand text-brand"
                     else
-                        "bg-gray-100 border-gray-200 text-gray-500 opacity-50"
+                        "bg-white border-gray-200 text-gray-400 hover:border-brand hover:text-brand"
                     )
                 , Attr.attribute "aria-label" (I18n.translate lang I18n.Descriptions)
+                , Attr.attribute "aria-pressed" (if viewMode == Full then "true" else "false")
                 ]
                 [ text (I18n.translate lang I18n.Descriptions) ]
             ]
@@ -196,14 +198,15 @@ renderMobileSidebar model =
                     (\feedType ->
                         button
                             [ Events.onClick (ToggleFeedType feedType)
-                            , Attr.class ("cursor-pointer p-2 rounded-lg border " ++
+                            , Attr.class ("cursor-pointer p-2 rounded-lg border font-semibold transition-colors duration-fast " ++
                                 if List.member feedType model.selectedFeedTypes then
                                     "bg-brand-yellow border-brand text-brand"
                                 else
-                                    "bg-gray-100 border-gray-200 text-gray-500 opacity-50"
+                                    "bg-white border-gray-200 text-gray-400 hover:border-brand hover:text-brand"
                                 )
                             , Attr.title (feedTypeToString model.lang feedType)
                             , Attr.attribute "aria-label" (feedTypeToString model.lang feedType)
+                            , Attr.attribute "aria-pressed" (if List.member feedType model.selectedFeedTypes then "true" else "false")
                             ]
                             [ feedTypeIcon feedType ]
                     )
@@ -213,13 +216,14 @@ renderMobileSidebar model =
                 [ label [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.View) ]
                 , button
                     [ Events.onClick (ToggleViewMode (if model.viewMode == Full then Thumbnail else Full))
-                    , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full " ++
+                    , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-fast " ++
                         if model.viewMode == Full then
                             "bg-brand-yellow border-brand text-brand"
                         else
-                            "bg-gray-100 border-gray-200 text-gray-500 opacity-50"
+                            "bg-white border-gray-200 text-gray-400 hover:border-brand hover:text-brand"
                         )
                     , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
+                    , Attr.attribute "aria-pressed" (if model.viewMode == Full then "true" else "false")
                     ]
                     [ text (I18n.translate model.lang I18n.Descriptions) ]
                 ]
@@ -262,22 +266,17 @@ feedTypeToString lang feedType =
 renderIntro : Types.Lang -> Html Msg
 renderIntro lang =
     div [ Attr.class "mb-8" ]
-        [ -- Horizontal logo with SVG-first, WebP+PNG fallback; contains the site title text for screen readers
+        [ -- Horizontal logo with SVG-first, PNG fallback (local assets); contains the site title text for screen readers
           a [ Attr.href "/", Attr.class "block mb-2" ]
             [ node "picture"
                 []
                 [ node "source"
-                    [ Attr.attribute "type" "image/webp"
-                    , Attr.attribute "srcset" "https://logo.palikkaharrastajat.fi/logo/horizontal/webp/horizontal-full.webp"
-                    ]
-                    []
-                , node "source"
                     [ Attr.attribute "type" "image/png"
-                    , Attr.attribute "srcset" "https://logo.palikkaharrastajat.fi/logo/horizontal/png/horizontal-full.png"
+                    , Attr.attribute "srcset" "/logo/horizontal/horizontal-full.png"
                     ]
                     []
                 , img
-                    [ Attr.src "https://logo.palikkaharrastajat.fi/logo/horizontal/svg/horizontal-full.svg"
+                    [ Attr.src "/logo/horizontal/horizontal-full.svg"
                     , Attr.alt (I18n.translate lang I18n.Title)
                     , Attr.style "min-width" "200px"
                     , Attr.style "max-width" "300px"
