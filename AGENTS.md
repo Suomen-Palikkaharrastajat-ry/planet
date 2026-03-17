@@ -80,3 +80,36 @@ You **MUST STOP** and escalate to the user for guidance if you encounter any of 
 - **TODO files**: Project-specific `TODO.md` files may be in `.gitignore`. If you can't read them with the `read_file` tool, use `run_shell_command` with `cat`.
 - **Building and Testing**: This project uses a `Makefile` for common tasks. Use `make test` to run the test suite and `make build` to build the project.
 - **Proactive Refactoring**: After completing your primary task, review the codebase for potential refactoring opportunities that would improve maintainability and adherence to the project's ADRs.
+
+## 6. Style Guide Compliance
+
+This project follows the **Suomen Palikkaharrastajat ry** brand style guide.
+
+- **Human-readable**: https://logo.palikkaharrastajat.fi/
+- **Machine-readable (JSON-LD, authoritative)**: https://logo.palikkaharrastajat.fi/design-guide/index.jsonld
+  - Colors: https://logo.palikkaharrastajat.fi/design-guide/colors.jsonld
+  - Typography: https://logo.palikkaharrastajat.fi/design-guide/typography.jsonld
+  - Spacing: https://logo.palikkaharrastajat.fi/design-guide/spacing.jsonld
+  - Motion: https://logo.palikkaharrastajat.fi/design-guide/motion.jsonld
+  - Logos: https://logo.palikkaharrastajat.fi/design-guide/logos.jsonld
+  - Responsiveness: https://logo.palikkaharrastajat.fi/design-guide/responsiveness.jsonld
+
+**When making any UI change**, you MUST:
+
+1. **Check the JSON-LD spec first.** Any color, font, spacing, or animation value must come from a named design token — never hard-code raw hex values or pixel values directly in components.
+2. **Use brand colors correctly:**
+   - Primary brand color is `#05131D` (brand black), not blue.
+   - Brand accent is `#F2CD37` (yellow) — only for CTAs/highlights, always paired with brand-black text.
+   - Red `#C91A09` is for danger/error states only.
+   - Tailwind token classes: `bg-brand`, `text-brand`, `border-brand`, `bg-brand-yellow`.
+3. **Use Outfit font exclusively** (variable font, weight 100–900; OFL licensed). Never fall back to system-only fonts in designed output.
+4. **Respect logo usage rules:**
+   - Prefer SVG; use WebP with PNG fallback for raster formats.
+   - Minimum size: 80px wide (square logo), 200px wide (horizontal logo).
+   - 25% clear space on all four sides.
+   - Never stretch, recolour, add shadows, or distort.
+   - Do **not** use the animated logo variant when `prefers-reduced-motion: reduce` is set.
+5. **Use named spacing tokens** (4px base: space-1 through space-16); never use arbitrary px values.
+6. **Respect motion rules:** Animate `transform` and `opacity` only. Always wrap animations in `@media (prefers-reduced-motion: no-preference)`. Use `duration.fast` (150ms) for hover/focus, `duration.base` (300ms) for reveals, with `easing.standard` (`cubic-bezier(0.4, 0, 0.2, 1)`).
+7. **Semantic colors over raw values:** Use the semantic token names (e.g., `background.page = #FFFFFF`, `background.subtle = #F9FAFB`, `border.default = #E5E7EB`) so changes propagate correctly.
+8. **Page layout:** Every page wrapper uses `max-w-5xl mx-auto px-4` (1024px content width). Cards use `rounded-lg` (8px radius).
