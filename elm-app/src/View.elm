@@ -168,8 +168,8 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 , Attr.attribute "aria-pressed" (if viewMode == Full then "true" else "false")
                 ]
                 [ span [ Attr.class "inline-flex items-center justify-center gap-2" ]
-                    [ text "👁️"
-                    , text (" " ++ I18n.translate lang I18n.DescriptionsText)
+                    [ span [] [ text "👁️" ]
+                    , span [] [ text (I18n.translate lang I18n.DescriptionsText) ]
                     ]
                 ]
             ]
