@@ -24,6 +24,7 @@ type MsgKey
     | Filters
     | View
     | Descriptions
+    | DescriptionsText
     | Title
     | Compiled
     | Description
@@ -78,6 +79,9 @@ translate lang key =
 
                 Descriptions ->
                     "👁️ Kuvaukset"
+
+                DescriptionsText ->
+                    "Kuvaukset"
 
                 Title ->
                     "Palikkalinkit"
@@ -146,6 +150,9 @@ translate lang key =
 
                 Descriptions ->
                     "👁️ Descriptions"
+
+                DescriptionsText ->
+                    "Descriptions"
 
                 Title ->
                     "Palikkalinkit"

@@ -142,9 +142,9 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                         [ Events.onClick (ToggleFeedType feedType)
                         , Attr.class ("cursor-pointer p-2 rounded-lg border font-semibold transition-colors duration-150 " ++
                             if List.member feedType selectedFeedTypes then
-                                "bg-brand border-brand text-white"
+                                "border-brand text-brand"
                             else
-                                "bg-white border-gray-200 text-gray-500 hover:border-brand hover:text-brand"
+                                "border-transparent text-gray-400 opacity-50 hover:opacity-100 hover:text-brand"
                             )
                         , Attr.title (feedTypeToString lang feedType)
                         , Attr.attribute "aria-label" (feedTypeToString lang feedType)
@@ -160,14 +160,18 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 [ Events.onClick (ToggleViewMode (if viewMode == Full then Thumbnail else Full))
                 , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-150 " ++
                     if viewMode == Full then
-                        "bg-brand border-brand text-white"
+                        "border-brand text-brand"
                     else
-                        "bg-white border-gray-200 text-gray-500 hover:border-brand hover:text-brand"
+                        "border-transparent text-gray-400 opacity-50 hover:opacity-100 hover:text-brand"
                     )
                 , Attr.attribute "aria-label" (I18n.translate lang I18n.Descriptions)
                 , Attr.attribute "aria-pressed" (if viewMode == Full then "true" else "false")
                 ]
-                [ text (I18n.translate lang I18n.Descriptions) ]
+                [ span [ Attr.class "inline-flex items-center justify-center gap-2" ]
+                    [ text "👁️"
+                    , text (" " ++ I18n.translate lang I18n.DescriptionsText)
+                    ]
+                ]
             ]
         ]
 
@@ -211,9 +215,9 @@ renderMobileSidebar model =
                             [ Events.onClick (ToggleFeedType feedType)
                             , Attr.class ("cursor-pointer p-2 rounded-lg border font-semibold transition-colors duration-150 " ++
                                 if List.member feedType model.selectedFeedTypes then
-                                    "bg-brand border-brand text-white"
+                                    "border-brand text-brand"
                                 else
-                                    "bg-white border-gray-200 text-gray-500 hover:border-brand hover:text-brand"
+                                    "border-transparent text-gray-400 opacity-50 hover:opacity-100 hover:text-brand"
                                 )
                             , Attr.title (feedTypeToString model.lang feedType)
                             , Attr.attribute "aria-label" (feedTypeToString model.lang feedType)
@@ -229,14 +233,18 @@ renderMobileSidebar model =
                     [ Events.onClick (ToggleViewMode (if model.viewMode == Full then Thumbnail else Full))
                     , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-150 " ++
                         if model.viewMode == Full then
-                            "bg-brand border-brand text-white"
+                            "border-brand text-brand"
                         else
-                            "bg-white border-gray-200 text-gray-500 hover:border-brand hover:text-brand"
+                            "border-transparent text-gray-400 opacity-50 hover:opacity-100 hover:text-brand"
                         )
                     , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
                     , Attr.attribute "aria-pressed" (if model.viewMode == Full then "true" else "false")
                     ]
-                    [ text (I18n.translate model.lang I18n.Descriptions) ]
+                    [ span [ Attr.class "inline-flex items-center justify-center gap-2" ]
+                        [ text "👁️"
+                        , text (" " ++ I18n.translate model.lang I18n.DescriptionsText)
+                        ]
+                    ]
                 ]
             ]
         , -- Timeline navigation

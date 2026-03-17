@@ -430,7 +430,7 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.has [ Selector.text "👁️ Kuvaukset" ]
+                        |> Query.has [ Selector.text "Kuvaukset" ]
             , test "renders view mode toggle button with aria-label" <|
                 \_ ->
                     let
@@ -449,7 +449,7 @@ suite =
                         |> Query.fromHtml
                         |> Query.findAll [ Selector.attribute (Html.Attributes.attribute "aria-label" "👁️ Kuvaukset") ]
                         |> Query.first
-                        |> Query.has [ Selector.text "👁️ Kuvaukset" ]
+                        |> Query.has [ Selector.text "Kuvaukset" ]
             , test "renders hamburger menu button on mobile" <|
                 \_ ->
                     let
