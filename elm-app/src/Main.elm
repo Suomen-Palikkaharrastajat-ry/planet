@@ -317,7 +317,8 @@ recalculateVisibleGroups model =
             if String.isEmpty model.searchText then
                 model.items
             else
-                List.filterMap (\idx -> List.drop idx model.items |> List.head) model.searchedIds
+                List.sort model.searchedIds
+                    |> List.filterMap (\idx -> List.drop idx model.items |> List.head)
 
         filteredItems =
             baseItems
