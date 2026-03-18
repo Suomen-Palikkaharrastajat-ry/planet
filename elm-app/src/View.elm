@@ -132,7 +132,7 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 , Attr.placeholder (I18n.translate lang I18n.SearchPlaceholder)
                 , Attr.value searchText
                 , Events.onInput UpdateSearchText
-                , Attr.class "w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                , Attr.class "w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 ]
                 []
             ]
@@ -203,7 +203,7 @@ renderMobileSidebar model =
                     , Attr.placeholder (I18n.translate model.lang I18n.SearchPlaceholder)
                     , Attr.value model.searchText
                     , Events.onInput UpdateSearchText
-                    , Attr.class "w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                    , Attr.class "w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                     ]
                     []
                 ]
@@ -291,7 +291,7 @@ renderIntro lang =
                 , Attr.class "w-20 h-20"
                 ]
                 []
-            , span [ Attr.class "text-3xl font-bold text-brand" ] [ text (I18n.translate lang I18n.Title) ]
+            , span [ Attr.class "text-3xl font-bold tracking-tight text-brand" ] [ text (I18n.translate lang I18n.Title) ]
             ]
         ]
 
@@ -303,7 +303,7 @@ renderMonthSection lang viewMode group =
         , Attr.class "mb-8"
         , Attr.style "scroll-margin-top" "80px"
         ]
-        [ h2 [ Attr.class "text-2xl font-bold text-gray-700 mb-4 border-b border-gray-200 pb-2" ]
+        [ h2 [ Attr.class "text-2xl font-bold text-brand mb-4 border-b border-gray-200 pb-2" ]
             [ text group.monthLabel ]
         , Html.Keyed.node "div"
             [ Attr.class "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" ]
@@ -359,12 +359,12 @@ renderFullCard lang item =
                         , Attr.target "_blank"
                         , Attr.rel "noopener noreferrer"
                         , Attr.attribute "aria-label" (item.itemSourceTitle ++ I18n.translate lang I18n.OpenInNewWindow)
-                        , Attr.class "text-xs font-semibold uppercase tracking-wider text-gray-500 hover:underline"
+                        , Attr.class "text-xs font-semibold uppercase tracking-widest text-gray-500 hover:underline"
                         ]
                         [ text item.itemSourceTitle ]
 
                 Nothing ->
-                    span [ Attr.class "text-xs font-semibold uppercase tracking-wider text-gray-500" ] [ text item.itemSourceTitle ]
+                    span [ Attr.class "text-xs font-semibold uppercase tracking-widest text-gray-500" ] [ text item.itemSourceTitle ]
             , -- Title
               h3 [ Attr.class "text-xl font-semibold text-brand mt-1 line-clamp-2" ]
                 [ a

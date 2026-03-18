@@ -11,7 +11,7 @@ module.exports = {
       colors: {
         // Brand core colors
         brand: '#05131D',
-        'brand-yellow': '#F2CD37',
+        'brand-yellow': '#FAC80A',
         'brand-red': '#C91A09',
         // Nougat palette
         'nougat-light': '#F6D7B3',
@@ -20,7 +20,7 @@ module.exports = {
         // Semantic aliases (background)
         'bg-page': '#FFFFFF',
         'bg-subtle': '#F9FAFB',
-        'bg-accent': '#F2CD37',
+        'bg-accent': '#FAC80A',
         'bg-dark': '#05131D',
         // Semantic aliases (border)
         'border-brand': '#05131D',
