@@ -35,6 +35,7 @@ type MsgKey
     | ImageName
     | OpenInNewWindow
     | NavigateTo
+    | OrgName
 
 
 {-| Translate a key to the given language
@@ -113,6 +114,9 @@ translate lang key =
                 NavigateTo ->
                     "Siirry "
 
+                OrgName ->
+                    "Suomen Palikkaharrastajat ry"
+
         Types.En ->
             case key of
                 SkipToContent ->
@@ -183,3 +187,6 @@ translate lang key =
 
                 NavigateTo ->
                     "Navigate to "
+
+                OrgName ->
+                    "Suomen Palikkaharrastajat ry"

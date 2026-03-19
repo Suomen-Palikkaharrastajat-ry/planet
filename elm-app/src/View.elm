@@ -30,16 +30,14 @@ view model =
             ]
             [ text (I18n.translate model.lang I18n.SkipToContent) ]
         , -- Mobile top bar: logo + title on left, hamburger on right (same height)
-          div [ Attr.class "md:hidden flex items-center justify-between px-4 h-14 bg-white border-b border-gray-200 sticky top-0 z-40" ]
-            [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-2" ]
+          div [ Attr.class "md:hidden flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200 sticky top-0 z-40" ]
+            [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )) ]
                 [ img
-                    [ Attr.src "/logo/square/square-smile.svg"
-                    , Attr.alt ""
-                    , Attr.attribute "aria-hidden" "true"
-                    , Attr.class "h-8 w-8"
+                    [ Attr.src "/logo/horizontal/horizontal-full.svg"
+                    , Attr.alt (I18n.translate model.lang I18n.OrgName)
+                    , Attr.class "h-auto w-[200px]"
                     ]
                     []
-                , span [ Attr.class "text-lg font-bold text-brand" ] [ text (I18n.translate model.lang I18n.Title) ]
                 ]
             , button
                 [ Events.onClick ToggleSidebar
@@ -283,9 +281,9 @@ renderIntro : Types.Lang -> Html Msg
 renderIntro lang =
     div [ Attr.class "mb-8 hidden md:block" ]
         [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-4 w-fit" ]
-            [ -- Square-smile logo (local SVG, minimum 80px per design guide for desktop)
+            [ -- Square-smile-full logo (official page-header lockup per design guide logos.jsonld#contextMapping.pageHeader)
               img
-                [ Attr.src "/logo/square/square-smile.svg"
+                [ Attr.src "/logo/square/square-smile-full.svg"
                 , Attr.alt ""
                 , Attr.attribute "aria-hidden" "true"
                 , Attr.class "w-20 h-20"
