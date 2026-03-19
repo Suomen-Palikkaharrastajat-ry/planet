@@ -285,7 +285,7 @@ renderIntro lang =
         [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-4 w-fit" ]
             [ -- Square-smile-full logo (official page-header lockup per design guide logos.jsonld#contextMapping.pageHeader)
               img
-                [ Attr.src "/logo/square/square-smile-full.svg"
+                [ Attr.src "/logo/square/square-smile.svg"
                 , Attr.alt ""
                 , Attr.attribute "aria-hidden" "true"
                 , Attr.class "w-20 h-20"
