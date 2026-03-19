@@ -7,12 +7,13 @@
       "vscode"
     ];
     devcontainer.settings.customizations.vscode.extensions = [
-      "datakurre.devenv"
       "anthropic.claude-code"
-      "jnoortheen.nix-ide"
+      "datakurre.devenv"
+      "elmTooling.elm-ls-vscode"
       "GitHub.copilot"
       "GitHub.copilot-chat"
-      "sbrink.elm"
+      "jnoortheen.nix-ide"
+      "vscodevim.vim"
     ];
   };
 }

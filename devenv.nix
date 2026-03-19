@@ -14,7 +14,6 @@ let
   shell = { pkgs, ... }: {
     # https://devenv.sh/packages/
     packages = [
-      pkgs.claude-code
       pkgs.elm-land
       pkgs.elmPackages.elm
       pkgs.elmPackages.elm-format

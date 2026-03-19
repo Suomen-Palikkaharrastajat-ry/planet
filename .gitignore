@@ -1,19 +1,38 @@
+.gitignore — minimal, organized
+
+# Environment
 .env
 .devcontainer.json
-dist-newstyle/
-.stack-work/
-.claude/
 .devenv*
 devenv.local.nix
 devenv.local.yaml
-public/
-!elm-app/public/
+
+# Build artifacts (Haskell)
+dist-newstyle/
+.stack-work/
+planet
+src/Main
+
+# Elm / frontend build artifacts
+elm-app/node_modules/
+elm-app/elm-stuff/
+elm-app/.vite/
+elm-app/dist/
 elm-app/public/*
 !elm-app/public/fonts/
 !elm-app/public/logo/
 !elm-app/public/favicon/
-/planet
-/src/Main
-/elm-app/src/Data.elm
-/elm-app/.vite
+elm-app/src/Data.elm
+
+# Top-level generated output
+public/
+
+# Editor / tooling
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc / local
+.claude/
 TODO*
