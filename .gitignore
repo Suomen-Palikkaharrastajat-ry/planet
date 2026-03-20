@@ -34,6 +34,13 @@ Thumbs.db
 *.swp
 *.swo
 
+# PocketBase data directory (local instance state — not committed)
+pb_data/
+
+# PocketBase auto-generates types.d.ts and *.db in the migrations dir — exclude them.
+pb_migrations/types.d.ts
+pb_migrations/*.db
+
 # --- Misc / local ---
 .claude/
 TODO*

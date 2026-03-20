@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main (main, tests) where
 
 import Test.Tasty
@@ -14,11 +15,25 @@ import Text.Feed.Types
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Tree (TagTree (..))
 
+import Data.Aeson (Value (..), decode, encode, object, (.=))
+import qualified Data.Aeson.KeyMap as KM
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+
 import Config
 import qualified ElmGen
 import qualified FeedParser
 import HtmlSanitizer
 import I18n
+import PocketBase
+    ( decodeAppItemFromPb
+    , encodeAppItemToPb
+    , urlEncodeFilter
+    )
+import PocketBaseSync
+    ( UpsertAction (..)
+    , buildUpsertAction
+    )
 
 -- Helper function for tests
 join :: Maybe (Maybe a) -> Maybe a
@@ -38,6 +53,7 @@ tests =
         , feedTests
         , htmlTests
         , utilityTests
+        , pocketBaseTests
         ]
 
 invariantsTests :: TestTree
@@ -385,4 +401,119 @@ utilityTests =
         [ testCase "join Just Just" $ join (Just (Just "x")) @?= Just "x"
         , testCase "join Just Nothing" $ join (Just Nothing :: Maybe (Maybe String)) @?= Nothing
         , testCase "join Nothing" $ join (Nothing :: Maybe (Maybe String)) @?= Nothing
+        ]
+
+-- ---------------------------------------------------------------------------
+-- PocketBase unit tests (no live PocketBase required)
+-- ---------------------------------------------------------------------------
+
+samplePbRecord :: Value
+samplePbRecord = object
+    [ "id"           .= ("abc123" :: T.Text)
+    , "link"         .= ("https://example.com" :: T.Text)
+    , "title"        .= ("Hello" :: T.Text)
+    , "source_title" .= ("Example Blog" :: T.Text)
+    , "feed_type"    .= ("feed" :: T.Text)
+    , "pub_date"     .= ("2023-01-15T10:00:00Z" :: T.Text)
+    ]
+
+sampleAppItem :: AppItem
+sampleAppItem = AppItem
+    { itemTitle       = T.pack "Hello"
+    , itemLink        = T.pack "https://example.com"
+    , itemDate        = Nothing
+    , itemDesc        = Nothing
+    , itemDescText    = Nothing
+    , itemDescSnippet = Nothing
+    , itemThumbnail   = Nothing
+    , itemSourceTitle = T.pack "Example Blog"
+    , itemSourceLink  = Nothing
+    , itemType        = Feed
+    }
+
+pocketBaseTests :: TestTree
+pocketBaseTests =
+    testGroup
+        "PocketBase Tests" -- Covers ADR-0001; unit tests run without live PocketBase
+        [ testCase "decodeAppItemFromPb: valid record" $
+            case decodeAppItemFromPb samplePbRecord of
+                Left err   -> assertFailure $ "Decode failed: " <> err
+                Right item -> do
+                    itemLink  item @?= T.pack "https://example.com"
+                    itemTitle item @?= T.pack "Hello"
+                    itemType  item @?= Feed
+
+        , testCase "decodeAppItemFromPb: missing link fails" $ do
+            let record = object
+                    [ "title"        .= ("Hello" :: T.Text)
+                    , "source_title" .= ("Blog" :: T.Text)
+                    , "feed_type"    .= ("feed" :: T.Text)
+                    ]
+            case decodeAppItemFromPb record of
+                Left _  -> return ()  -- expected
+                Right _ -> assertFailure "Should fail when link is missing"
+
+        , testCase "encodeAppItemToPb: correct keys present" $ do
+            let val = encodeAppItemToPb sampleAppItem
+            case val of
+                Object km -> do
+                    assertBool "has link"         $ KM.member "link"         km
+                    assertBool "has title"        $ KM.member "title"        km
+                    assertBool "has source_title" $ KM.member "source_title" km
+                    assertBool "has feed_type"    $ KM.member "feed_type"    km
+                _ -> assertFailure "Expected JSON object"
+
+        , testCase "encodeAppItemToPb: feed_type is 'feed'" $ do
+            let val = encodeAppItemToPb sampleAppItem
+            case val of
+                Object km ->
+                    KM.lookup "feed_type" km @?= Just (String "feed")
+                _ -> assertFailure "Expected JSON object"
+
+        , testCase "encodeAppItemToPb: youtube feed_type" $ do
+            let item = sampleAppItem { itemType = YouTube }
+                val  = encodeAppItemToPb item
+            case val of
+                Object km ->
+                    KM.lookup "feed_type" km @?= Just (String "youtube")
+                _ -> assertFailure "Expected JSON object"
+
+        , testCase "encodeAppItemToPb: image feed_type" $ do
+            let item = sampleAppItem { itemType = Image }
+                val  = encodeAppItemToPb item
+            case val of
+                Object km ->
+                    KM.lookup "feed_type" km @?= Just (String "image")
+                _ -> assertFailure "Expected JSON object"
+
+        , testCase "buildUpsertAction: Create when link absent" $ do
+            let linkMap = Map.empty :: Map T.Text T.Text
+            buildUpsertAction linkMap sampleAppItem @?= Create
+
+        , testCase "buildUpsertAction: Update when link present" $ do
+            let linkMap = Map.singleton (T.pack "https://example.com") (T.pack "rec001")
+            buildUpsertAction linkMap sampleAppItem @?= Update (T.pack "rec001")
+
+        , testCase "buildUpsertAction: picks first match (Map.fromListWith keeps first)" $ do
+            let linkMap = Map.fromListWith (\_ old -> old)
+                    [ (T.pack "https://example.com", T.pack "first-id")
+                    , (T.pack "https://example.com", T.pack "second-id")
+                    ]
+            buildUpsertAction linkMap sampleAppItem @?= Update (T.pack "first-id")
+
+        , testCase "urlEncodeFilter: encodes link= filter" $ do
+            let result = urlEncodeFilter (T.pack "link=\"https://example.com\"")
+            -- '=' -> %3D, '"' -> %22, ':' -> %3A, '/' -> %2F
+            assertBool "contains %3D" $ T.isInfixOf (T.pack "%3D") result
+            assertBool "contains %22" $ T.isInfixOf (T.pack "%22") result
+            assertBool "contains %3A" $ T.isInfixOf (T.pack "%3A") result
+            assertBool "contains %2F" $ T.isInfixOf (T.pack "%2F") result
+
+        , testCase "urlEncodeFilter: alphanumeric unchanged" $ do
+            let result = urlEncodeFilter (T.pack "abc123")
+            result @?= T.pack "abc123"
+
+        , testCase "urlEncodeFilter: safe chars unchanged" $ do
+            let result = urlEncodeFilter (T.pack "-_.~")
+            result @?= T.pack "-_.~"
         ]

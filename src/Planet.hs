@@ -19,6 +19,8 @@ import Config
 import ElmGen
 import FeedParser
 import I18n
+import PocketBase (loadPbConfig)
+import PocketBaseSync (fetchAllAppItemsFromPb, printSyncReport, syncItemsToPb)
 
 generateOpml :: Config -> LT.Text
 generateOpml config =
@@ -84,10 +86,21 @@ main = do
             -- Sort by date descending
             let sortedItems = sortOn (Down . itemDate) allItems
 
-            let elmModule = generateElmModule sortedItems
+            -- Optionally sync to PocketBase and read back the full catalogue
+            maybePbCfg <- loadPbConfig
+            finalItems <- case maybePbCfg of
+                Nothing  -> do
+                    putStrLn "POCKETBASE_URL not set — skipping PocketBase sync, using raw feed data"
+                    return sortedItems
+                Just cfg -> do
+                    report <- syncItemsToPb cfg sortedItems
+                    printSyncReport report
+                    fetchAllAppItemsFromPb cfg
+
+            let elmModule = generateElmModule finalItems
 
             -- Generate search index
-            let searchIndex = generateSearchIndex sortedItems
+            let searchIndex = generateSearchIndex finalItems
             createDirectoryIfMissing True "elm-app/public"
             LBS.writeFile "elm-app/public/search-index.json" searchIndex
             putStrLn "Search index generated in elm-app/public/search-index.json"
