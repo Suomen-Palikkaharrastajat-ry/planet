@@ -5,7 +5,7 @@ module HtmlSanitizer (cleanAndTruncate, normalizeVoids, pruneTree, takeWithLimit
 import Data.Char (isSpace)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.HTML.TagSoup (Tag (..), parseTags, renderTags, isTagText)
+import Text.HTML.TagSoup (Tag (..), isTagText, parseTags, renderTags)
 import Text.HTML.TagSoup.Tree (TagTree (..), flattenTree, tagTree)
 
 -- HTML sanitization and cleaning utilities
@@ -25,7 +25,7 @@ stripHtmlTags html =
         tags = parseTags html
         textTags = [t | TagText t <- tags]
         cleanedText = T.intercalate "" textTags
-    in
+     in
         T.take 200 $ T.replace "\n" " " cleanedText
 
 -- Helper to ensure void tags are properly closed for tree construction

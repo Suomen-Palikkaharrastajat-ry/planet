@@ -66,10 +66,11 @@ renderTimelineNav msgs locale now localTZ groups = H.nav H.! A.class_ "timeline"
 renderIntro :: Config -> H.Html
 renderIntro config = H.div H.! A.class_ "intro" $
     H.a H.! A.href "/" H.! A.class_ "site-header-link" $ do
-        H.img H.! A.src "/logo/square/square-smile.svg"
-              H.! A.alt ""
-              H.! H.customAttribute "aria-hidden" "true"
-              H.! A.class_ "site-logo"
+        H.img
+            H.! A.src "/logo/square/square-smile.svg"
+            H.! A.alt ""
+            H.! H.customAttribute "aria-hidden" "true"
+            H.! A.class_ "site-logo"
         H.h1 (H.toHtml $ configTitle config)
 
 renderMonthSection :: TimeLocale -> (Text, Text, [AppItem]) -> H.Html

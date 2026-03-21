@@ -1,11 +1,10 @@
 module UtilsSpec where
 
-{-| Tests for Utils module
-
-Covers: US-001 (Aggregate Feeds)
-Constrained by: ADR-0000-agent-guidance.md
-
--}
+-- \| Tests for Utils module
+--
+-- Covers: US-001 (Aggregate Feeds)
+-- Constrained by: ADR-0000-agent-guidance.md
+--
 
 import Test.Tasty
 import Test.Tasty.HUnit

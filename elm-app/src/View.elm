@@ -30,7 +30,7 @@ view model =
             ]
             [ text (I18n.translate model.lang I18n.SkipToContent) ]
         , -- Mobile top bar: logo + title on left, hamburger on right (same height)
-          div [ Attr.class "md:hidden flex items-center justify-between px-4 h-14 bg-white border-b border-gray-200 sticky top-0 z-40" ]
+          div [ Attr.class "flex items-center justify-between px-4 h-14 bg-white border-b border-gray-200 sticky top-0 z-40" ]
             [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-2" ]
                 [ img
                     [ Attr.src "/logo/square/square-smile.svg"
@@ -43,7 +43,7 @@ view model =
                 ]
             , button
                 [ Events.onClick ToggleSidebar
-                , Attr.class "p-2 rounded-lg text-brand"
+                , Attr.class "md:hidden p-2 rounded-lg text-brand"
                 , Attr.style "cursor" "pointer"
                 , Attr.attribute "aria-label" (if model.isSidebarVisible then I18n.translate model.lang I18n.CloseMenu else I18n.translate model.lang I18n.OpenMenu)
                 ]
@@ -61,8 +61,8 @@ view model =
                 [ Attr.id "main-content"
                 , Attr.class "flex-1 p-6 max-w-5xl mx-auto px-4"
                 ]
-                [ renderIntro model.lang
-                , Html.Keyed.node "div"
+                [ 
+                 Html.Keyed.node "div"
                     []
                     (List.map
                         (\group -> ( group.monthId, renderMonthSection model.lang model.viewMode group ))
@@ -467,5 +467,7 @@ renderFooter : Types.Lang -> String -> Html Msg
 renderFooter lang timestamp =
     footer [ Attr.class "mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm" ]
         [ p [] [ text (I18n.translate lang I18n.Description) ]
-        , p [ Attr.class "mt-1" ] [ text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | "), a [ Attr.href "opml.xml", Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ] ]
+        , p [ Attr.class "mt-1"
+                , Attr.style "cursor" "pointer"
+     ] [ text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | "), a [ Attr.href "opml.xml", Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ] ]
         ]

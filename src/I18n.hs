@@ -1,6 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module I18n (
     FeedType (..),
@@ -16,11 +16,11 @@ module I18n (
     fiTimeLocale,
 ) where
 
+import Data.Aeson (ToJSON (..))
 import Data.Text (Text)
 import Data.Time (UTCTime)
 import Data.Time.Format (TimeLocale (..), defaultTimeLocale)
 import GHC.Generics (Generic)
-import Data.Aeson (ToJSON (..))
 
 -- Configuration Types
 data FeedType = Feed | YouTube | Image

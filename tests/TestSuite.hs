@@ -5,6 +5,7 @@ import Test.Tasty.HUnit
 
 import qualified Data.Text as T
 import Data.Time
+import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.Time.Zones
 import Data.Time.Zones.All
 import Data.XML.Types
@@ -12,11 +13,10 @@ import qualified Text.Atom.Feed as Atom
 import Text.Feed.Types
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Tree (TagTree (..))
-import Data.Time.Format.ISO8601 (iso8601ParseM)
 
 import Config
-import qualified FeedParser
 import qualified ElmGen
+import qualified FeedParser
 import HtmlSanitizer
 import I18n
 
@@ -305,37 +305,38 @@ feedTests =
         , testCase "FeedParser.parseItem Atom published date preferred" $ do
             let publishedDate = T.pack "2025-12-31T23:55:00Z"
                 updatedDate = T.pack "2026-01-01T17:45:09Z"
-                entry = (Atom.nullEntry (T.pack "id") (Atom.TextString (T.pack "Test Atom Title")) (read "2000-01-01 00:00:00 UTC"))
-                    { Atom.entryPublished = Just publishedDate
-                    , Atom.entryUpdated = updatedDate
-                    , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
-                    }
+                entry =
+                    (Atom.nullEntry (T.pack "id") (Atom.TextString (T.pack "Test Atom Title")) (read "2000-01-01 00:00:00 UTC"))
+                        { Atom.entryPublished = Just publishedDate
+                        , Atom.entryUpdated = updatedDate
+                        , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
+                        }
                 item = AtomItem entry
                 feedConfig = FeedConfig Feed (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack publishedDate)
-            
-            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing Nothing Nothing (T.pack "Test Feed") Nothing Feed)
 
+            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing Nothing Nothing (T.pack "Test Feed") Nothing Feed)
         , testCase "FeedParser.parseItem Atom updated date used if published missing" $ do
             let updatedDate = T.pack "2026-01-01T17:45:09Z"
-                entry = (Atom.nullEntry (T.pack "id") (Atom.TextString (T.pack "Test Atom Title")) (read "2000-01-01 00:00:00 UTC"))
-                    { Atom.entryPublished = Nothing
-                    , Atom.entryUpdated = updatedDate
-                    , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
-                    }
+                entry =
+                    (Atom.nullEntry (T.pack "id") (Atom.TextString (T.pack "Test Atom Title")) (read "2000-01-01 00:00:00 UTC"))
+                        { Atom.entryPublished = Nothing
+                        , Atom.entryUpdated = updatedDate
+                        , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
+                        }
                 item = AtomItem entry
                 feedConfig = FeedConfig Feed (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack updatedDate)
 
             FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing Nothing Nothing (T.pack "Test Feed") Nothing Feed)
-
         , testCase "FeedParser.parseItem Atom updated date used when published is missing" $ do
             let updatedDate = T.pack "2026-01-01T17:45:09Z"
-                entry = (Atom.nullEntry (T.pack "id") (Atom.TextString (T.pack "Test Atom Title")) (read "2000-01-01 00:00:00 UTC"))
-                    { Atom.entryPublished = Nothing
-                    , Atom.entryUpdated = updatedDate
-                    , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
-                    }
+                entry =
+                    (Atom.nullEntry (T.pack "id") (Atom.TextString (T.pack "Test Atom Title")) (read "2000-01-01 00:00:00 UTC"))
+                        { Atom.entryPublished = Nothing
+                        , Atom.entryUpdated = updatedDate
+                        , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
+                        }
                 item = AtomItem entry
                 feedConfig = FeedConfig Feed (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack updatedDate)
@@ -371,7 +372,7 @@ htmlTests =
                 imageItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing Nothing Nothing (T.pack "") Nothing Image
                 items = [feedItem, youtubeItem, imageItem]
                 elmCode = ElmGen.generateElmModule items
-            
+
             assertBool "Contains Feed type" (T.isInfixOf (T.pack "itemType = Feed") elmCode)
             assertBool "Contains YouTube type" (T.isInfixOf (T.pack "itemType = YouTube") elmCode)
             assertBool "Contains Image type" (T.isInfixOf (T.pack "itemType = Image") elmCode)

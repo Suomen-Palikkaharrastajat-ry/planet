@@ -27,7 +27,7 @@ module FeedParser (
     isMediaThumbnail,
     getUrlAttr,
     join,
-    getFeedTitle
+    getFeedTitle,
 ) where
 
 import Control.Applicative ((<|>))
@@ -39,8 +39,11 @@ import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-import Data.Time.Format.ISO8601 (iso8601ParseM) -- Re-added missing import
-import Data.Time.Format (parseTimeM, defaultTimeLocale) -- Re-added missing import
+
+-- Re-added missing import
+
+import Data.Time.Format (defaultTimeLocale, parseTimeM) -- Re-added missing import
+import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.XML.Types (Content (..), Element (..), Name (..), Node (..))
 import Network.HTTP.Simple (Response, getResponseBody, httpLBS, parseRequest)
 import qualified Text.Atom.Feed as Atom
@@ -57,7 +60,7 @@ import I18n
 normalizeUrl :: Text -> Text
 normalizeUrl =
     T.replace "https://///" "https://"
-    . T.replace "http://///" "http://"
+        . T.replace "http://///" "http://"
 
 newtype FeedHandler = FeedHandler
     { fhGetMediaDescription :: Item -> Maybe Text
@@ -67,6 +70,7 @@ getFeedHandler :: FeedType -> FeedHandler
 getFeedHandler Feed = FeedHandler{fhGetMediaDescription = getAtomMediaDescription}
 getFeedHandler YouTube = FeedHandler{fhGetMediaDescription = getYouTubeMediaDescription}
 getFeedHandler Image = FeedHandler{fhGetMediaDescription = getFlickrMediaDescription}
+
 -- Fetching
 fetchFeed :: FeedConfig -> IO [AppItem]
 fetchFeed fc = do
@@ -87,7 +91,7 @@ fetchFeed fc = do
                 Nothing -> do
                     putStrLn $ "Failed to parse feed: " ++ T.unpack displayTitle ++ ": invalid or unsupported feed format"
                     return []
-                Just feed -> 
+                Just feed ->
                     let altLink = getFeedAlternateLink feed
                         extractedTitle = getFeedTitle feed
                         finalTitle = case feedTitle fc of
@@ -95,7 +99,7 @@ fetchFeed fc = do
                             Nothing -> case extractedTitle of
                                 Just t -> t
                                 Nothing -> T.pack "Unknown Feed"
-                    in return $ mapMaybe (parseItem (fc { feedTitle = Just finalTitle }) altLink) (getFeedItems feed)
+                     in return $ mapMaybe (parseItem (fc{feedTitle = Just finalTitle}) altLink) (getFeedItems feed)
 
 -- Helper for date join
 join :: Maybe (Maybe a) -> Maybe a
@@ -106,7 +110,7 @@ stripHtml :: Text -> Text
 stripHtml = T.unwords . mapMaybe fromTagText . parseTags
   where
     fromTagText (TagText s) = Just s
-    fromTagText _           = Nothing
+    fromTagText _ = Nothing
 
 -- Base parseItem function
 parseItem :: FeedConfig -> Maybe Text -> Item -> Maybe AppItem
@@ -294,7 +298,7 @@ getFeedAlternateLink feed = case feed of
     Text.Feed.Types.AtomFeed af -> case find (\l -> case Atom.linkRel l of Just (Left r) -> r == "alternate" || r == "http://www.iana.org/assignments/relation/alternate"; Just (Right uri) -> uri == "alternate" || uri == "http://www.iana.org/assignments/relation/alternate"; _ -> False) (Atom.feedLinks af) of
         Just l -> Just (Atom.linkHref l)
         Nothing -> findAlternateLink (map NodeElement (Atom.feedOther af))
-    Text.Feed.Types.RSSFeed rf -> 
+    Text.Feed.Types.RSSFeed rf ->
         case findAlternateLink (map NodeElement (RSS.rssChannelOther (RSS.rssChannel rf))) of
             Just l -> Just l
             Nothing -> Just (normalizeUrl $ RSS.rssLink (RSS.rssChannel rf))
@@ -302,16 +306,17 @@ getFeedAlternateLink feed = case feed of
     _ -> Nothing
   where
     findAlternateLink [] = Nothing
-    findAlternateLink (n:ns) = case n of
-        NodeElement e -> if nameLocalName (elementName e) == "link"
-                         then case getAttr "rel" e of
-                             Just "alternate" -> getAttr "href" e
-                             _ -> findAlternateLink ns
-                         else findAlternateLink ns
+    findAlternateLink (n : ns) = case n of
+        NodeElement e ->
+            if nameLocalName (elementName e) == "link"
+                then case getAttr "rel" e of
+                    Just "alternate" -> getAttr "href" e
+                    _ -> findAlternateLink ns
+                else findAlternateLink ns
         _ -> findAlternateLink ns
-    getAttr attr e = 
+    getAttr attr e =
         case filter (\(n, _) -> nameLocalName n == attr) (elementAttributes e) of
-            ((_, [ContentText t]):_) -> Just t
+            ((_, [ContentText t]) : _) -> Just t
             _ -> Nothing
 
 getFeedTitle :: Text.Feed.Types.Feed -> Maybe Text
@@ -322,8 +327,8 @@ getFeedTitle feed = case feed of
     _ -> Nothing
   where
     findTitle [] = Nothing
-    findTitle (e:es) = case elementName e of
+    findTitle (e : es) = case elementName e of
         Name "title" _ _ -> case elementNodes e of
-            (NodeContent (ContentText t):_) -> Just t
+            (NodeContent (ContentText t) : _) -> Just t
             _ -> findTitle es
         _ -> findTitle es

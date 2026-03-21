@@ -54,7 +54,6 @@ parseConfig content = do
         typeStr <- case lookupKey "type" of
             Just (Toml.VString t) -> Right t
             _ -> Right $ T.pack "rss" -- Default to "rss" if not specified
-
         ft <- case () of
             () | typeStr == T.pack "rss" -> Right Feed
             () | typeStr == T.pack "blog" -> Right Feed

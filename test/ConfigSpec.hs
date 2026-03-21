@@ -1,11 +1,10 @@
 module ConfigSpec where
 
-{-| Tests for Config module
-
-Covers: US-002 (Configure Planet)
-Constrained by: ADR-0000-agent-guidance.md
-
--}
+-- \| Tests for Config module
+--
+-- Covers: US-002 (Configure Planet)
+-- Constrained by: ADR-0000-agent-guidance.md
+--
 
 import Test.Tasty
 import Test.Tasty.HUnit
