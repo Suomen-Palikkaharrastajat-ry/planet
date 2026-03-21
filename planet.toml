@@ -49,10 +49,10 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC2oUI4QDXFBJ6kHorUvV
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCevQ7uLnqJYWeTDLtc8I4uw"
 
-[[feeds]]
-# Vilzu
-type = "youtube"
-url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIDvVMnuu8WAeIXA_GsnNwA"
+#[[feeds]]
+## Vilzu
+#type = "youtube"
+##url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIDvVMnuu8WAeIXA_GsnNwA"
 
 [[feeds]]
 # Megsu_Begsu
