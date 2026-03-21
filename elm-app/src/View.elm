@@ -141,11 +141,11 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 (\feedType ->
                     button
                         [ Events.onClick (ToggleFeedType feedType)
-                        , Attr.class ("cursor-pointer p-2 rounded-lg border font-semibold transition-colors duration-150 " ++
+                        , Attr.class ("cursor-pointer p-2 border font-semibold transition-colors duration-150 " ++
                             if List.member feedType selectedFeedTypes then
-                                "border-brand text-brand"
+                                "border-brand text-brand active:bg-brand-yellow"
                             else
-                                "border-transparent text-gray-400 opacity-50 hover:opacity-100 hover:text-brand"
+                                "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
                             )
                         , Attr.title (feedTypeToString lang feedType)
                         , Attr.attribute "aria-label" (feedTypeToString lang feedType)
@@ -159,11 +159,11 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
             [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.View) ]
             , button
                 [ Events.onClick (ToggleViewMode (if viewMode == Full then Thumbnail else Full))
-                , Attr.class ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-150 " ++
+                , Attr.class ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm border w-full font-semibold transition-colors duration-150 " ++
                     if viewMode == Full then
-                        "border-brand text-brand"
+                        "border-brand text-brand active:bg-brand-yellow"
                     else
-                        "border-transparent text-gray-400 opacity-50 hover:opacity-100 hover:text-brand"
+                        "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
                     )
                 , Attr.attribute "aria-label" (I18n.translate lang I18n.Descriptions)
                 , Attr.attribute "aria-pressed" (if viewMode == Full then "true" else "false")
@@ -203,7 +203,7 @@ renderMobileSidebar model =
                     , Attr.placeholder (I18n.translate model.lang I18n.SearchPlaceholder)
                     , Attr.value model.searchText
                     , Events.onInput UpdateSearchText
-                    , Attr.class "w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                    , Attr.class "w-full px-3 py-2 border border-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                     ]
                     []
                 ]
@@ -212,11 +212,11 @@ renderMobileSidebar model =
                     (\feedType ->
                         button
                             [ Events.onClick (ToggleFeedType feedType)
-                            , Attr.class ("cursor-pointer p-2 rounded-lg border font-semibold transition-colors duration-150 " ++
+                            , Attr.class ("cursor-pointer p-2 border font-semibold transition-colors duration-150 " ++
                                 if List.member feedType model.selectedFeedTypes then
-                                    "border-brand text-brand"
+                                    "border-brand text-brand active:bg-brand-yellow"
                                 else
-                                    "border-transparent text-gray-400 opacity-50 hover:opacity-100 hover:text-brand"
+                                    "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
                                 )
                             , Attr.title (feedTypeToString model.lang feedType)
                             , Attr.attribute "aria-label" (feedTypeToString model.lang feedType)
@@ -230,11 +230,11 @@ renderMobileSidebar model =
                 [ label [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.View) ]
                 , button
                     [ Events.onClick (ToggleViewMode (if model.viewMode == Full then Thumbnail else Full))
-                    , Attr.class ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm rounded-lg border w-full font-semibold transition-colors duration-150 " ++
+                    , Attr.class ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm border w-full font-semibold transition-colors duration-150 " ++
                         if model.viewMode == Full then
-                            "border-brand text-brand"
+                            "border-brand text-brand active:bg-brand-yellow"
                         else
-                            "border-transparent text-gray-400 opacity-50 hover:opacity-100 hover:text-brand"
+                            "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
                         )
                     , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
                     , Attr.attribute "aria-pressed" (if model.viewMode == Full then "true" else "false")
