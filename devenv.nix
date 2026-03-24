@@ -1,23 +1,9 @@
-{
-  pkgs,
-  inputs,
-  ...
-}:
+{ pkgs, ... }:
 
 let
-  stable = import inputs.nixpkgs-stable {
-    system = pkgs.stdenv.hostPlatform.system;
-    config = {
-      allowUnfree = true;
-    };
-  };
   shell = { pkgs, ... }: {
     # https://devenv.sh/packages/
     packages = [
-      pkgs.elm-land
-      pkgs.elmPackages.elm
-      pkgs.elmPackages.elm-format
-      pkgs.elmPackages.elm-language-server
       pkgs.entr
       pkgs.git
       pkgs.nodejs
@@ -25,25 +11,32 @@ let
       pkgs.pkg-config
       pkgs.treefmt
       pkgs.zlib
-      stable.cabal-install
-      stable.fourmolu
-      stable.hlint
-      stable.haskell.packages.ghc96.haskell-language-server
+      pkgs.elmPackages.elm-review
+      pkgs.elmPackages.elm-json
+      pkgs.haskell.packages.ghc96.hlint
+      pkgs.haskell.packages.ghc96.fourmolu
     ];
 
     # https://devenv.sh/languages/
     languages.haskell.enable = true;
-    languages.haskell.package = stable.haskell.compiler.ghc96;
-    languages.haskell.stack.enable = true;
-    languages.haskell.languageServer = stable.haskell.packages.ghc96.haskell-language-server;
+    languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
     languages.elm.enable = true;
+    languages.javascript.enable = true;
+    languages.javascript.pnpm.enable = true;
+
+    dotenv.enable = true;
 
     enterShell = ''
-      git --version
-      stack --version
+      echo ""
+      echo "── planet dev environment ───────────────────────────"
+      echo "  GHC:    $(ghc --version)"
+      echo "  Cabal:  $(cabal --version | head -1)"
+      echo "  Elm:    $(elm --version)"
+      echo ""
+      echo "  make build-all — fetch feeds + build Elm app"
+      echo "  make watch     — watch + rebuild on changes"
+      echo ""
     '';
-
-    dotenv.disableHint = true;
   };
 in
 {

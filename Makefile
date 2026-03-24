@@ -6,7 +6,7 @@ all: build-all ## Build the project
 
 build-all: build ## Build the entire project
 	cabal run
-	cd elm-app && npm run build
+	cd elm-app && pnpm build
 
 build: ## Build the executable
 	cabal update
@@ -48,7 +48,7 @@ cabal-check: ## Check the package for common errors
 watch: ## Watch for changes in Haskell and Elm files and rebuild
 	make run-bin
 	find src planet.cabal planet.toml -name "*.hs" -o -name "*.cabal" -o -name "*.toml" | entr -s 'make run-bin' &
-	cd elm-app && npm run dev
+	cd elm-app && pnpm dev
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
