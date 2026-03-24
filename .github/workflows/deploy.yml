@@ -84,7 +84,7 @@ jobs:
         working-directory: elm-app
 
       - name: Run tests
-        run: make test
+        run: cabal test
 
       - name: Build All
         run: make build-all
