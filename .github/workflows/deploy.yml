@@ -1,4 +1,4 @@
-name: Clean build
+name: Deploy
 
 on:
   push:
