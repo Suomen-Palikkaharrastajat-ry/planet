@@ -20,27 +20,34 @@ devenv.local.yaml:
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 
-.PHONY: all
-all: build-all ## Build the project
+HS_SOURCES := $(shell find src -name '*.hs') planet.cabal $(wildcard cabal.project*)
 
-.PHONY: build-all
-build-all: build ## Build the entire project
-	cabal run
-	cd elm-app && pnpm build
+planet: $(HS_SOURCES)
+	cabal build --offline
+	cp $$(cabal list-bin planet) $@
 
 .PHONY: build
-build: ## Build the executable
-	cabal update
-	cabal build
-	cp $(shell cabal list-bin planet) ./planet
+build: planet ## Build the executable
+
+elm-app/src/Data.elm: planet planet.toml
+	./planet
 
 .PHONY: run
-run: ## Run the planet generator to update site
-	cabal run
+run: elm-app/src/Data.elm ## Run the planet generator to update site
 
 .PHONY: run-bin
 run-bin: ## Run the compiled executable directly
 	./planet
+
+elm-app/dist/.build-stamp: $(shell find elm-app/src -name '*.elm') elm-app/elm.json elm-app/package.json elm-app/src/Data.elm
+	cd elm-app && npm run build
+	touch $@
+
+.PHONY: elm-build
+elm-build: elm-app/dist/.build-stamp ## Build the Elm app
+
+.PHONY: build-all
+build-all: planet elm-app/src/Data.elm elm-app/dist/.build-stamp ## Build the entire project
 
 .PHONY: watch
 watch: ## Watch for changes in Haskell and Elm files and rebuild

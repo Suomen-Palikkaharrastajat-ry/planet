@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,56 +27,101 @@ jobs:
           ghc-version: '9.6'
           cabal-version: 'latest'
 
-      - name: Cache Cabal Store
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cabal/store
-            dist-newstyle
-          key: ${{ runner.os }}-ghc9.6-cabal-${{ hashFiles('planet.cabal') }}
-          restore-keys: |
-            ${{ runner.os }}-ghc9.6-cabal-
+      # ── Cabal package index cache (daily) ────────────────────────────────────
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: elm-app/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('elm-app/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
+      - id: date
+        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
-      - name: Cache elm-stuff
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cabal/packages
+          key: cabal-index-${{ runner.os }}-${{ steps.date.outputs.date }}
+          restore-keys: cabal-index-${{ runner.os }}-
+
+      - run: cabal update
+
+      # ── Cabal layered caches ──────────────────────────────────────────────────
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cabal/store
+          key: cabal-store-${{ runner.os }}-ghc9.6-${{ hashFiles('planet.cabal', 'cabal.project') }}
+          restore-keys: cabal-store-${{ runner.os }}-ghc9.6-
+
+      - uses: actions/cache@v4
+        with:
+          path: dist-newstyle
+          key: cabal-dist-${{ runner.os }}-ghc9.6-${{ hashFiles('planet.cabal', 'cabal.project') }}-${{ hashFiles('src/**/*.hs') }}
+          restore-keys: |
+            cabal-dist-${{ runner.os }}-ghc9.6-${{ hashFiles('planet.cabal', 'cabal.project') }}-
+            cabal-dist-${{ runner.os }}-ghc9.6-
+
+      # ── Node / Elm caches ─────────────────────────────────────────────────────
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'elm-app/pnpm-lock.yaml'
+
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.elm
             elm-app/elm-stuff
-          key: ${{ runner.os }}-elm-${{ hashFiles('elm-app/elm.json') }}
-          restore-keys: |
-            ${{ runner.os }}-elm-
+          key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
+          restore-keys: elm-${{ runner.os }}-
+
+      # ── Build ─────────────────────────────────────────────────────────────────
 
       - name: Install npm dependencies
-        run: npm install --prefix elm-app
+        run: pnpm install
+        working-directory: elm-app
+
+      - name: Run tests
+        run: make test
 
       - name: Build All
         run: make build-all
 
-      - name: Cache Planet CLI
-        uses: actions/cache@v4
+      # ── Save binary for scheduled workflow ───────────────────────────────────
+
+      - uses: actions/cache@v4
         with:
-          path: planet
-          key: planet-bin-v2
-          restore-keys: |
-            planet-bin-v2
+          path: ./planet
+          key: binary-planet-${{ runner.os }}-${{ hashFiles('planet.cabal', 'src/**/*.hs') }}
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+      # ── Upload artifact ───────────────────────────────────────────────────────
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./elm-app/dist
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/smoke-test.sh
+        env:
+          SITE_URL: ${{ needs.deploy.outputs.page_url }}

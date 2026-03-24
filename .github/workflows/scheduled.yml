@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages-scheduled
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -17,35 +21,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore Planet CLI
-        uses: actions/cache/restore@v4
-        id: cache-planet-cli
+      # ── Restore Planet CLI ────────────────────────────────────────────────────
+
+      - uses: actions/cache/restore@v4
+        id: binary-cache
         with:
-          path: planet
-          key: planet-bin-v2
+          path: ./planet
+          key: binary-planet-${{ runner.os }}-${{ hashFiles('planet.cabal', 'src/**/*.hs') }}
 
-      - name: Make Planet executable
-        run: chmod +x planet
-
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
+      - if: steps.binary-cache.outputs.cache-hit != 'true'
+        name: Setup Haskell (fallback build)
+        uses: haskell-actions/setup@v2
         with:
-          path: elm-app/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('elm-app/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
+          ghc-version: '9.6'
+          cabal-version: 'latest'
 
-      - name: Cache elm-stuff
-        id: cache-elm-stuff
-        uses: actions/cache@v4
+      - if: steps.binary-cache.outputs.cache-hit != 'true'
+        run: make build
+
+      - run: chmod +x ./planet
+
+      # ── Node / Elm caches ─────────────────────────────────────────────────────
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'elm-app/pnpm-lock.yaml'
+
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.elm
             elm-app/elm-stuff
-          key: ${{ runner.os }}-elm-${{ hashFiles('elm-app/elm.json') }}
-          restore-keys: |
-            ${{ runner.os }}-elm-
+          key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
+          restore-keys: elm-${{ runner.os }}-
+
+      # ── Build ─────────────────────────────────────────────────────────────────
 
       - name: Generate Data
         run: ./planet
@@ -53,14 +70,14 @@ jobs:
       - name: Build Elm App
         run: |
           cd elm-app
-          npm install
-          npm run build
+          pnpm install
+          pnpm run build
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+      # ── Deploy ────────────────────────────────────────────────────────────────
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./elm-app/dist
 
