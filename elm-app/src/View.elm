@@ -30,7 +30,7 @@ view model =
             ]
             [ text (I18n.translate model.lang I18n.SkipToContent) ]
         , -- Mobile top bar: logo + title on left, hamburger on right (same height)
-          div [ Attr.class "flex items-center justify-between px-4 h-14 bg-white border-b border-gray-200 sticky top-0 z-40" ]
+          div [ Attr.class "flex items-center justify-between px-4 h-14 bg-brand border-b border-brand sticky top-0 z-40" ]
             [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-2" ]
                 [ img
                     [ Attr.src "/logo/square/square-smile.svg"
@@ -39,11 +39,11 @@ view model =
                     , Attr.class "h-8 w-8"
                     ]
                     []
-                , span [ Attr.class "text-lg font-bold text-brand" ] [ text (I18n.translate model.lang I18n.Title) ]
+                , span [ Attr.class "text-lg font-bold text-white" ] [ text (I18n.translate model.lang I18n.Title) ]
                 ]
             , button
                 [ Events.onClick ToggleSidebar
-                , Attr.class "md:hidden p-2 rounded-lg text-brand"
+                , Attr.class "md:hidden p-2 rounded-lg text-white"
                 , Attr.style "cursor" "pointer"
                 , Attr.attribute "aria-label" (if model.isSidebarVisible then I18n.translate model.lang I18n.CloseMenu else I18n.translate model.lang I18n.OpenMenu)
                 ]
