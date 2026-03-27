@@ -1,4 +1,4 @@
-module Main exposing (main, init, update, subscriptions, addAsterisks)
+module Main exposing (addAsterisks, init, main, subscriptions, update)
 
 {-| Main entry point for the Palikkalinkit application
 
@@ -13,7 +13,7 @@ This module orchestrates the Elm application, delegating to specialized modules:
 
 import Browser
 import Browser.Navigation
-import Data exposing (allAppItems, AppItem, FeedType(..))
+import Data exposing (AppItem, FeedType(..), allAppItems)
 import DateUtils exposing (groupByMonth)
 import Html exposing (Html)
 import Http
@@ -23,7 +23,7 @@ import Ports
 import Process
 import RemoteData
 import Task
-import Types exposing (Model, Msg(..), ViewMode(..), ViewModel, SearchItem, Lang(..))
+import Types exposing (Lang(..), Model, Msg(..), SearchItem, ViewMode(..), ViewModel)
 import Url
 import View
 
@@ -110,7 +110,11 @@ decodeSelectedFeedTypes str =
             List.map stringToFeedType strings
 
         Err _ ->
-            [ Feed, YouTube, Image ] -- default
+            [ Feed, YouTube, Image ]
+
+
+
+-- default
 
 
 {-| Decode SearchItem from JSON
@@ -235,19 +239,30 @@ update msg model =
                 cmd =
                     if String.isEmpty text then
                         Cmd.none
+
                     else
                         case model.searchIndex of
                             RemoteData.Success _ ->
                                 Ports.performSearch (addAsterisks text)
+
                             RemoteData.NotAsked ->
                                 Http.get
                                     { url = "/search-index.json"
                                     , expect = Http.expectJson OnSearchIndexFetch (Decode.list decodeSearchItem)
                                     }
+
                             _ ->
                                 Cmd.none
             in
-            ( { model | searchText = text, searchedIds = if String.isEmpty text then [] else model.searchedIds }
+            ( { model
+                | searchText = text
+                , searchedIds =
+                    if String.isEmpty text then
+                        []
+
+                    else
+                        model.searchedIds
+              }
             , cmd
             )
 
@@ -264,14 +279,22 @@ update msg model =
 
         ToggleSidebar ->
             let
-                newVisible = not model.isSidebarVisible
-                cmd = if newVisible then Ports.focusMobileSearch () else Cmd.none
+                newVisible =
+                    not model.isSidebarVisible
+
+                cmd =
+                    if newVisible then
+                        Ports.focusMobileSearch ()
+
+                    else
+                        Cmd.none
             in
             ( { model | isSidebarVisible = newVisible }, cmd )
 
         OnSearchIndexFetch result ->
             let
-                newModel = { model | searchIndex = RemoteData.fromResult result }
+                newModel =
+                    { model | searchIndex = RemoteData.fromResult result }
             in
             ( recalculateVisibleGroups newModel, Cmd.none )
 
@@ -291,6 +314,7 @@ update msg model =
             case model.navKey of
                 Just key ->
                     ( { model | isSidebarVisible = False }, Cmd.batch [ Browser.Navigation.pushUrl key ("#" ++ sectionId), Ports.scrollToElement sectionId ] )
+
                 Nothing ->
                     ( { model | isSidebarVisible = False }, Ports.scrollToElement sectionId )
 
@@ -300,6 +324,7 @@ update msg model =
                     case model.navKey of
                         Just key ->
                             ( model, Browser.Navigation.pushUrl key (Url.toString url) )
+
                         Nothing ->
                             ( model, Cmd.none )
 
@@ -316,6 +341,7 @@ recalculateVisibleGroups model =
         baseItems =
             if String.isEmpty model.searchText then
                 model.items
+
             else
                 List.sort model.searchedIds
                     |> List.filterMap (\idx -> List.drop idx model.items |> List.head)
@@ -337,14 +363,17 @@ matchesSearch model item =
 
         ( False, RemoteData.Success searchItems ) ->
             let
-                lowerSearch = String.toLower model.searchText
-                matchingIds = 
+                lowerSearch =
+                    String.toLower model.searchText
+
+                matchingIds =
                     searchItems
-                        |> List.filter (\si -> 
-                            String.contains lowerSearch (String.toLower si.title) ||
-                            String.contains lowerSearch (String.toLower si.description) ||
-                            String.contains lowerSearch (String.toLower si.source)
-                        )
+                        |> List.filter
+                            (\si ->
+                                String.contains lowerSearch (String.toLower si.title)
+                                    || String.contains lowerSearch (String.toLower si.description)
+                                    || String.contains lowerSearch (String.toLower si.source)
+                            )
                         |> List.map .id
             in
             List.member item.itemLink matchingIds
@@ -352,15 +381,15 @@ matchesSearch model item =
         ( False, _ ) ->
             -- Fallback to old logic if search index not loaded
             let
-                lowerSearch = String.toLower model.searchText
-                matches str = String.contains lowerSearch (String.toLower str)
+                lowerSearch =
+                    String.toLower model.searchText
+
+                matches str =
+                    String.contains lowerSearch (String.toLower str)
             in
             matches item.itemSourceTitle
                 || matches item.itemTitle
                 || (item.itemDescSnippet |> Maybe.map matches |> Maybe.withDefault False)
-
-
-
 
 
 

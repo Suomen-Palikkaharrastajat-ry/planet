@@ -86,6 +86,9 @@ jobs:
       - name: Run tests
         run: cabal test
 
+      - name: Build planet binary
+        run: cabal build
+
       - name: Build All
         run: make build-all
 

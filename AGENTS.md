@@ -85,8 +85,9 @@ You **MUST STOP** and escalate to the user for guidance if you encounter any of 
 
 This project follows the **Suomen Palikkaharrastajat ry** brand style guide.
 
-- **Human-readable**: https://logo.palikkaharrastajat.fi/
-- **Machine-readable (JSON-LD, authoritative)**: https://logo.palikkaharrastajat.fi/design-guide/index.jsonld
+- **Agent CSS reference:** Fetch `https://logo.palikkaharrastajat.fi/brand.css` for the latest canonical `@theme`, `@utility type-*`, `@font-face`, reduced-motion rule, and shared component classes. Tailwind v4 requires `@theme` in the locally-processed file — copy the content into `elm-app/src/main.css`.
+- **Human-readable:** https://logo.palikkaharrastajat.fi/
+- **Machine-readable (JSON-LD):** https://logo.palikkaharrastajat.fi/design-guide/index.jsonld
   - Colors: https://logo.palikkaharrastajat.fi/design-guide/colors.jsonld
   - Typography: https://logo.palikkaharrastajat.fi/design-guide/typography.jsonld
   - Spacing: https://logo.palikkaharrastajat.fi/design-guide/spacing.jsonld
@@ -96,20 +97,35 @@ This project follows the **Suomen Palikkaharrastajat ry** brand style guide.
 
 **When making any UI change**, you MUST:
 
-1. **Check the JSON-LD spec first.** Any color, font, spacing, or animation value must come from a named design token — never hard-code raw hex values or pixel values directly in components.
+1. **Check the live design guide first** (`https://logo.palikkaharrastajat.fi/`). Any color, font, spacing, or animation value must come from a named design token — never hard-code raw hex values or pixel values directly in components.
 2. **Use brand colors correctly:**
    - Primary brand color is `#05131D` (brand black), not blue.
-   - Brand accent is `#F2CD37` (yellow) — only for CTAs/highlights, always paired with brand-black text.
+   - Brand accent is `#FAC80A` (yellow) — only for CTAs/highlights, always paired with brand-black text.
    - Red `#C91A09` is for danger/error states only.
    - Tailwind token classes: `bg-brand`, `text-brand`, `border-brand`, `bg-brand-yellow`.
-3. **Use Outfit font exclusively** (variable font, weight 100–900; OFL licensed). Never fall back to system-only fonts in designed output.
-4. **Respect logo usage rules:**
+3. **Use named `type-*` utility classes** for all text (defined in `elm-app/src/main.css`). Never use raw Tailwind size/weight combinations.
+
+   | Class | Size | Weight | Notes |
+   |---|---|---|---|
+   | `type-display` | 3rem | 700 | Hero headlines only |
+   | `type-h1` | 1.875rem | 700 | One per page |
+   | `type-h2` | 1.5rem | 700 | Section headings |
+   | `type-h3` | 1.25rem | 600 | Sub-section headings |
+   | `type-h4` | 1.125rem | 600 | Card / widget headings |
+   | `type-body` | 1rem | 400 | Default body copy |
+   | `type-body-small` | 0.875rem | 500 | UI controls, labels |
+   | `type-caption` | 0.875rem | 400 | Metadata, footnotes |
+   | `type-mono` | 0.875rem | 400 | Code snippets (monospace) |
+   | `type-overline` | 0.75rem | 600 uppercase | Category labels |
+
+4. **Use Outfit font exclusively** (variable font, weight 100–900; OFL licensed). Self-hosted from `elm-app/public/fonts/`.
+5. **Respect logo usage rules:**
    - Prefer SVG; use WebP with PNG fallback for raster formats.
    - Minimum size: 80px wide (square logo), 200px wide (horizontal logo).
    - 25% clear space on all four sides.
    - Never stretch, recolour, add shadows, or distort.
    - Do **not** use the animated logo variant when `prefers-reduced-motion: reduce` is set.
-5. **Use named spacing tokens** (4px base: space-1 through space-16); never use arbitrary px values.
-6. **Respect motion rules:** Animate `transform` and `opacity` only. Always wrap animations in `@media (prefers-reduced-motion: no-preference)`. Use `duration.fast` (150ms) for hover/focus, `duration.base` (300ms) for reveals, with `easing.standard` (`cubic-bezier(0.4, 0, 0.2, 1)`).
-7. **Semantic colors over raw values:** Use the semantic token names (e.g., `background.page = #FFFFFF`, `background.subtle = #F9FAFB`, `border.default = #E5E7EB`) so changes propagate correctly.
-8. **Page layout:** Every page wrapper uses `max-w-5xl mx-auto px-4` (1024px content width). Cards use `rounded-lg` (8px radius).
+6. **Use named spacing tokens** (4px base: `space-1` through `space-16`); never use arbitrary px values.
+7. **Respect motion rules:** Animate `transform` and `opacity` only. Always wrap animations in `@media (prefers-reduced-motion: no-preference)`. Use `duration-fast` (150ms) for hover/focus, `duration-base` (300ms) for reveals, with `ease-standard` (`cubic-bezier(0.4, 0, 0.2, 1)`).
+8. **Use semantic token names** — `bg-bg-page`, `text-text-primary`, `border-border-default`, etc. — never raw hex values.
+9. **Page layout:** Every page wrapper uses `max-w-5xl mx-auto px-4` (1024px content width). Cards use `rounded-lg` (8px radius).

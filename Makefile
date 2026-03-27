@@ -23,7 +23,7 @@ devenv.local.yaml:
 HS_SOURCES := $(shell find src -name '*.hs') planet.cabal $(wildcard cabal.project*)
 
 planet: $(HS_SOURCES)
-	cabal build --offline
+	cabal build
 	cp $$(cabal list-bin planet) $@
 
 .PHONY: build

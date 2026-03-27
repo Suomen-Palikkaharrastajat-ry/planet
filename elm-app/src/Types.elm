@@ -1,11 +1,6 @@
 module Types exposing
-    ( Model
-    , MonthGroup
-    , Msg(..)
-    , ViewMode(..)
+    ( Model, MonthGroup, Msg(..), ViewMode(..), SearchItem, Lang(..)
     , ViewModel
-    , SearchItem
-    , Lang(..)
     )
 
 {-| Core types for the application

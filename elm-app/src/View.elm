@@ -13,8 +13,8 @@ import Html exposing (Html, a, button, div, footer, h2, h3, img, input, label, l
 import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Keyed
-import Json.Decode as Decode
 import I18n
+import Json.Decode as Decode
 import Types exposing (MonthGroup, Msg(..), ViewMode(..), ViewModel)
 
 
@@ -45,10 +45,17 @@ view model =
                 [ Events.onClick ToggleSidebar
                 , Attr.class "md:hidden p-2 rounded-lg text-white"
                 , Attr.style "cursor" "pointer"
-                , Attr.attribute "aria-label" (if model.isSidebarVisible then I18n.translate model.lang I18n.CloseMenu else I18n.translate model.lang I18n.OpenMenu)
+                , Attr.attribute "aria-label"
+                    (if model.isSidebarVisible then
+                        I18n.translate model.lang I18n.CloseMenu
+
+                     else
+                        I18n.translate model.lang I18n.OpenMenu
+                    )
                 ]
                 [ if model.isSidebarVisible then
                     FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+
                   else
                     FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
                 ]
@@ -61,14 +68,12 @@ view model =
                 [ Attr.id "main-content"
                 , Attr.class "flex-1 p-6 max-w-5xl mx-auto px-4"
                 ]
-                [ 
-                 Html.Keyed.node "div"
+                [ Html.Keyed.node "div"
                     []
                     (List.map
                         (\group -> ( group.monthId, renderMonthSection model.lang model.viewMode group ))
                         model.visibleGroups
                     )
-                , renderFooter model.lang model.generatedAt
                 ]
             , -- Feed filter navigation
               renderFeedFilterNav model.lang model.selectedFeedTypes model.searchText model.viewMode
@@ -82,8 +87,11 @@ view model =
                 , Events.onClick ToggleSidebar
                 ]
                 []
+
           else
             text ""
+        , -- Brand footer
+          viewBrandFooter model.lang model.generatedAt
         , -- Scroll to top button
           if model.scrollY > 200 then
             button
@@ -94,8 +102,79 @@ view model =
                 , Attr.attribute "aria-label" (I18n.translate model.lang I18n.ScrollToTop)
                 ]
                 [ FeatherIcons.arrowUp |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml [] ]
+
           else
             text ""
+        ]
+
+
+viewBrandFooter : Types.Lang -> String -> Html Msg
+viewBrandFooter lang timestamp =
+    Html.footer
+        [ Attr.class "bg-brand text-white py-12 px-4" ]
+        [ Html.div [ Attr.class "max-w-5xl mx-auto" ]
+            [ Html.div
+                [ Attr.class "grid grid-cols-1 sm:grid-cols-2 gap-8" ]
+                [ Html.div [ Attr.class "flex items-start gap-4" ]
+                    [ Html.img
+                        [ Attr.src "/logo/square/square-smile.svg"
+                        , Attr.alt ""
+                        , Attr.attribute "aria-hidden" "true"
+                        , Attr.class "h-25 w-25 flex-shrink-0"
+                        ]
+                        []
+                    , Html.div [ Attr.class "space-y-1" ]
+                        [ Html.p [ Attr.class "font-semibold text-white text-sm" ]
+                            [ Html.a
+                                [ Attr.href "https://palikkaharrastajat.fi"
+                                , Attr.class "text-white/80 hover:text-white transition-colors"
+                                ]
+                                [ Html.text "Suomen Palikkaharrastajat ry" ]
+                            ]
+                        , Html.p
+                            [ Attr.class "text-white/80 py-2 text-sm"
+                            ]
+                            [ Html.text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | ")
+                            , a [ Attr.class "hover:text-white underline", Attr.href "opml.xml", Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ]
+                            ]
+                        , Html.p [ Attr.class "text-white/80 text-sm" ]
+                            [ Html.a
+                                [ Attr.href "mailto:palikkaharrastajatry@outlook.com"
+                                , Attr.class "text-white/80 hover:text-white underline transition-colors"
+                                ]
+                                [ Html.text "Ilmoita asiattomasta sisällöstä." ]
+                            ]
+                        ]
+                    ]
+                , Html.div [ Attr.class "space-y-3 pl-29 sm:pl-0" ]
+                    [ Html.p [ Attr.class "text-xs font-semibold text-white/50 uppercase tracking-wider" ]
+                        [ Html.text "Yhdistys" ]
+                    , Html.ul [ Attr.class "space-y-2 list-none m-0 p-0" ]
+                        [ Html.li []
+                            [ Html.a
+                                [ Attr.href "https://palikkaharrastajat.fi"
+                                , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
+                                ]
+                                [ Html.text "Kotisivut" ]
+                            ]
+                        , Html.li []
+                            [ Html.a
+                                [ Attr.href "https://kalenteri.palikkaharrastajat.fi"
+                                , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
+                                ]
+                                [ Html.text "Palikkakalenteri" ]
+                            ]
+                        , Html.li []
+                            [ Html.a
+                                [ Attr.href "https://linkit.palikkaharrastajat.fi"
+                                , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
+                                ]
+                                [ Html.text "Palikkalinkit" ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
         ]
 
 
@@ -141,15 +220,24 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 (\feedType ->
                     button
                         [ Events.onClick (ToggleFeedType feedType)
-                        , Attr.class ("cursor-pointer p-2 border font-semibold transition-colors duration-150 " ++
-                            if List.member feedType selectedFeedTypes then
-                                "border-brand text-brand active:bg-brand-yellow"
-                            else
-                                "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                        , Attr.class
+                            ("cursor-pointer p-2 border font-semibold transition-colors duration-150 "
+                                ++ (if List.member feedType selectedFeedTypes then
+                                        "border-brand text-brand active:bg-brand-yellow"
+
+                                    else
+                                        "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                                   )
                             )
                         , Attr.title (feedTypeToString lang feedType)
                         , Attr.attribute "aria-label" (feedTypeToString lang feedType)
-                        , Attr.attribute "aria-pressed" (if List.member feedType selectedFeedTypes then "true" else "false")
+                        , Attr.attribute "aria-pressed"
+                            (if List.member feedType selectedFeedTypes then
+                                "true"
+
+                             else
+                                "false"
+                            )
                         ]
                         [ feedTypeIcon feedType ]
                 )
@@ -158,15 +246,32 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
         , div [ Attr.class "mb-4" ]
             [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.View) ]
             , button
-                [ Events.onClick (ToggleViewMode (if viewMode == Full then Thumbnail else Full))
-                , Attr.class ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm border w-full font-semibold transition-colors duration-150 " ++
-                    if viewMode == Full then
-                        "border-brand text-brand active:bg-brand-yellow"
-                    else
-                        "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                [ Events.onClick
+                    (ToggleViewMode
+                        (if viewMode == Full then
+                            Thumbnail
+
+                         else
+                            Full
+                        )
+                    )
+                , Attr.class
+                    ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm border w-full font-semibold transition-colors duration-150 "
+                        ++ (if viewMode == Full then
+                                "border-brand text-brand active:bg-brand-yellow"
+
+                            else
+                                "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                           )
                     )
                 , Attr.attribute "aria-label" (I18n.translate lang I18n.Descriptions)
-                , Attr.attribute "aria-pressed" (if viewMode == Full then "true" else "false")
+                , Attr.attribute "aria-pressed"
+                    (if viewMode == Full then
+                        "true"
+
+                     else
+                        "false"
+                    )
                 ]
                 [ span [] [ text "👁️" ]
                 , span [] [ text (I18n.translate lang I18n.DescriptionsText) ]
@@ -178,11 +283,14 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
 renderMobileSidebar : ViewModel -> Html Msg
 renderMobileSidebar model =
     div
-        [ Attr.class ("md:hidden fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-40 transform overflow-y-auto transition-transform duration-300 ease-in-out motion-reduce:transition-none " ++
-            if model.isSidebarVisible then
-                "translate-x-0"
-            else
-                "-translate-x-full"
+        [ Attr.class
+            ("md:hidden fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-40 transform overflow-y-auto transition-transform duration-300 ease-in-out motion-reduce:transition-none "
+                ++ (if model.isSidebarVisible then
+                        "translate-x-0"
+
+                    else
+                        "-translate-x-full"
+                   )
             )
         ]
         [ -- Close button
@@ -212,15 +320,24 @@ renderMobileSidebar model =
                     (\feedType ->
                         button
                             [ Events.onClick (ToggleFeedType feedType)
-                            , Attr.class ("cursor-pointer p-2 border font-semibold transition-colors duration-150 " ++
-                                if List.member feedType model.selectedFeedTypes then
-                                    "border-brand text-brand active:bg-brand-yellow"
-                                else
-                                    "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                            , Attr.class
+                                ("cursor-pointer p-2 border font-semibold transition-colors duration-150 "
+                                    ++ (if List.member feedType model.selectedFeedTypes then
+                                            "border-brand text-brand active:bg-brand-yellow"
+
+                                        else
+                                            "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                                       )
                                 )
                             , Attr.title (feedTypeToString model.lang feedType)
                             , Attr.attribute "aria-label" (feedTypeToString model.lang feedType)
-                            , Attr.attribute "aria-pressed" (if List.member feedType model.selectedFeedTypes then "true" else "false")
+                            , Attr.attribute "aria-pressed"
+                                (if List.member feedType model.selectedFeedTypes then
+                                    "true"
+
+                                 else
+                                    "false"
+                                )
                             ]
                             [ feedTypeIcon feedType ]
                     )
@@ -229,15 +346,32 @@ renderMobileSidebar model =
             , div [ Attr.class "mb-4" ]
                 [ label [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.View) ]
                 , button
-                    [ Events.onClick (ToggleViewMode (if model.viewMode == Full then Thumbnail else Full))
-                    , Attr.class ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm border w-full font-semibold transition-colors duration-150 " ++
-                        if model.viewMode == Full then
-                            "border-brand text-brand active:bg-brand-yellow"
-                        else
-                            "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                    [ Events.onClick
+                        (ToggleViewMode
+                            (if model.viewMode == Full then
+                                Thumbnail
+
+                             else
+                                Full
+                            )
+                        )
+                    , Attr.class
+                        ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm border w-full font-semibold transition-colors duration-150 "
+                            ++ (if model.viewMode == Full then
+                                    "border-brand text-brand active:bg-brand-yellow"
+
+                                else
+                                    "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                               )
                         )
                     , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
-                    , Attr.attribute "aria-pressed" (if model.viewMode == Full then "true" else "false")
+                    , Attr.attribute "aria-pressed"
+                        (if model.viewMode == Full then
+                            "true"
+
+                         else
+                            "false"
+                        )
                     ]
                     [ span [] [ text "👁️" ]
                     , span [] [ text (I18n.translate model.lang I18n.DescriptionsText) ]
@@ -335,7 +469,16 @@ renderFullCard lang item =
                         [ img
                             [ Attr.src url
                             , Attr.alt item.itemTitle
-                            , Attr.class ("w-full h-full object-cover" ++ (if item.itemType /= YouTube then " object-top" else ""))
+                            , Attr.attribute "loading" "lazy"
+                            , Attr.class
+                                ("w-full h-full object-cover"
+                                    ++ (if item.itemType /= YouTube then
+                                            " object-top"
+
+                                        else
+                                            ""
+                                       )
+                                )
                             ]
                             []
                         ]
@@ -414,7 +557,16 @@ renderThumbnailCard lang item =
                         [ img
                             [ Attr.src url
                             , Attr.alt item.itemTitle
-                            , Attr.class ("w-full h-full object-cover" ++ (if item.itemType /= YouTube then " object-top" else ""))
+                            , Attr.attribute "loading" "lazy"
+                            , Attr.class
+                                ("w-full h-full object-cover"
+                                    ++ (if item.itemType /= YouTube then
+                                            " object-top"
+
+                                        else
+                                            ""
+                                       )
+                                )
                             ]
                             []
                         ]
@@ -461,13 +613,3 @@ feedTypeName lang feedType =
 
         Image ->
             I18n.translate lang I18n.ImageName
-
-
-renderFooter : Types.Lang -> String -> Html Msg
-renderFooter lang timestamp =
-    footer [ Attr.class "mt-12 pt-6 border-t border-gray-200 text-center text-gray-500 text-sm" ]
-        [ p [] [ text (I18n.translate lang I18n.Description) ]
-        , p [ Attr.class "mt-1"
-                , Attr.style "cursor" "pointer"
-     ] [ text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | "), a [ Attr.href "opml.xml", Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ] ]
-        ]

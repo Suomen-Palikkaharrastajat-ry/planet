@@ -1,4 +1,4 @@
-port module Ports exposing (saveViewMode, loadViewMode, saveSelectedFeedTypes, loadSelectedFeedTypes, performSearch, searchResults, scrollToTop, onScroll, focusMobileSearch, scrollToElement)
+port module Ports exposing (focusMobileSearch, loadSelectedFeedTypes, loadViewMode, onScroll, performSearch, saveSelectedFeedTypes, saveViewMode, scrollToElement, scrollToTop, searchResults)
 
 {-| Ports for communicating with JavaScript for localStorage persistence, search, and scroll
 -}

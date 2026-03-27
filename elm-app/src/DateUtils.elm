@@ -1,9 +1,4 @@
-module DateUtils exposing
-    ( extractYearMonth
-    , formatDate
-    , formatMonthLabel
-    , groupByMonth
-    )
+module DateUtils exposing (extractYearMonth, formatDate, formatMonthLabel, groupByMonth)
 
 {-| Date utilities for formatting and grouping feed items
 
