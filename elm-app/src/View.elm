@@ -118,7 +118,7 @@ viewBrandFooter lang timestamp =
                 [ -- Col 1: service links + logo
                   Html.div [ Attr.class "flex items-start gap-4" ]
                     [ Html.img
-                        [ Attr.src "/logo/square/square-smile-full-dark.svg"
+                        [ Attr.src "/logo/square/square-smile-full-dark-bold.svg"
                         , Attr.alt ""
                         , Attr.attribute "aria-hidden" "true"
                         , Attr.class "h-35 w-35 flex-shrink-0"
