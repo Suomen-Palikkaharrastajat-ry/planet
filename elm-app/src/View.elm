@@ -114,63 +114,60 @@ viewBrandFooter lang timestamp =
         [ Attr.class "bg-brand text-white py-12 px-4" ]
         [ Html.div [ Attr.class "max-w-5xl mx-auto" ]
             [ Html.div
-                [ Attr.class "grid grid-cols-1 sm:grid-cols-2 gap-8" ]
-                [ Html.div [ Attr.class "flex items-start gap-4" ]
+                [ Attr.class "grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-8 sm:items-end" ]
+                [ -- Col 1: service links + logo
+                  Html.div [ Attr.class "flex items-start gap-4" ]
                     [ Html.img
-                        [ Attr.src "/logo/square/square-smile.svg"
+                        [ Attr.src "/logo/square/square-smile-full-dark.svg"
                         , Attr.alt ""
                         , Attr.attribute "aria-hidden" "true"
-                        , Attr.class "h-25 w-25 flex-shrink-0"
+                        , Attr.class "h-35 w-35 flex-shrink-0"
                         ]
                         []
-                    , Html.div [ Attr.class "space-y-1" ]
-                        [ Html.p [ Attr.class "font-semibold text-white text-sm" ]
-                            [ Html.a
-                                [ Attr.href "https://palikkaharrastajat.fi"
-                                , Attr.class "text-white/80 hover:text-white transition-colors"
+                    , Html.div [ Attr.class "space-y-3" ]
+                        [ Html.p [ Attr.class "text-xs font-semibold text-white/50 uppercase tracking-wider" ]
+                            [ Html.text "Palikkaharrastajat" ]
+                        , Html.ul [ Attr.class "space-y-2 list-none m-0 p-0" ]
+                            [ Html.li []
+                                [ Html.a
+                                    [ Attr.href "https://palikkaharrastajat.fi"
+                                    , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
+                                    ]
+                                    [ Html.text "Kotisivut" ]
                                 ]
-                                [ Html.text "Suomen Palikkaharrastajat ry" ]
+                            , Html.li []
+                                [ Html.a
+                                    [ Attr.href "https://kalenteri.palikkaharrastajat.fi"
+                                    , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
+                                    ]
+                                    [ Html.text "Palikkakalenteri" ]
+                                ]
+                            , Html.li []
+                                [ Html.a
+                                    [ Attr.href "https://linkit.palikkaharrastajat.fi"
+                                    , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
+                                    ]
+                                    [ Html.text "Palikkalinkit" ]
+                                ]
                             ]
-                        , Html.p
-                            [ Attr.class "text-white/80 py-2 text-sm"
-                            ]
-                            [ Html.text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | ")
-                            , a [ Attr.class "hover:text-white underline", Attr.href "opml.xml", Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ]
-                            ]
-                        , Html.p [ Attr.class "text-white/80 text-sm" ]
+                        ]
+                    ]
+                , -- Col 2: org name & legal
+                  Html.div [ Attr.class "space-y-1 sm:text-right" ]
+                    [ Html.div [ Attr.class "space-y-1 text-xs text-white/50" ]
+                        [ Html.p [] [ Html.text "© 2026 Suomen Palikkaharrastajat ry" ]
+                        , Html.p []
                             [ Html.a
-                                [ Attr.href "mailto:palikkaharrastajatry@outlook.com"
+                                [ Attr.href "mailto:palikkaharrastajatry@outlook.com?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
                                 , Attr.class "text-white/80 hover:text-white underline transition-colors"
                                 ]
                                 [ Html.text "Ilmoita asiattomasta sisällöstä." ]
                             ]
-                        ]
-                    ]
-                , Html.div [ Attr.class "space-y-3 pl-29 sm:pl-0" ]
-                    [ Html.p [ Attr.class "text-xs font-semibold text-white/50 uppercase tracking-wider" ]
-                        [ Html.text "Yhdistys" ]
-                    , Html.ul [ Attr.class "space-y-2 list-none m-0 p-0" ]
-                        [ Html.li []
-                            [ Html.a
-                                [ Attr.href "https://palikkaharrastajat.fi"
-                                , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
-                                ]
-                                [ Html.text "Kotisivut" ]
+                        , Html.p []
+                            [ Html.text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | ")
+                            , a [ Attr.class "hover:text-white underline", Attr.href "opml.xml", Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ]
                             ]
-                        , Html.li []
-                            [ Html.a
-                                [ Attr.href "https://kalenteri.palikkaharrastajat.fi"
-                                , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
-                                ]
-                                [ Html.text "Palikkakalenteri" ]
-                            ]
-                        , Html.li []
-                            [ Html.a
-                                [ Attr.href "https://linkit.palikkaharrastajat.fi"
-                                , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
-                                ]
-                                [ Html.text "Palikkalinkit" ]
-                            ]
+                        , Html.p [] [ Html.text "LEGO® on LEGO Groupin rekisteröity tavaramerkki" ]
                         ]
                     ]
                 ]
