@@ -46,6 +46,11 @@ jobs:
           key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
           restore-keys: elm-${{ runner.os }}-
 
+      - name: Bootstrap frozen Cabal package index
+        run: |
+          INDEX_STATE="$(sed -n 's/^index-state:[[:space:]]*//p' cabal.project)"
+          devenv shell --profile ci -- cabal update --project-file=cabal.project --index-state="$INDEX_STATE"
+
       - name: Run tests
         run: devenv shell --profile ci -- make test
 
