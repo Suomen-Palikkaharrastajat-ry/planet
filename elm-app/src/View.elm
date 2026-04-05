@@ -32,7 +32,7 @@ view model =
             ]
             [ text (I18n.translate model.lang I18n.SkipToContent) ]
         , -- Mobile top bar: logo + title on left, hamburger on right (same height)
-          div [ Attr.class "flex items-center justify-between px-4 h-14 bg-brand border-b border-brand sticky top-0 z-40" ]
+          div [ Attr.class "flex items-center justify-between px-4 h-14 bg-brand border-b border-brand sticky top-0 z-40 md:static" ]
             [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-2" ]
                 [ img
                     [ Attr.src "/logo/square/square-smile.svg"
