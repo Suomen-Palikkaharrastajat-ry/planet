@@ -2,21 +2,40 @@ let
   ci =
     { pkgs, ... }:
     let
+      hpkgs = pkgs.haskell.packages.ghc96.override {
+        overrides =
+          self: super: {
+            "htoml-megaparsec" =
+              pkgs.haskell.lib.dontCheck
+                (pkgs.haskell.lib.doJailbreak
+                  (pkgs.haskell.lib.markUnbroken super."htoml-megaparsec"));
+          };
+      };
       npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
+      planetPackage = hpkgs.callCabal2nix "planet" ./. { };
+      planetCommand = pkgs.writeShellScriptBin "planet-nix" ''
+        exec ${planetPackage}/bin/planet "$@"
+      '';
+      ciTools = pkgs.symlinkJoin {
+        name = "planet-ci-tools";
+        paths = [
+          planetCommand
+          npmTools
+        ];
+      };
     in
     {
-      languages.haskell.enable = true;
-      languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
       languages.elm.enable = true;
 
       env.NODE_PATH = "${npmTools}/lib/node_modules";
 
       packages = [
-        npmTools
+        ciTools
         pkgs.cabal-install
         pkgs.nodejs_22
-        pkgs.haskell.packages.ghc96.hlint
-        pkgs.haskell.packages.ghc96.fourmolu
+        hpkgs.ghc
+        hpkgs.hlint
+        hpkgs.fourmolu
       ];
 
       enterShell = ''

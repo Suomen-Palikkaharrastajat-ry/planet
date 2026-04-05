@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Planet (main) where
+module Planet (main, generateOpml) where
 
 import Control.Concurrent.Async (mapConcurrently)
 import qualified Data.ByteString.Lazy as LBS

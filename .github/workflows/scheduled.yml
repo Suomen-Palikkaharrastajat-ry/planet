@@ -38,19 +38,9 @@ jobs:
 
       - uses: actions/cache@v4
         with:
-          path: |
-            elm-app/elm-stuff
-            ~/.cabal/packages
-            ~/.cabal/store
-            dist-newstyle
-            planet
-          key: build-${{ runner.os }}-${{ hashFiles('elm-app/elm.json', 'planet.cabal', 'cabal.project', 'cabal.project.freeze', 'pkgs/package-lock.json') }}
-          restore-keys: build-${{ runner.os }}-
-
-      - name: Bootstrap frozen Cabal package index
-        run: |
-          INDEX_STATE="$(sed -n 's/^index-state:[[:space:]]*//p' cabal.project)"
-          devenv shell --profile ci -- cabal update --project-file=cabal.project --index-state="$INDEX_STATE"
+          path: elm-app/elm-stuff
+          key: elm-stuff-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
+          restore-keys: elm-stuff-${{ runner.os }}-
 
       - name: Build
         run: devenv shell --profile ci -- make dist-ci

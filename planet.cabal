@@ -96,7 +96,14 @@ test-suite planet-tests
   type: exitcode-stdio-1.0
   main-is: TestSuite.hs
   hs-source-dirs:
-      tests
+      test
+  other-modules:
+      ConfigSpec
+      ElmGenSpec
+      FeedParserSpec
+      HtmlSanitizerSpec
+      I18nSpec
+      PlanetSpec
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       base >=4.7 && <5

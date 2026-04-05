@@ -1,70 +1,114 @@
-module FeedParserSpec (feedTests) where
+{-# LANGUAGE OverloadedStrings #-}
 
--- \| Tests for FeedParser module
---
+module FeedParserSpec (feedParserTests) where
 
-import Test.Tasty
-import Test.Tasty.HUnit
-
-import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.XML.Types
-import Text.HTML.TagSoup
+import qualified Text.Atom.Feed as Atom
+import Text.Feed.Types (Item (AtomItem))
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (testCase, (@?=))
 
+import Config
 import FeedParser
+import I18n
 
-feedTests :: TestTree
-feedTests =
+feedParserTests :: TestTree
+feedParserTests =
     testGroup
-        "Feed Tests"
-        [ testCase "extractFirstImage" $ do
-            let html = T.pack "<p>Some text <img src=\"http://example.com/image.jpg\" alt=\"test\"> more text</p>"
-            extractFirstImage html @?= Just (T.pack "http://example.com/image.jpg")
-        , testCase "extractFirstImage no image" $ do
-            let html = T.pack "<p>Some text without image</p>"
-            extractFirstImage html @?= Nothing
-        , testCase "getMediaDescription" $ do
-            let elements = [Element (Name (T.pack "description") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] [NodeContent (ContentText (T.pack "Test description"))]]
-            getMediaDescription elements @?= Just (T.pack "Test description")
-        , testCase "isMediaDescription true" $ do
-            let e = Element (Name (T.pack "description") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] []
-            isMediaDescription e @?= True
-        , testCase "isMediaDescription false" $ do
-            let e = Element (Name (T.pack "description") Nothing Nothing) [] []
-            isMediaDescription e @?= False
-        , testCase "isMediaThumbnail true" $ do
-            let e = Element (Name (T.pack "thumbnail") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] []
-            isMediaThumbnail e @?= True
-        , testCase "isMediaGroup true" $ do
-            let e = Element (Name (T.pack "group") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] []
-            isMediaGroup e @?= True
-        , testCase "getUrlAttr" $ do
-            let attrs = [(Name (T.pack "url") Nothing Nothing, [ContentText (T.pack "http://example.com")])]
-                e = Element (Name (T.pack "thumbnail") Nothing Nothing) attrs []
-            getUrlAttr e @?= Just (T.pack "http://example.com")
-        , testCase "getUrlAttr no url" $ do
-            let attrs = [(Name (T.pack "other") Nothing Nothing, [ContentText (T.pack "value")])]
-                e = Element (Name (T.pack "thumbnail") Nothing Nothing) attrs []
-            getUrlAttr e @?= Nothing
-        , testCase "findMediaThumbnail" $ do
-            let e = Element (Name (T.pack "thumbnail") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [(Name (T.pack "url") Nothing Nothing, [ContentText (T.pack "http://example.com")])] []
-                elements = [e]
-            findMediaThumbnail elements @?= Just (T.pack "http://example.com")
-        , testCase "findMediaGroupThumbnail" $ do
-            let thumb = Element (Name (T.pack "thumbnail") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [(Name (T.pack "url") Nothing Nothing, [ContentText (T.pack "http://example.com")])] []
-                group = Element (Name (T.pack "group") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] [NodeElement thumb]
-                elements = [group]
-            findMediaGroupThumbnail elements @?= Just (T.pack "http://example.com")
-        , testCase "join Just Just" $ join (Just (Just "test")) @?= Just "test"
-        , testCase "join Just Nothing" $ (join (Just Nothing) :: Maybe String) @?= Nothing
-        , testCase "join Nothing" $ (join Nothing :: Maybe String) @?= Nothing
-        , testCase "stripFirstPTag with p tag" $ do
-            let html = T.pack "<p>This is content</p><p>More</p>"
-            stripFirstPTag html @?= T.pack "<p>More</p>"
-        , testCase "stripFirstPTag flickr encoded content" $ do
-            let html = T.pack "&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/people/infamousq/&quot;&gt;InfamousQ&lt;/a&gt; posted a photo:&lt;/p&gt;\n\t\n&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/photos/infamousq/54774659725/&quot; title=&quot;Plan for Tervahovi LEGO display version 2&quot;&gt;&lt;img src=&quot;https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg&quot; width=&quot;240&quot; height=&quot;135&quot; alt=&quot;Plan for Tervahovi LEGO display version 2&quot; /&gt;&lt;/a&gt;&lt;/p&gt;\n\n&lt;p&gt;Further development of the Tervahovi harbor area&lt;/p&gt;"
-            stripFirstPTag html @?= T.pack "\n\t\n<p><a href=\"https://www.flickr.com/photos/infamousq/54774659725/\" title=\"Plan for Tervahovi LEGO display version 2\"><img src=\"https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg\" width=\"240\" height=\"135\" alt=\"Plan for Tervahovi LEGO display version 2\" /></a></p>\n\n<p>Further development of the Tervahovi harbor area</p>"
-        , testCase "stripFirstPTag without p tag" $ do
-            let html = T.pack "<div>Content</div>"
-            stripFirstPTag html @?= T.pack "<div>Content</div>"
+        "FeedParser"
+        [ testCase "extractFirstImage finds image src" $
+            extractFirstImage "<p>Some text <img src=\"http://example.com/image.jpg\" alt=\"test\"> more text</p>"
+                @?= Just "http://example.com/image.jpg"
+        , testCase "extractFirstImage returns Nothing without image" $
+            extractFirstImage "<p>Some text without image</p>" @?= Nothing
+        , testCase "getMediaDescriptionFromElements reads media description" $ do
+            let elements = [mediaDescriptionElement "Test description"]
+            getMediaDescriptionFromElements elements @?= Just "Test description"
+        , testCase "findMediaThumbnail reads thumbnail url" $ do
+            let elements = [mediaThumbnailElement "http://example.com/image.jpg"]
+            findMediaThumbnail elements @?= Just "http://example.com/image.jpg"
+        , testCase "findMediaGroupThumbnail reads thumbnail inside media group" $ do
+            let thumb = mediaThumbnailElement "http://example.com/image.jpg"
+                group = Element (Name "group" (Just mediaNs) Nothing) [] [NodeElement thumb]
+            findMediaGroupThumbnail [group] @?= Just "http://example.com/image.jpg"
+        , testCase "stripFirstPTag removes leading paragraph wrapper" $
+            stripFirstPTag "<p>This is content</p><p>More</p>" @?= "<p>More</p>"
+        , testCase "stripFirstPTag decodes flickr-style encoded content" $
+            stripFirstPTag "&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/people/infamousq/&quot;&gt;InfamousQ&lt;/a&gt; posted a photo:&lt;/p&gt;\n\t\n&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/photos/infamousq/54774659725/&quot; title=&quot;Plan for Tervahovi LEGO display version 2&quot;&gt;&lt;img src=&quot;https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg&quot; width=&quot;240&quot; height=&quot;135&quot; alt=&quot;Plan for Tervahovi LEGO display version 2&quot; /&gt;&lt;/a&gt;&lt;/p&gt;\n\n&lt;p&gt;Further development of the Tervahovi harbor area&lt;/p&gt;"
+                @?= "\n\t\n<p><a href=\"https://www.flickr.com/photos/infamousq/54774659725/\" title=\"Plan for Tervahovi LEGO display version 2\"><img src=\"https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg\" width=\"240\" height=\"135\" alt=\"Plan for Tervahovi LEGO display version 2\"></img></a></p>\n\n<p>Further development of the Tervahovi harbor area</p>"
+        , testCase "cleanTitle removes trailing hashtags" $
+            cleanTitle "My post #tag1 #tag2" @?= "My post"
+        , testCase "cleanTitle keeps numeric hashtags" $
+            cleanTitle "My post #123 #tag" @?= "My post #123"
+        , testCase "getFlickrMediaDescription skips first paragraph" $ do
+            let item = atomItemWithContent "<p>first</p><p>second</p>"
+            getFlickrMediaDescription item @?= Just "<p>second</p>"
+        , testCase "getAtomMediaDescription keeps full HTML content" $ do
+            let item = atomItemWithContent "<p>first</p><p>second</p>"
+            getAtomMediaDescription item @?= Just "<p>first</p><p>second</p>"
+        , testCase "parseItem prefers Atom published date" $ do
+            let publishedDate = "2025-12-31T23:55:00Z"
+                updatedDate = "2026-01-01T17:45:09Z"
+                entry =
+                    (Atom.nullEntry "id" (Atom.TextString "Test Atom Title") (read "2000-01-01 00:00:00 UTC"))
+                        { Atom.entryPublished = Just publishedDate
+                        , Atom.entryUpdated = updatedDate
+                        , Atom.entryLinks = [Atom.nullLink "http://example.com/atom-link"]
+                        }
+                expectedDate = iso8601ParseM (T.unpack publishedDate)
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com"
+            parseItem feedConfig Nothing (AtomItem entry)
+                @?= Just
+                    ( AppItem
+                        "Test Atom Title"
+                        "http://example.com/atom-link"
+                        expectedDate
+                        Nothing
+                        Nothing
+                        Nothing
+                        Nothing
+                        "Test Feed"
+                        Nothing
+                        Feed
+                    )
+        , testCase "parseItem uses updated date when published missing" $ do
+            let updatedDate = "2026-01-01T17:45:09Z"
+                entry =
+                    (Atom.nullEntry "id" (Atom.TextString "Test Atom Title") (read "2000-01-01 00:00:00 UTC"))
+                        { Atom.entryPublished = Nothing
+                        , Atom.entryUpdated = updatedDate
+                        , Atom.entryLinks = [Atom.nullLink "http://example.com/atom-link"]
+                        }
+                expectedDate = iso8601ParseM (T.unpack updatedDate)
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com"
+            parseItem feedConfig Nothing (AtomItem entry)
+                @?= Just
+                    ( AppItem
+                        "Test Atom Title"
+                        "http://example.com/atom-link"
+                        expectedDate
+                        Nothing
+                        Nothing
+                        Nothing
+                        Nothing
+                        "Test Feed"
+                        Nothing
+                        Feed
+                    )
         ]
+  where
+    mediaNs = "http://search.yahoo.com/mrss/"
+
+    mediaDescriptionElement textValue =
+        Element (Name "description" (Just mediaNs) Nothing) [] [NodeContent (ContentText textValue)]
+
+    mediaThumbnailElement url =
+        Element (Name "thumbnail" (Just mediaNs) Nothing) [(Name "url" Nothing Nothing, [ContentText url])] []
+
+    atomItemWithContent content =
+        AtomItem $
+            (Atom.nullEntry "tag:example.com,2023:test" (Atom.TextString "Title") (read "2023-01-01 00:00:00 UTC"))
+                { Atom.entryContent = Just (Atom.HTMLContent content)
+                }

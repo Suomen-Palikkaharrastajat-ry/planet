@@ -18,7 +18,6 @@ There is no `pnpm` in the current project. Frontend tooling is provided through 
 ```text
 src/                  Haskell library + executable modules
 test/                 Active Haskell test suite used by `make test`
-tests/                Older parallel Haskell test area; do not treat as primary unless asked
 elm-app/              Elm frontend
   src/                Elm application modules
   tests/              Elm unit tests

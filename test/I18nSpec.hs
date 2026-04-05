@@ -1,26 +1,23 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module I18nSpec (i18nTests) where
 
--- \| Tests for I18n module
---
-
-import Test.Tasty
-import Test.Tasty.HUnit
-
-import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Format (TimeLocale (..), defaultTimeLocale)
+import Data.Time.Format (TimeLocale (months, wDays), defaultTimeLocale)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit (testCase, (@?=))
 
 import I18n
 
 i18nTests :: TestTree
 i18nTests =
     testGroup
-        "I18n Tests"
-        [ testCase "parseLocale en" $ parseLocale (T.pack "en") @?= En
-        , testCase "parseLocale fi" $ parseLocale (T.pack "fi") @?= Fi
-        , testCase "parseLocale unknown" $ parseLocale (T.pack "unknown") @?= defaultLocale
-        , testCase "getMessages En" $ msgGeneratedOn (getMessages En) @?= T.pack "Generated on"
-        , testCase "getMessages Fi" $ msgGeneratedOn (getMessages Fi) @?= T.pack "Koottu"
-        , testCase "getTimeLocale En" $ wDays (getTimeLocale En) @?= wDays defaultTimeLocale
-        , testCase "getTimeLocale Fi" $ head (months (getTimeLocale Fi)) @?= ("tammikuu", "tammi")
+        "I18n"
+        [ testCase "parseLocale en" $ parseLocale "en" @?= En
+        , testCase "parseLocale fi" $ parseLocale "fi" @?= Fi
+        , testCase "parseLocale unknown falls back to default" $ parseLocale "unknown" @?= defaultLocale
+        , testCase "english messages" $ msgGeneratedOn (getMessages En) @?= T.pack "Generated on"
+        , testCase "finnish messages" $ msgGeneratedOn (getMessages Fi) @?= T.pack "Koottu"
+        , testCase "english time locale" $ wDays (getTimeLocale En) @?= wDays defaultTimeLocale
+        , testCase "finnish month names" $ head (months (getTimeLocale Fi)) @?= ("tammikuu", "tammi")
         ]

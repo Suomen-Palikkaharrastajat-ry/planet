@@ -43,6 +43,10 @@ build: planet ## Build the executable
 elm-app/src/Data.elm: planet planet.toml
 	./planet
 
+elm-app/src/.data-nix-stamp: planet.toml
+	planet-nix
+	touch $@
+
 elm-app/.elm-tailwind/.stamp: elm-app/elm.json elm-app/vite.config.mjs elm-app/src/main.css $(ELM_APP_SOURCES) $(ELM_PACKAGE_SOURCES)
 	cd elm-app && elm-tailwind-classes gen
 	mkdir -p elm-app/.elm-tailwind
@@ -59,6 +63,10 @@ elm-app/dist/.build-stamp: elm-app/.elm-tailwind/.stamp $(ELM_APP_SOURCES) $(ELM
 	cd elm-app && vite build
 	touch $@
 
+elm-app/dist/.build-stamp-ci: elm-app/.elm-tailwind/.stamp $(ELM_APP_SOURCES) $(ELM_PACKAGE_SOURCES) elm-app/elm.json elm-app/vite.config.mjs elm-app/index.html elm-app/src/.data-nix-stamp
+	cd elm-app && vite build
+	touch $@
+
 .PHONY: elm-build
 elm-build: elm-app/dist/.build-stamp ## Build the Elm app
 
@@ -67,7 +75,7 @@ elm-test: elm-app/.elm-tailwind/.stamp ## Run Elm tests with generated Tailwind 
 	cd elm-app && elm-test
 
 .PHONY: dist-ci
-dist-ci: build-all ## Build CI-ready static output
+dist-ci: elm-app/dist/.build-stamp-ci ## Build CI-ready static output using Nix-provided planet binary
 	rm -rf build
 	mkdir -p build
 	cp -R elm-app/dist/. build/
@@ -112,4 +120,4 @@ format: ## Auto-format Haskell and Elm source files
 .PHONY: clean
 clean: ## Clean build artifacts, output, and test artifacts
 	cabal clean
-	rm -rf public build planet .hpc *.html src/Main elm-app/.elm-tailwind
+	rm -rf public build planet .hpc *.html src/Main elm-app/.elm-tailwind elm-app/src/.data-nix-stamp

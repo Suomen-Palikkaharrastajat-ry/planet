@@ -13,6 +13,7 @@ planet
 src/Main
 
 # --- Elm / frontend build artifacts ---
+node_modules
 elm-app/node_modules/
 elm-app/elm-stuff/
 elm-app/.elm-tailwind/
