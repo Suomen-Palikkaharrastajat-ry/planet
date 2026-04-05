@@ -1,9 +1,0 @@
-# TODO
-
-Complete as many [ ] task items as possible. After completing each task, test, commit, and push your changes. Mark each completed task as [x] in this TODO.md, including the commit hash in parentheses. If a task is too large to complete at once, create additional TODO files starting with "TODO-" and reference them from this file. Do not commit any TODO files.
-
-Follow the guidelines in AGENTS.md and especially ADR-0000. Do not create any user- or developer-facing documentation. You may maintain documentation for LLM agents by keeping AGENTS.md up to date, concise, and primarily referencing more detailed documentation in ./agents or ./agents/adrs (for Architecture Decision Records).
-
-## Tasks
-
-* [ ] 
