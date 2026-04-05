@@ -36,27 +36,30 @@ jobs:
       - name: Install devenv
         run: nix profile install nixpkgs#devenv
 
-      - uses: actions/cache@v4
+      - name: Restore Elm cache
+        id: elm-cache-restore
+        uses: actions/cache/restore@v4
         with:
           path: |
+            ~/.elm
             elm-app/elm-stuff
-            ~/.cabal/packages
-            ~/.cabal/store
-            dist-newstyle
-          key: build-${{ runner.os }}-${{ hashFiles('elm-app/elm.json', 'planet.cabal', 'cabal.project', 'cabal.project.freeze', 'pkgs/package-lock.json') }}
-          restore-keys: |
-            build-${{ runner.os }}-
-
-      - name: Bootstrap frozen Cabal package index
-        run: |
-          INDEX_STATE="$(sed -n 's/^index-state:[[:space:]]*//p' cabal.project)"
-          devenv shell --profile ci -- cabal update --project-file=cabal.project --index-state="$INDEX_STATE"
+          key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
+          restore-keys: elm-${{ runner.os }}-
 
       - name: Run tests
         run: devenv shell --profile ci -- make test
 
       - name: Build
         run: devenv shell --profile ci -- make dist-ci
+
+      - name: Save Elm cache
+        if: steps.elm-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.elm
+            elm-app/elm-stuff
+          key: ${{ steps.elm-cache-restore.outputs.cache-primary-key }}
 
       - uses: actions/configure-pages@v5
 
