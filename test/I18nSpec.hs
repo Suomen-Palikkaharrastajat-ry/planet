@@ -1,9 +1,6 @@
-module I18nSpec where
+module I18nSpec (i18nTests) where
 
 -- \| Tests for I18n module
---
--- Covers: US-005 (Self-Contained Output)
--- Constrained by: ADR-0000-agent-guidance.md
 --
 
 import Test.Tasty
@@ -25,5 +22,5 @@ i18nTests =
         , testCase "getMessages En" $ msgGeneratedOn (getMessages En) @?= T.pack "Generated on"
         , testCase "getMessages Fi" $ msgGeneratedOn (getMessages Fi) @?= T.pack "Koottu"
         , testCase "getTimeLocale En" $ wDays (getTimeLocale En) @?= wDays defaultTimeLocale
-        , testCase "getTimeLocale Fi" $ months (getTimeLocale Fi) !! 0 @?= ("tammikuu", "tammi")
+        , testCase "getTimeLocale Fi" $ head (months (getTimeLocale Fi)) @?= ("tammikuu", "tammi")
         ]

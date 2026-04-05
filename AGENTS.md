@@ -1,131 +1,153 @@
 # AGENTS.md
 
-## Purpose
+This file is for coding agents working on `planet`.
 
-This document defines how LLM coding agents must read, navigate, and safely modify the `planet` repository. It is the primary entry point for any agent-based task.
+## Project Overview
 
-## 1. Source of Truth & Precedence
+`planet` is a feed aggregator for *Suomen Palikkaharrastajat ry*.
 
-Your understanding and actions must be guided by the following artifacts, in this strict order of precedence:
+It has two main parts:
 
-1.  **Tests (`test/`)**: Define the verifiable, correct behavior of the application. **Tests are the ultimate source of truth.**
-2.  **ADRs (`agents/adrs/`)**: Define the architectural constraints and non-negotiable rules.
-3.  **User Stories (`agents/stories/`)**: Explain the "why" behind the features and define product intent.
-4.  **Glossary (`agents/GLOSSARY.md`)**: Provides the canonical vocabulary for this project.
-5.  **Inline Source Code Comments**: Provide context but are subordinate to the artifacts above.
+- A Haskell CLI that reads [`planet.toml`](/workspaces/planet/planet.toml), fetches RSS/Atom/photo feeds, generates OPML and a search index, and writes Elm data into [`elm-app/src/Data.elm`](/workspaces/planet/elm-app/src/Data.elm).
+- An Elm 0.19 frontend built with Vite and Tailwind CSS 4 that renders the aggregated feed content as a static site.
 
-## 2. Agent Self-Guidance Work Loop
+There is no `pnpm` in the current project. Frontend tooling is provided through Nix via [`pkgs/npm-tools.nix`](/workspaces/planet/pkgs/npm-tools.nix).
 
-Before making any changes, you **MUST** follow this work loop:
+## Repository Layout
 
-1.  **State Goal**: Clearly state the perceived goal of the task.
-2.  **Locate Artifacts**: Identify and read all relevant tests, user stories, and ADRs related to the goal.
-3.  **Identify Constraints**: List the specific architectural and behavioral constraints imposed by the artifacts.
-5.  **Propose Strategy**: Formulate a minimal change strategy that respects all constraints.
-5.  **Formalize Behavior (BDD)**: When adding or updating tests, consider expressing the desired behavior in a Given/When/Then format within the test's comments or the user story itself. Tests are the executable specification of behavior.
-6.  **Update/Add Tests**: Before writing implementation code, add or update tests that codify the goal. Ensure they fail as expected.
-6.  **Implement**: Write the code to make the new tests pass.
-7.  **Verify**: Run all tests and re-evaluate your changes against the user stories and ADRs to ensure compliance.
+```text
+src/                  Haskell library + executable modules
+test/                 Active Haskell test suite used by `make test`
+tests/                Older parallel Haskell test area; do not treat as primary unless asked
+elm-app/              Elm frontend
+  src/                Elm application modules
+  tests/              Elm unit tests
+  .elm-tailwind/      Generated elm-tailwind-classes output
+  packages/           Symlinks to shared Elm packages in vendor/master-builder
+pkgs/                 Nix-managed Node/Vite/Elm tooling manifest + lockfile
+vendor/master-builder Shared Elm packages for design tokens and UI components
+.github/workflows/    CI/CD workflows
+devenv.nix            Dev shell and CI profile
+Makefile              Main entry point for development, build, and test commands
+cabal.project         Cabal project config with pinned index-state
+cabal.project.freeze  Frozen Cabal dependency plan for CI/reproducibility
+planet.toml           Feed configuration
+```
 
-## 3. Repository Map (Agent-Oriented)
+## Development Environment
 
-- **`./AGENTS.md`**: **Your entry point.** Defines rules of engagement.
-- **`./agents/README.md`**: Quick repository orientation (what it is, what it isn't).
-- **`./agents/GLOSSARY.md`**: Canonical terminology. Use it to speak the project's language.
-- **`./agents/adrs/`**: Architectural Decision Records (ADRs). These are your constraints.
-- **`./agents/stories/`**: User Stories. This is the "why."
-- **`./test/`**: Behavioral truth.
-    - `test/Spec.hs`: Key unit and integration tests.
-    - `test/TestSuite.hs`: Test suite entry point.
-- **`./src/`**: Implementation.
-    - `src/Planet.hs`: Main business logic orchestration.
-    - `src/FeedParser.hs`: Configuration and feed data parsing.
-    - `src/HtmlGen.hs`: HTML generation logic.
-    - `src/Styles.hs` & `src/Scripts.hs`: Embedded CSS and JS.
-    - `src/I18n.hs`: Internationalization logic.
-    - `src/ElmGen.hs`: Generates Elm data modules from parsed feeds.
-- **`./elm-app/`**: Interactive Elm-based viewer application.
-    - `elm-app/src/Main.elm`: Application entry point and orchestration.
-    - `elm-app/src/Types.elm`: Core type definitions.
-    - `elm-app/src/DateUtils.elm`: Date formatting and grouping utilities.
-    - `elm-app/src/View.elm`: UI rendering logic.
-    - `elm-app/src/Data.elm`: Generated feed data (from Haskell).
-    - `elm-app/tests/`: Comprehensive test suite for Elm modules.
-- **`./planet.cabal`**: Project definition and dependencies.
-- **`./planet.toml`**: Main configuration file.
+Use `devenv`.
 
-## 4. Change Rules
+Run commands either:
 
-- **Do not** modify application behavior without first adding or modifying a test in `test/`.
-- **Do not** violate a constraint defined in an ADR. If a change requires this, you must first propose a new ADR.
-- All code changes must be accompanied by corresponding updates to tests and, if necessary, documentation.
-- All commit messages **MUST** follow the Conventional Commits specification outlined in `agents/adrs/ADR-0000-agent-guidance.md`.
+- interactively with `make shell`
+- or one-off with `devenv shell --profile ci -- ...` / `devenv shell -- ...`
 
-## 5. Decision Escalation Rules
+Key commands:
 
-You **MUST STOP** and escalate to the user for guidance if you encounter any of the following situations:
+- `make shell` — open the dev shell
+- `make build` — build the Haskell CLI
+- `make run` — regenerate [`elm-app/src/Data.elm`](/workspaces/planet/elm-app/src/Data.elm)
+- `make elm-build` — build the Elm app
+- `make build-all` — full local build
+- `make elm-test` — run Elm tests
+- `make test` — run Haskell + Elm checks and tests
+- `make dist-ci` — produce CI-ready static output in `build/`
+- `make watch` — run the generator and start Vite dev mode
 
-- A requirement in a User Story conflicts with an existing test.
-- A proposed change would violate a constraint in an ADR.
-- The desired behavior is ambiguous, or there are multiple plausible interpretations.
-- You are uncertain how to proceed.
+## Source of Truth
 
-**Escalation Procedure:**
-1.  Clearly document the conflict or ambiguity.
-2.  If possible, create a new failing test case that demonstrates the ambiguity.
-3.  Present the situation to the user and ask for clarification. **Do not guess.**
+When changing behavior, use this order of trust:
 
-## Agent Workflow & Best Practices
+1. Active tests in [`test/`](/workspaces/planet/test) and [`elm-app/tests/`](/workspaces/planet/elm-app/tests)
+2. Current code and build pipeline
+3. Inline comments and docs
 
-- **TODO files**: Project-specific `TODO.md` files may be in `.gitignore`. If you can't read them with the `read_file` tool, use `run_shell_command` with `cat`.
-- **Building and Testing**: This project uses a `Makefile` for common tasks. Use `make test` to run the test suite and `make build` to build the project.
-- **Proactive Refactoring**: After completing your primary task, review the codebase for potential refactoring opportunities that would improve maintainability and adherence to the project's ADRs.
+The old `agents/adrs` and `agents/stories` material is gone. Do not assume those files exist.
 
-## 6. Style Guide Compliance
+## Change Rules
 
-This project follows the **Suomen Palikkaharrastajat ry** brand style guide.
+- Update or add tests before changing behavior.
+- Keep changes minimal and aligned with the existing architecture.
+- Do not rewrite generated files by hand unless that is the explicit task.
+- Do not reintroduce `pnpm`, `elm-app/package.json`, or ad hoc Node installs.
+- Do not modify `elm-app/node_modules`; it is a symlink created by `devenv`.
+- Do not change Cabal dependency resolution casually. If Haskell dependencies change:
+  1. update the relevant Cabal metadata
+  2. refresh [`cabal.project.freeze`](/workspaces/planet/cabal.project.freeze)
+  3. verify with `devenv shell --profile ci -- make test`
 
-- **Agent CSS reference:** Fetch `https://logo.palikkaharrastajat.fi/brand.css` for the latest canonical `@theme`, `@utility type-*`, `@font-face`, reduced-motion rule, and shared component classes. Tailwind v4 requires `@theme` in the locally-processed file — copy the content into `elm-app/src/main.css`.
-- **Human-readable:** https://logo.palikkaharrastajat.fi/
-- **Machine-readable (JSON-LD):** https://logo.palikkaharrastajat.fi/design-guide/index.jsonld
-  - Colors: https://logo.palikkaharrastajat.fi/design-guide/colors.jsonld
-  - Typography: https://logo.palikkaharrastajat.fi/design-guide/typography.jsonld
-  - Spacing: https://logo.palikkaharrastajat.fi/design-guide/spacing.jsonld
-  - Motion: https://logo.palikkaharrastajat.fi/design-guide/motion.jsonld
-  - Logos: https://logo.palikkaharrastajat.fi/design-guide/logos.jsonld
-  - Responsiveness: https://logo.palikkaharrastajat.fi/design-guide/responsiveness.jsonld
+## Generated Files
 
-**When making any UI change**, you MUST:
+Treat these as generated:
 
-1. **Check the live design guide first** (`https://logo.palikkaharrastajat.fi/`). Any color, font, spacing, or animation value must come from a named design token — never hard-code raw hex values or pixel values directly in components.
-2. **Use brand colors correctly:**
-   - Primary brand color is `#05131D` (brand black), not blue.
-   - Brand accent is `#FAC80A` (yellow) — only for CTAs/highlights, always paired with brand-black text.
-   - Red `#C91A09` is for danger/error states only.
-   - Tailwind token classes: `bg-brand`, `text-brand`, `border-brand`, `bg-brand-yellow`.
-3. **Use named `type-*` utility classes** for all text (defined in `elm-app/src/main.css`). Never use raw Tailwind size/weight combinations.
+- [`elm-app/src/Data.elm`](/workspaces/planet/elm-app/src/Data.elm) — generated by the Haskell CLI
+- [`elm-app/.elm-tailwind/`](/workspaces/planet/elm-app/.elm-tailwind) — generated by `elm-tailwind-classes gen`
+- [`elm-app/public/search-index.json`](/workspaces/planet/elm-app/public/search-index.json) — generated by the Haskell CLI
+- [`elm-app/public/opml.xml`](/workspaces/planet/elm-app/public/opml.xml) — generated by the Haskell CLI
 
-   | Class | Size | Weight | Notes |
-   |---|---|---|---|
-   | `type-display` | 3rem | 700 | Hero headlines only |
-   | `type-h1` | 1.875rem | 700 | One per page |
-   | `type-h2` | 1.5rem | 700 | Section headings |
-   | `type-h3` | 1.25rem | 600 | Sub-section headings |
-   | `type-h4` | 1.125rem | 600 | Card / widget headings |
-   | `type-body` | 1rem | 400 | Default body copy |
-   | `type-body-small` | 0.875rem | 500 | UI controls, labels |
-   | `type-caption` | 0.875rem | 400 | Metadata, footnotes |
-   | `type-mono` | 0.875rem | 400 | Code snippets (monospace) |
-   | `type-overline` | 0.75rem | 600 uppercase | Category labels |
+If you need them refreshed, use the Make targets instead of hand-editing.
 
-4. **Use Outfit font exclusively** (variable font, weight 100–900; OFL licensed). Self-hosted from `elm-app/public/fonts/`.
-5. **Respect logo usage rules:**
-   - Prefer SVG; use WebP with PNG fallback for raster formats.
-   - Minimum size: 80px wide (square logo), 200px wide (horizontal logo).
-   - 25% clear space on all four sides.
-   - Never stretch, recolour, add shadows, or distort.
-   - Do **not** use the animated logo variant when `prefers-reduced-motion: reduce` is set.
-6. **Use named spacing tokens** (4px base: `space-1` through `space-16`); never use arbitrary px values.
-7. **Respect motion rules:** Animate `transform` and `opacity` only. Always wrap animations in `@media (prefers-reduced-motion: no-preference)`. Use `duration-fast` (150ms) for hover/focus, `duration-base` (300ms) for reveals, with `ease-standard` (`cubic-bezier(0.4, 0, 0.2, 1)`).
-8. **Use semantic token names** — `bg-bg-page`, `text-text-primary`, `border-border-default`, etc. — never raw hex values.
-9. **Page layout:** Every page wrapper uses `max-w-5xl mx-auto px-4` (1024px content width). Cards use `rounded-lg` (8px radius).
+## Frontend Guidance
+
+Prefer the shared Elm packages already vendored into the repo:
+
+- `DesignTokens.*` for typed design-token values
+- `Component.*` for reusable shared UI
+- generated `Tailwind`, `Tailwind.Theme`, and `Tailwind.Breakpoints` modules from `.elm-tailwind/` for typed Tailwind usage
+
+Raw Tailwind class strings are acceptable in legacy code, but new code should prefer the shared packages and generated modules where practical.
+
+For UI work, follow the Suomen Palikkaharrastajat brand guide:
+
+- Human guide: https://logo.palikkaharrastajat.fi/
+- Canonical CSS tokens: https://logo.palikkaharrastajat.fi/brand.css
+
+Important design constraints:
+
+- use brand black `#05131D` as the primary brand color
+- use brand yellow `#FAC80A` for emphasis and CTAs
+- use `type-*` text utilities instead of ad hoc typography
+- use named spacing tokens and semantic colors
+- respect reduced-motion rules
+
+## Tooling Notes
+
+### Node / frontend deps
+
+Node tooling is defined in:
+
+- [`pkgs/package.json`](/workspaces/planet/pkgs/package.json)
+- [`pkgs/package-lock.json`](/workspaces/planet/pkgs/package-lock.json)
+- [`pkgs/npm-tools.nix`](/workspaces/planet/pkgs/npm-tools.nix)
+
+If you need to update frontend tooling:
+
+1. edit [`pkgs/package.json`](/workspaces/planet/pkgs/package.json)
+2. regenerate the lockfile with `npm install --package-lock-only` in `pkgs/`
+3. update the hash in [`pkgs/npm-tools.nix`](/workspaces/planet/pkgs/npm-tools.nix)
+4. verify in `devenv`
+
+### Cabal / Haskell deps
+
+The repo uses frozen Cabal inputs:
+
+- [`cabal.project`](/workspaces/planet/cabal.project)
+- [`cabal.project.freeze`](/workspaces/planet/cabal.project.freeze)
+
+CI should build from those frozen resources. Do not switch CI back to an unfrozen `cabal update`.
+
+## Testing Expectations
+
+Before finishing substantive work, run the smallest relevant verification and then the broader suite when appropriate:
+
+- Elm-only change: `make elm-test`
+- Haskell-only change: `cabal test` or `make test`
+- build pipeline / integration change: `devenv shell --profile ci -- make test` and `devenv shell --profile ci -- make dist-ci`
+
+## Documentation Split
+
+- [`README.md`](/workspaces/planet/README.md) is for humans using the project
+- [`AGENTS.md`](/workspaces/planet/AGENTS.md) is for coding agents developing the project
+
+Keep that split clean when editing docs.

@@ -1,9 +1,6 @@
-module FeedParserSpec where
+module FeedParserSpec (feedTests) where
 
 -- \| Tests for FeedParser module
---
--- Covers: US-001 (Aggregate Feeds), US-009 (Client-Side Search)
--- Constrained by: ADR-0000-agent-guidance.md
 --
 
 import Test.Tasty

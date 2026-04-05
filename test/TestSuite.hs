@@ -1,4 +1,4 @@
-module Main where
+module Main (main) where
 
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -24,8 +24,8 @@ import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Tree (TagTree (..), flattenTree, tagTree)
 import qualified Text.RSS.Syntax as RSS
 
-import qualified FeedParser as FeedParser
-import qualified HtmlGen as HtmlGen
+import qualified FeedParser
+import qualified HtmlGen
 import I18n
 import qualified Planet as PlanetMain
 
@@ -58,7 +58,7 @@ i18nTests =
         , testCase "getMessages En" $ msgGeneratedOn (getMessages En) @?= T.pack "Generated on"
         , testCase "getMessages Fi" $ msgGeneratedOn (getMessages Fi) @?= T.pack "Koottu"
         , testCase "getTimeLocale En" $ wDays (getTimeLocale En) @?= wDays defaultTimeLocale
-        , testCase "getTimeLocale Fi" $ months (getTimeLocale Fi) !! 0 @?= ("tammikuu", "tammi")
+        , testCase "getTimeLocale Fi" $ head (months (getTimeLocale Fi)) @?= ("tammikuu", "tammi")
         ]
 
 configTests :: TestTree

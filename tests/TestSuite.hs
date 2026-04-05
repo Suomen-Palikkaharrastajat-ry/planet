@@ -77,7 +77,7 @@ invariantsTests =
 i18nTests :: TestTree
 i18nTests =
     testGroup
-        "I18n Tests" -- Covers US-002, constrained by ADR-0000
+        "I18n Tests"
         [ testCase "parseLocale en" $ parseLocale (T.pack "en") @?= En
         , testCase "parseLocale fi" $ parseLocale (T.pack "fi") @?= Fi
         , testCase "parseLocale unknown" $ parseLocale (T.pack "unknown") @?= defaultLocale
@@ -90,7 +90,7 @@ i18nTests =
 configTests :: TestTree
 configTests =
     testGroup
-        "Config Tests" -- Covers US-002, constrained by ADR-0000
+        "Config Tests"
         [ testCase "PlanetMain.parseConfig valid" $ do
             let toml =
                     T.unlines
@@ -222,7 +222,7 @@ configTests =
 feedTests :: TestTree
 feedTests =
     testGroup
-        "Feed Tests" -- Covers US-001, US-006, constrained by ADR-0000
+        "Feed Tests"
         [ testCase "PlanetMain.extractFirstImage" $ do
             let html = T.pack "<p>Some text <img src=\"http://example.com/image.jpg\" alt=\"test\"> more text</p>"
             FeedParser.extractFirstImage html @?= Just (T.pack "http://example.com/image.jpg")
@@ -265,7 +265,6 @@ feedTests =
         , testCase "join Just Nothing" $ (join (Just Nothing) :: Maybe String) @?= Nothing
         , testCase "join Nothing" $ (join Nothing :: Maybe String) @?= Nothing
         , testCase "FeedParser.stripFirstPTag with p tag" $ do
-            -- Covers US-006
             let html = T.pack "<p>This is content</p><p>More</p>"
             FeedParser.stripFirstPTag html @?= T.pack "<p>More</p>"
         , testCase "FeedParser.stripFirstPTag flickr-like description" $ do
@@ -275,15 +274,12 @@ feedTests =
             let html = T.pack "&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/people/infamousq/&quot;&gt;InfamousQ&lt;/a&gt; posted a photo:&lt;/p&gt;\n\t\n&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/photos/infamousq/54774659725/&quot; title=&quot;Plan for Tervahovi LEGO display version 2&quot;&gt;&lt;img src=&quot;https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg&quot; width=&quot;240&quot; height=&quot;135&quot; alt=&quot;Plan for Tervahovi LEGO display version 2&quot; /&gt;&lt;/a&gt;&lt;/p&gt;\n\n&lt;p&gt;Further development of the Tervahovi harbor area&lt;/p&gt;"
             FeedParser.stripFirstPTag html @?= T.pack "\n\t\n<p><a href=\"https://www.flickr.com/photos/infamousq/54774659725/\" title=\"Plan for Tervahovi LEGO display version 2\"><img src=\"https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg\" width=\"240\" height=\"135\" alt=\"Plan for Tervahovi LEGO display version 2\"></img></a></p>\n\n<p>Further development of the Tervahovi harbor area</p>"
         , testCase "FeedParser.cleanTitle remove hashtags" $ do
-            -- Covers US-001
             let title = T.pack "My post #tag1 #tag2"
             FeedParser.cleanTitle title @?= T.pack "My post"
         , testCase "FeedParser.cleanTitle keep number hashtags" $ do
-            -- Covers US-001
             let title = T.pack "My post #123 #tag"
             FeedParser.cleanTitle title @?= T.pack "My post #123"
         , testCase "FeedParser.cleanTitle no hashtags" $ do
-            -- Covers US-001
             let title = T.pack "My post without hashtags"
             FeedParser.cleanTitle title @?= T.pack "My post without hashtags"
         , testCase "getFlickrMediaDescription with HTMLContent" $ do
@@ -381,7 +377,7 @@ htmlTests =
 utilityTests :: TestTree
 utilityTests =
     testGroup
-        "Utility Tests" -- Covers US-005, constrained by ADR-0000
+        "Utility Tests"
         [ testCase "join Just Just" $ join (Just (Just "x")) @?= Just "x"
         , testCase "join Just Nothing" $ join (Just Nothing :: Maybe (Maybe String)) @?= Nothing
         , testCase "join Nothing" $ join (Nothing :: Maybe (Maybe String)) @?= Nothing

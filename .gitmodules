@@ -1,0 +1,3 @@
+[submodule "vendor/components"]
+	path = vendor/master-builder
+	url = git@github.com:Suomen-Palikkaharrastajat-ry/master-builder

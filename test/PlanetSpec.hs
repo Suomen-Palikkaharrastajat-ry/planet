@@ -1,9 +1,6 @@
-module PlanetSpec where
+module PlanetSpec (planetTests) where
 
 -- \| Tests for Planet module
---
--- Covers: US-002 (Configure Planet)
--- Constrained by: ADR-0000-agent-guidance.md
 --
 
 import Test.Tasty
