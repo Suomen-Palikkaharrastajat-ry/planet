@@ -71,7 +71,7 @@ elm-app/dist/.build-stamp-ci: elm-app/.elm-tailwind/.stamp $(ELM_APP_SOURCES) $(
 elm-build: elm-app/dist/.build-stamp ## Build the Elm app
 
 .PHONY: elm-test
-elm-test: elm-app/.elm-tailwind/.stamp ## Run Elm tests with generated Tailwind modules
+elm-test: elm-app/.elm-tailwind/.stamp elm-app/src/Data.elm ## Run Elm tests with generated Tailwind modules and generated feed data
 	cd elm-app && elm-test
 
 .PHONY: dist-ci
