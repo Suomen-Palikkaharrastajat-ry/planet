@@ -2,9 +2,6 @@ module DateUtilsTest exposing (suite)
 
 {-| Tests for DateUtils module
 
-Covers: US-003 (Sort Feed Items) - Date formatting and grouping
-Constrained by: ADR-0000-agent-guidance.md
-
 -}
 
 import Data exposing (AppItem, FeedType(..))

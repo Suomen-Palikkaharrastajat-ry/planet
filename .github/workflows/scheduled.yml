@@ -15,71 +15,51 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  update:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
-
-      # ── Restore Planet CLI ────────────────────────────────────────────────────
-
-      - uses: actions/cache/restore@v4
-        id: binary-cache
         with:
-          path: ./planet
-          key: binary-planet-${{ runner.os }}-${{ hashFiles('planet.cabal', 'src/**/*.hs') }}
+          submodules: true
 
-      - if: steps.binary-cache.outputs.cache-hit != 'true'
-        name: Setup Haskell (fallback build)
-        uses: haskell-actions/setup@v2
+      - uses: cachix/install-nix-action@v31
         with:
-          ghc-version: '9.6'
-          cabal-version: 'latest'
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - if: steps.binary-cache.outputs.cache-hit != 'true'
-        run: make build
-
-      - run: chmod +x ./planet
-
-      # ── Node / Elm caches ─────────────────────────────────────────────────────
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: cachix/cachix-action@v16
         with:
-          version: 10
+          name: palikkaharrastajat
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          extraPullNames: devenv
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: 'elm-app/pnpm-lock.yaml'
+      - name: Install devenv
+        run: nix profile install nixpkgs#devenv
 
       - uses: actions/cache@v4
         with:
           path: |
-            ~/.elm
             elm-app/elm-stuff
-          key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
-          restore-keys: elm-${{ runner.os }}-
+            ~/.cabal/packages
+            ~/.cabal/store
+            dist-newstyle
+            planet
+          key: build-${{ runner.os }}-${{ hashFiles('elm-app/elm.json', 'planet.cabal', 'cabal.project', 'cabal.project.freeze', 'pkgs/package-lock.json') }}
+          restore-keys: build-${{ runner.os }}-
 
-      # ── Build ─────────────────────────────────────────────────────────────────
-
-      - name: Generate Data
-        run: ./planet
-
-      - name: Build Elm App
+      - name: Bootstrap frozen Cabal package index
         run: |
-          cd elm-app
-          pnpm install
-          pnpm run build
+          INDEX_STATE="$(sed -n 's/^index-state:[[:space:]]*//p' cabal.project)"
+          devenv shell --profile ci -- cabal update --project-file=cabal.project --index-state="$INDEX_STATE"
 
-      # ── Deploy ────────────────────────────────────────────────────────────────
+      - name: Build
+        run: devenv shell --profile ci -- make dist-ci
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./elm-app/dist
+          path: ./build
 
       - name: Deploy to GitHub Pages
         id: deployment

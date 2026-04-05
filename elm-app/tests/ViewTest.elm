@@ -2,9 +2,6 @@ module ViewTest exposing (suite)
 
 {-| Tests for View module
 
-Covers: US-005 (Self-Contained Output), US-006 (Differentiate Feed Types), US-007 (Interactive Viewer), US-008 (Mobile Sidebar)
-Constrained by: ADR-0000-agent-guidance.md
-
 -}
 
 import Data exposing (AppItem, FeedType(..))
@@ -15,7 +12,7 @@ import RemoteData
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
-import Types exposing (Model, Msg(..), ViewMode(..), ViewModel, Lang(..))
+import Types exposing (Lang(..), Model, Msg(..), ViewMode(..), ViewModel)
 import View
 
 
@@ -31,8 +28,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -49,8 +49,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -67,8 +70,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -85,8 +91,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -104,8 +113,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -123,8 +135,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -152,17 +167,26 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
-                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ { itemTitle = "Test Item"
-                                  , itemLink = "https://example.com"
-                                  , itemDate = Just "2026-01-08T19:27:04Z"
-                                  , itemDescSnippet = Just "Test description"
-                                  , itemThumbnail = Nothing
-                                  , itemSourceTitle = "Test Source"
-                                  , itemSourceLink = Nothing
-                                  , itemType = Feed
-                                  } ] } ]
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups =
+                                [ { monthLabel = "tammikuu 2026"
+                                  , monthId = "m-2026-01"
+                                  , items =
+                                        [ { itemTitle = "Test Item"
+                                          , itemLink = "https://example.com"
+                                          , itemDate = Just "2026-01-08T19:27:04Z"
+                                          , itemDescSnippet = Just "Test description"
+                                          , itemThumbnail = Nothing
+                                          , itemSourceTitle = "Test Source"
+                                          , itemSourceLink = Nothing
+                                          , itemType = Feed
+                                          }
+                                        ]
+                                  }
+                                ]
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -181,11 +205,14 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
-                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ createTestItem "2026-01-08T19:27:04Z" "Item 1" ] }
-                                              , { monthLabel = "joulukuu 2025", monthId = "m-2025-12", items = [ createTestItem "2025-12-25T10:00:00Z" "Item 2" ] }
-                                              ]
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups =
+                                [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ createTestItem "2026-01-08T19:27:04Z" "Item 1" ] }
+                                , { monthLabel = "joulukuu 2025", monthId = "m-2025-12", items = [ createTestItem "2025-12-25T10:00:00Z" "Item 2" ] }
+                                ]
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -196,6 +223,58 @@ suite =
                         |> Query.findAll [ Selector.tag "nav" ]
                         |> Query.index 0
                         |> Query.has [ Selector.text "tammikuu 2026" ]
+            , test "renders mobile sidebar search input when sidebar is visible" <|
+                \_ ->
+                    let
+                        model : ViewModel
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = True
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.id "mobile-search-input" ]
+            , test "renders card source title and formatted date" <|
+                \_ ->
+                    let
+                        item =
+                            { itemTitle = "Test Item"
+                            , itemLink = "https://example.com"
+                            , itemDate = Just "2026-01-08T19:27:04Z"
+                            , itemDescSnippet = Just "Test description"
+                            , itemThumbnail = Nothing
+                            , itemSourceTitle = "Test Source"
+                            , itemSourceLink = Nothing
+                            , itemType = Feed
+                            }
+
+                        model =
+                            { items = [ item ]
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ item ] } ]
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.text "Test Source", Selector.text "2026-01-08" ]
             , test "filters items based on selected feed types - shows selected" <|
                 \_ ->
                     let
@@ -222,17 +301,26 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ] -- Only Feed selected
-                            , searchText = "", viewMode = Types.Full
-                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ { itemTitle = "RSS Item"
-                                  , itemLink = "https://example.com/rss"
-                                  , itemDate = Just "2026-01-08T19:27:04Z"
-                                  , itemDescSnippet = Just "RSS description"
-                                  , itemThumbnail = Nothing
-                                  , itemSourceTitle = "RSS Source"
-                                  , itemSourceLink = Nothing
-                                  , itemType = Feed
-                                  } ] } ]
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups =
+                                [ { monthLabel = "tammikuu 2026"
+                                  , monthId = "m-2026-01"
+                                  , items =
+                                        [ { itemTitle = "RSS Item"
+                                          , itemLink = "https://example.com/rss"
+                                          , itemDate = Just "2026-01-08T19:27:04Z"
+                                          , itemDescSnippet = Just "RSS description"
+                                          , itemThumbnail = Nothing
+                                          , itemSourceTitle = "RSS Source"
+                                          , itemSourceLink = Nothing
+                                          , itemType = Feed
+                                          }
+                                        ]
+                                  }
+                                ]
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -267,17 +355,26 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ] -- Only Feed selected
-                            , searchText = "", viewMode = Types.Full
-                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ { itemTitle = "RSS Item"
-                                  , itemLink = "https://example.com/rss"
-                                  , itemDate = Just "2026-01-08T19:27:04Z"
-                                  , itemDescSnippet = Just "RSS description"
-                                  , itemThumbnail = Nothing
-                                  , itemSourceTitle = "RSS Source"
-                                  , itemSourceLink = Nothing
-                                  , itemType = Feed
-                                  } ] } ]
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups =
+                                [ { monthLabel = "tammikuu 2026"
+                                  , monthId = "m-2026-01"
+                                  , items =
+                                        [ { itemTitle = "RSS Item"
+                                          , itemLink = "https://example.com/rss"
+                                          , itemDate = Just "2026-01-08T19:27:04Z"
+                                          , itemDescSnippet = Just "RSS description"
+                                          , itemThumbnail = Nothing
+                                          , itemSourceTitle = "RSS Source"
+                                          , itemSourceLink = Nothing
+                                          , itemType = Feed
+                                          }
+                                        ]
+                                  }
+                                ]
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -293,8 +390,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -331,16 +431,24 @@ suite =
                             , selectedFeedTypes = [ Feed ]
                             , searchText = "unique"
                             , viewMode = Types.Full
-                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ { itemTitle = "Unique Title"
-                                  , itemLink = "https://example.com"
-                                  , itemDate = Just "2026-01-08T19:27:04Z"
-                                  , itemDescSnippet = Just "Some description"
-                                  , itemThumbnail = Nothing
-                                  , itemSourceTitle = "Source"
-                                  , itemSourceLink = Nothing
-                                  , itemType = Feed
-                                  } ] } ]
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , visibleGroups =
+                                [ { monthLabel = "tammikuu 2026"
+                                  , monthId = "m-2026-01"
+                                  , items =
+                                        [ { itemTitle = "Unique Title"
+                                          , itemLink = "https://example.com"
+                                          , itemDate = Just "2026-01-08T19:27:04Z"
+                                          , itemDescSnippet = Just "Some description"
+                                          , itemThumbnail = Nothing
+                                          , itemSourceTitle = "Source"
+                                          , itemSourceLink = Nothing
+                                          , itemType = Feed
+                                          }
+                                        ]
+                                  }
+                                ]
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -377,16 +485,24 @@ suite =
                             , selectedFeedTypes = [ Feed ]
                             , searchText = "unique"
                             , viewMode = Types.Full
-                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ { itemTitle = "Unique Title"
-                                  , itemLink = "https://example.com"
-                                  , itemDate = Just "2026-01-08T19:27:04Z"
-                                  , itemDescSnippet = Just "Some description"
-                                  , itemThumbnail = Nothing
-                                  , itemSourceTitle = "Source"
-                                  , itemSourceLink = Nothing
-                                  , itemType = Feed
-                                  } ] } ]
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , visibleGroups =
+                                [ { monthLabel = "tammikuu 2026"
+                                  , monthId = "m-2026-01"
+                                  , items =
+                                        [ { itemTitle = "Unique Title"
+                                          , itemLink = "https://example.com"
+                                          , itemDate = Just "2026-01-08T19:27:04Z"
+                                          , itemDescSnippet = Just "Some description"
+                                          , itemThumbnail = Nothing
+                                          , itemSourceTitle = "Source"
+                                          , itemSourceLink = Nothing
+                                          , itemType = Feed
+                                          }
+                                        ]
+                                  }
+                                ]
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -402,8 +518,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -421,8 +540,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -438,8 +560,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -457,8 +582,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -474,8 +602,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = True
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -491,8 +622,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = True
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -510,8 +644,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = True
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -527,8 +664,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -544,8 +684,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = True
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -553,7 +696,7 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.has [ Selector.class "z-30" ]
+                        |> Query.has [ Selector.class "bg-black/50" ]
             , test "does not render overlay when sidebar is hidden" <|
                 \_ ->
                     let
@@ -561,8 +704,11 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
-                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
@@ -570,7 +716,7 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.hasNot [ Selector.class "z-30" ]
+                        |> Query.hasNot [ Selector.class "bg-black/50" ]
             ]
         ]
 

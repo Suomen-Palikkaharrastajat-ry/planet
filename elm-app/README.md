@@ -1,16 +1,33 @@
 # elm-app
-> Built with [Elm Land](https://elm.land) 🌈
 
-## Local development
+Interactive Elm frontend for `planet`.
+
+## Development
+
+Use the repo `devenv` shell. `elm-app/` no longer carries its own `package.json` or lockfile.
 
 ```bash
-# Requires Node.js v18+ (https://nodejs.org)
-npx elm-land server
+devenv shell
+make elm-test
+make watch
+make elm-build
 ```
 
-## Deploying to production
+## Tooling model
 
-Elm Land projects are most commonly deployed as static websites. 
+- Node, Vite, `elm-test`, and `elm-tailwind-classes` come from [`pkgs/npm-tools.nix`](/workspaces/planet/pkgs/npm-tools.nix).
+- `devenv.nix` exposes those tools and symlinks `node_modules` into the repo root and `elm-app/`.
+- `elm-tailwind-classes gen` writes generated Elm modules to `elm-app/.elm-tailwind/`.
 
-Please visit [the "Deployment" guide](https://elm.land/guide/deploying) to learn more
-about deploying your app for free using Netlify or Vercel.
+## Elm package layout
+
+- `elm-app/packages/design-tokens` points to the shared design token package.
+- `elm-app/packages/ui-components` points to the shared UI component package.
+- `elm-app/elm.json` includes both package `src/` directories plus `.elm-tailwind/`.
+
+## Styling guidance
+
+- Prefer `DesignTokens.*` for token-backed values and shared vocabulary.
+- Prefer `Component.*` modules when a shared component matches the UI need.
+- Prefer generated `Tailwind`, `Tailwind.Theme`, and `Tailwind.Breakpoints` modules over raw class strings in new Elm code.
+- Keep raw Tailwind class strings only in legacy areas or for utilities not yet covered by shared packages or generated modules.

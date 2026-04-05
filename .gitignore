@@ -15,6 +15,7 @@ src/Main
 # --- Elm / frontend build artifacts ---
 elm-app/node_modules/
 elm-app/elm-stuff/
+elm-app/.elm-tailwind/
 elm-app/.vite/
 elm-app/dist/
 elm-app/public/*

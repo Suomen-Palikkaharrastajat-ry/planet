@@ -2,9 +2,6 @@ module MainTest exposing (suite)
 
 {-| Tests for Main module
 
-Covers: US-001 (Aggregate Feeds), US-009 (Client-Side Search)
-Constrained by: ADR-0000-agent-guidance.md
-
 -}
 
 import Data exposing (allAppItems, FeedType(..))
