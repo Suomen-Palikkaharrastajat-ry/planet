@@ -27,6 +27,9 @@ let
     {
       languages.elm.enable = true;
 
+      languages.haskell.enable = true;
+      languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
+
       env.NODE_PATH = "${npmTools}/lib/node_modules";
 
       packages = [
