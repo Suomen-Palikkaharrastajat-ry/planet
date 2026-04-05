@@ -1,7 +1,10 @@
 {
     "type": "application",
     "source-directories": [
-        "src"
+        "src",
+        ".elm-tailwind",
+        "packages/design-tokens/src",
+        "packages/ui-components/src"
     ],
     "elm-version": "0.19.1",
     "dependencies": {

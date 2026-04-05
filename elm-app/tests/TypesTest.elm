@@ -2,9 +2,6 @@ module TypesTest exposing (suite)
 
 {-| Tests for Types module
 
-Covers: Type definitions for the Elm application
-Constrained by: ADR-0000-agent-guidance.md
-
 -}
 
 import Data exposing (FeedType(..))

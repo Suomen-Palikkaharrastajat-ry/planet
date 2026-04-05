@@ -20,92 +20,50 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Haskell
-        uses: haskell-actions/setup@v2
         with:
-          ghc-version: '9.6'
-          cabal-version: 'latest'
+          submodules: true
 
-      # ── Cabal package index cache (daily) ────────────────────────────────────
-
-      - id: date
-        run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
+      - uses: cachix/install-nix-action@v31
         with:
-          path: ~/.cabal/packages
-          key: cabal-index-${{ runner.os }}-${{ steps.date.outputs.date }}
-          restore-keys: cabal-index-${{ runner.os }}-
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: cabal update
-
-      # ── Cabal layered caches ──────────────────────────────────────────────────
-
-      - uses: actions/cache@v4
+      - uses: cachix/cachix-action@v16
         with:
-          path: ~/.cabal/store
-          key: cabal-store-${{ runner.os }}-ghc9.6-${{ hashFiles('planet.cabal', 'cabal.project') }}
-          restore-keys: cabal-store-${{ runner.os }}-ghc9.6-
+          name: palikkaharrastajat
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          extraPullNames: devenv
 
-      - uses: actions/cache@v4
-        with:
-          path: dist-newstyle
-          key: cabal-dist-${{ runner.os }}-ghc9.6-${{ hashFiles('planet.cabal', 'cabal.project') }}-${{ hashFiles('src/**/*.hs') }}
-          restore-keys: |
-            cabal-dist-${{ runner.os }}-ghc9.6-${{ hashFiles('planet.cabal', 'cabal.project') }}-
-            cabal-dist-${{ runner.os }}-ghc9.6-
-
-      # ── Node / Elm caches ─────────────────────────────────────────────────────
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: 'elm-app/pnpm-lock.yaml'
+      - name: Install devenv
+        run: nix profile install nixpkgs#devenv
 
       - uses: actions/cache@v4
         with:
           path: |
-            ~/.elm
             elm-app/elm-stuff
-          key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
-          restore-keys: elm-${{ runner.os }}-
+            ~/.cabal/packages
+            ~/.cabal/store
+            dist-newstyle
+            planet
+          key: build-${{ runner.os }}-${{ hashFiles('elm-app/elm.json', 'planet.cabal', 'cabal.project', 'cabal.project.freeze', 'pkgs/package-lock.json') }}
+          restore-keys: |
+            build-${{ runner.os }}-
 
-      # ── Build ─────────────────────────────────────────────────────────────────
-
-      - name: Install npm dependencies
-        run: pnpm install
-        working-directory: elm-app
+      - name: Bootstrap frozen Cabal package index
+        run: |
+          INDEX_STATE="$(sed -n 's/^index-state:[[:space:]]*//p' cabal.project)"
+          devenv shell --profile ci -- cabal update --project-file=cabal.project --index-state="$INDEX_STATE"
 
       - name: Run tests
-        run: cabal test
+        run: devenv shell --profile ci -- make test
 
-      - name: Build planet binary
-        run: cabal build
-
-      - name: Build All
-        run: make build-all
-
-      # ── Save binary for scheduled workflow ───────────────────────────────────
-
-      - uses: actions/cache@v4
-        with:
-          path: ./planet
-          key: binary-planet-${{ runner.os }}-${{ hashFiles('planet.cabal', 'src/**/*.hs') }}
-
-      # ── Upload artifact ───────────────────────────────────────────────────────
+      - name: Build
+        run: devenv shell --profile ci -- make dist-ci
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./elm-app/dist
+          path: ./build
 
   deploy:
     needs: build

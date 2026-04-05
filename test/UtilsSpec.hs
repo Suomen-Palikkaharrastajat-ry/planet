@@ -1,9 +1,6 @@
-module UtilsSpec where
+module UtilsSpec (utilityTests) where
 
 -- \| Tests for Utils module
---
--- Covers: US-001 (Aggregate Feeds)
--- Constrained by: ADR-0000-agent-guidance.md
 --
 
 import Test.Tasty

@@ -6,8 +6,10 @@ module View exposing (view)
 
 -}
 
+import Component.MobileDrawer as MobileDrawer
 import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (formatDate)
+import DesignTokens.Spacing as Spacing
 import FeatherIcons
 import Html exposing (Html, a, button, div, footer, h2, h3, img, input, label, li, main_, nav, p, span, text, ul)
 import Html.Attributes as Attr
@@ -81,15 +83,11 @@ view model =
         , -- Mobile sidebar
           renderMobileSidebar model
         , -- Overlay for mobile sidebar
-          if model.isSidebarVisible then
-            div
-                [ Attr.class "md:hidden fixed inset-0 z-30"
-                , Events.onClick ToggleSidebar
-                ]
-                []
-
-          else
-            text ""
+          MobileDrawer.viewOverlay
+            { isOpen = model.isSidebarVisible
+            , onClose = ToggleSidebar
+            , breakpoint = MobileDrawer.Md
+            }
         , -- Brand footer
           viewBrandFooter model.lang model.generatedAt
         , -- Scroll to top button
@@ -279,122 +277,109 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
 
 renderMobileSidebar : ViewModel -> Html Msg
 renderMobileSidebar model =
-    div
-        [ Attr.class
-            ("md:hidden fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-40 transform overflow-y-auto transition-transform duration-300 ease-in-out motion-reduce:transition-none "
-                ++ (if model.isSidebarVisible then
-                        "translate-x-0"
-
-                    else
-                        "-translate-x-full"
-                   )
-            )
-        ]
-        [ -- Close button
-          button
-            [ Events.onClick ToggleSidebar
-            , Attr.class "sr-only"
-            , Attr.attribute "aria-label" (I18n.translate model.lang I18n.CloseMenu)
-            ]
-            [ text (I18n.translate model.lang I18n.Close) ]
-        , -- Feed filter navigation
-          nav [ Attr.class "p-4" ]
-            [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Filters) ]
-            , div [ Attr.class "mb-4" ]
-                [ label [ Attr.for "mobile-search-input", Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Search) ]
-                , input
-                    [ Attr.type_ "text"
-                    , Attr.id "mobile-search-input"
-                    , Attr.placeholder (I18n.translate model.lang I18n.SearchPlaceholder)
-                    , Attr.value model.searchText
-                    , Events.onInput UpdateSearchText
-                    , Attr.class "w-full px-3 py-2 border border-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+    MobileDrawer.view
+        { isOpen = model.isSidebarVisible
+        , id = "mobile-sidebar"
+        , onClose = ToggleSidebar
+        , breakpoint = MobileDrawer.Md
+        , content =
+            [ nav [ Attr.class "p-4" ]
+                [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Filters) ]
+                , div [ Attr.class "mb-4" ]
+                    [ label [ Attr.for "mobile-search-input", Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Search) ]
+                    , input
+                        [ Attr.type_ "text"
+                        , Attr.id "mobile-search-input"
+                        , Attr.placeholder (I18n.translate model.lang I18n.SearchPlaceholder)
+                        , Attr.value model.searchText
+                        , Events.onInput UpdateSearchText
+                        , Attr.class "w-full px-3 py-2 border border-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                        ]
+                        []
                     ]
-                    []
-                ]
-            , div [ Attr.class "flex flex-wrap gap-2 mb-4" ]
-                (List.map
-                    (\feedType ->
-                        button
-                            [ Events.onClick (ToggleFeedType feedType)
-                            , Attr.class
-                                ("cursor-pointer p-2 border font-semibold transition-colors duration-150 "
-                                    ++ (if List.member feedType model.selectedFeedTypes then
-                                            "border-brand text-brand active:bg-brand-yellow"
+                , div [ Attr.class "flex flex-wrap gap-2 mb-4" ]
+                    (List.map
+                        (\feedType ->
+                            button
+                                [ Events.onClick (ToggleFeedType feedType)
+                                , Attr.class
+                                    ("cursor-pointer p-2 border font-semibold transition-colors duration-150 "
+                                        ++ (if List.member feedType model.selectedFeedTypes then
+                                                "border-brand text-brand active:bg-brand-yellow"
 
-                                        else
-                                            "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
-                                       )
-                                )
-                            , Attr.title (feedTypeToString model.lang feedType)
-                            , Attr.attribute "aria-label" (feedTypeToString model.lang feedType)
-                            , Attr.attribute "aria-pressed"
-                                (if List.member feedType model.selectedFeedTypes then
-                                    "true"
+                                            else
+                                                "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                                           )
+                                    )
+                                , Attr.title (feedTypeToString model.lang feedType)
+                                , Attr.attribute "aria-label" (feedTypeToString model.lang feedType)
+                                , Attr.attribute "aria-pressed"
+                                    (if List.member feedType model.selectedFeedTypes then
+                                        "true"
+
+                                     else
+                                        "false"
+                                    )
+                                ]
+                                [ feedTypeIcon feedType ]
+                        )
+                        [ Feed, YouTube, Image ]
+                    )
+                , div [ Attr.class "mb-4" ]
+                    [ label [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.View) ]
+                    , button
+                        [ Events.onClick
+                            (ToggleViewMode
+                                (if model.viewMode == Full then
+                                    Thumbnail
 
                                  else
-                                    "false"
+                                    Full
                                 )
-                            ]
-                            [ feedTypeIcon feedType ]
-                    )
-                    [ Feed, YouTube, Image ]
-                )
-            , div [ Attr.class "mb-4" ]
-                [ label [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.View) ]
-                , button
-                    [ Events.onClick
-                        (ToggleViewMode
+                            )
+                        , Attr.class
+                            ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm border w-full font-semibold transition-colors duration-150 "
+                                ++ (if model.viewMode == Full then
+                                        "border-brand text-brand active:bg-brand-yellow"
+
+                                    else
+                                        "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                                   )
+                            )
+                        , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
+                        , Attr.attribute "aria-pressed"
                             (if model.viewMode == Full then
-                                Thumbnail
+                                "true"
 
                              else
-                                Full
+                                "false"
                             )
-                        )
-                    , Attr.class
-                        ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm border w-full font-semibold transition-colors duration-150 "
-                            ++ (if model.viewMode == Full then
-                                    "border-brand text-brand active:bg-brand-yellow"
-
-                                else
-                                    "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
-                               )
-                        )
-                    , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
-                    , Attr.attribute "aria-pressed"
-                        (if model.viewMode == Full then
-                            "true"
-
-                         else
-                            "false"
-                        )
-                    ]
-                    [ span [] [ text "👁️" ]
-                    , span [] [ text (I18n.translate model.lang I18n.DescriptionsText) ]
+                        ]
+                        [ span [] [ text "👁️" ]
+                        , span [] [ text (I18n.translate model.lang I18n.DescriptionsText) ]
+                        ]
                     ]
                 ]
-            ]
-        , -- Timeline navigation
-          nav [ Attr.class "p-4 border-t border-gray-200" ]
-            [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Timeline) ]
-            , ul [ Attr.class "space-y-2" ]
-                (List.map
-                    (\group ->
-                        li []
-                            [ button
-                                [ Events.onClick (NavigateToSection group.monthId)
-                                , Attr.class "text-sm text-gray-600 hover:text-brand hover:underline text-left w-full"
-                                , Attr.style "cursor" "pointer"
-                                , Attr.attribute "aria-label" (I18n.translate model.lang I18n.NavigateTo ++ group.monthLabel)
+            , nav [ Attr.class "p-4 border-t border-gray-200" ]
+                [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Timeline) ]
+                , ul [ Attr.class "space-y-2" ]
+                    (List.map
+                        (\group ->
+                            li []
+                                [ button
+                                    [ Events.onClick (NavigateToSection group.monthId)
+                                    , Attr.class "text-sm text-gray-600 hover:text-brand hover:underline text-left w-full"
+                                    , Attr.style "cursor" "pointer"
+                                    , Attr.attribute "aria-label" (I18n.translate model.lang I18n.NavigateTo ++ group.monthLabel)
+                                    ]
+                                    [ text group.monthLabel ]
                                 ]
-                                [ text group.monthLabel ]
-                            ]
+                        )
+                        model.visibleGroups
                     )
-                    model.visibleGroups
-                )
+                ]
             ]
-        ]
+        }
 
 
 feedTypeToString : Types.Lang -> FeedType -> String
@@ -432,7 +417,7 @@ renderMonthSection lang viewMode group =
     div
         [ Attr.id group.monthId
         , Attr.class "mb-8"
-        , Attr.style "scroll-margin-top" "80px"
+        , Attr.style "scroll-margin-top" monthSectionScrollMarginTop
         ]
         [ h2 [ Attr.class "text-2xl font-bold text-brand mb-4 border-b border-gray-200 pb-2" ]
             [ text group.monthLabel ]
@@ -443,6 +428,11 @@ renderMonthSection lang viewMode group =
                 group.items
             )
         ]
+
+
+monthSectionScrollMarginTop : String
+monthSectionScrollMarginTop =
+    String.fromInt (Spacing.space16 + Spacing.space4) ++ "px"
 
 
 renderCard : Types.Lang -> ViewMode -> AppItem -> Html Msg
