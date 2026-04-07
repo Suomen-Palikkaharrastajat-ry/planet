@@ -34,7 +34,7 @@ jobs:
           extraPullNames: devenv
 
       - name: Install devenv
-        run: nix profile install nixpkgs#devenv
+        run: nix profile install "github:cachix/devenv/v2.0.6"
 
       - name: Restore Elm cache
         uses: actions/cache/restore@v4
