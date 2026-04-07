@@ -3,20 +3,13 @@ let
     { pkgs, ... }:
     let
       hpkgs = pkgs.haskell.packages.ghc96.override {
-        overrides = import ./overrides.nix;
+        overrides = import ./overrides.nix { inherit pkgs; };
       };
       npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
       planetPackage = hpkgs.callCabal2nix "planet" ./. { };
       planetCommand = pkgs.writeShellScriptBin "planet-nix" ''
         exec ${planetPackage}/bin/planet "$@"
       '';
-      ciTools = pkgs.symlinkJoin {
-        name = "planet-ci-tools";
-        paths = [
-          planetCommand
-          npmTools
-        ];
-      };
     in
     {
       # Elm 0.19 tools
@@ -27,14 +20,18 @@ let
       languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
 
       env.NODE_PATH = "${npmTools}/lib/node_modules";
+      env.HLINT = "${pkgs.hlint}/bin/hlint";
+      env.FOURMOLU = "${pkgs.fourmolu}/bin/fourmolu";
+      env.PLANET_NIX = "${planetCommand}/bin/planet-nix";
 
       packages = [
-        ciTools
+        planetCommand
+        npmTools
         pkgs.cabal-install
+        pkgs.hlint
         pkgs.nodejs_22
+        pkgs.fourmolu
         hpkgs.ghc
-        hpkgs.hlint
-        hpkgs.fourmolu
       ];
 
       enterShell = ''

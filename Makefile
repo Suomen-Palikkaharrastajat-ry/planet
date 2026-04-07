@@ -2,6 +2,10 @@
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+HLINT ?= hlint
+FOURMOLU ?= fourmolu
+PLANET_NIX ?= planet-nix
+
 # ── Vendor / submodules ──────────────────────────────────────────────────────
 
 .PHONY: vendor
@@ -40,7 +44,7 @@ elm-app/src/Data.elm: planet planet.toml
 	./planet
 
 elm-app/src/.data-nix-stamp: planet.toml
-	planet-nix
+	$(PLANET_NIX)
 	touch $@
 
 .PHONY: elm-tailwind-gen
@@ -68,11 +72,11 @@ elm-test: elm-app/.elm-tailwind/.stamp elm-app/src/Data.elm ## Run Elm tests wit
 
 .PHONY: elm-check
 elm-check: ## Check Elm formatting (no changes)
-	cd elm-app && elm-format --validate src/
+	cd elm-app && find src -name '*.elm' ! -name 'Data.elm' -print0 | xargs -0 elm-format --validate
 
 .PHONY: elm-format
 elm-format: ## Auto-format Elm source files
-	cd elm-app && elm-format --yes src/
+	cd elm-app && find src -name '*.elm' ! -name 'Data.elm' -print0 | xargs -0 elm-format --yes
 
 # ── Haskell generator ─────────────────────────────────────────────────────────
 
@@ -121,7 +125,7 @@ watch: ## Watch for changes in Haskell and Elm files and rebuild
 
 .PHONY: check
 check: ## Check formatting and run hlint (no changes)
-	hlint src test
+	$(HLINT) src test
 	$(MAKE) elm-check
 
 .PHONY: test
@@ -131,7 +135,7 @@ test: check ## Run Haskell and Elm tests
 
 .PHONY: format
 format: ## Auto-format Haskell and Elm source files
-	find src test -name '*.hs' | xargs fourmolu --mode inplace
+	find src test -name '*.hs' | xargs $(FOURMOLU) --mode inplace
 	$(MAKE) elm-format
 	treefmt
 
