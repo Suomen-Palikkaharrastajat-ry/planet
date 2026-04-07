@@ -22,7 +22,7 @@ elm-app/              Elm frontend
   src/                Elm application modules
   tests/              Elm unit tests
   .elm-tailwind/      Generated elm-tailwind-classes output
-  packages/           Symlinks to shared Elm packages in vendor/master-builder
+  packages/           Symlink to shared Elm packages in vendor/master-builder
 pkgs/                 Nix-managed Node/Vite/Elm tooling manifest + lockfile
 vendor/master-builder Shared Elm packages for design tokens and UI components
 .github/workflows/    CI/CD workflows
@@ -109,6 +109,13 @@ Important design constraints:
 - use `type-*` text utilities instead of ad hoc typography
 - use named spacing tokens and semantic colors
 - respect reduced-motion rules
+
+Shared package layout:
+
+- [`elm-app/packages`](/workspaces/planet/elm-app/packages) is a symlink to [`vendor/master-builder/packages`](/workspaces/planet/vendor/master-builder/packages)
+- import shared UI as `Component.*`
+- import shared tokens as `DesignTokens.*`
+- keep project-specific CSS in [`elm-app/main.css`](/workspaces/planet/elm-app/main.css)
 
 ## Tooling Notes
 

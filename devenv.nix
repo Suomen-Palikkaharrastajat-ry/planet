@@ -3,13 +3,7 @@ let
     { pkgs, ... }:
     let
       hpkgs = pkgs.haskell.packages.ghc96.override {
-        overrides =
-          self: super: {
-            "htoml-megaparsec" =
-              pkgs.haskell.lib.dontCheck
-                (pkgs.haskell.lib.doJailbreak
-                  (pkgs.haskell.lib.markUnbroken super."htoml-megaparsec"));
-          };
+        overrides = import ./overrides.nix;
       };
       npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
       planetPackage = hpkgs.callCabal2nix "planet" ./. { };
@@ -25,8 +19,10 @@ let
       };
     in
     {
+      # Elm 0.19 tools
       languages.elm.enable = true;
 
+      # Haskell (GHC + cabal + HLS via languages.haskell.enable)
       languages.haskell.enable = true;
       languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
 
@@ -42,6 +38,8 @@ let
       ];
 
       enterShell = ''
+        # Match the shell profile: expose the Nix-managed frontend toolchain
+        # from both the repo root and elm-app/.
         ln -sfn "${npmTools}/lib/node_modules" node_modules
         ln -sfn "${npmTools}/lib/node_modules" elm-app/node_modules
       '';
@@ -53,6 +51,13 @@ let
       npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
     in
     {
+      # Elm 0.19 tools
+      languages.elm.enable = true;
+
+      # Haskell (GHC + cabal + HLS via languages.haskell.enable)
+      languages.haskell.enable = true;
+      languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
+
       packages = [
         pkgs.cabal-install
         pkgs.entr
@@ -69,27 +74,25 @@ let
         npmTools
       ];
 
-      languages.haskell.enable = true;
-      languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
-      languages.elm.enable = true;
-
       env.NODE_PATH = "${npmTools}/lib/node_modules";
 
       enterShell = ''
+        # vite.config.mjs uses ESM imports, so we expose the Nix-managed
+        # node_modules tree via symlinks as well as NODE_PATH.
         ln -sfn "${npmTools}/lib/node_modules" node_modules
         ln -sfn "${npmTools}/lib/node_modules" elm-app/node_modules
 
         echo ""
-        echo "── planet dev environment ───────────────────────────"
+        echo "── planet dev environment ────────────────────────────────"
         echo "  GHC:    $(ghc --version)"
         echo "  Cabal:  $(cabal --version | head -1)"
         echo "  Elm:    $(elm --version)"
         echo "  Node:   $(node --version)"
         echo "  Vite:   $(vite --version)"
         echo ""
-        echo "  make build-all — fetch feeds + build Elm app"
-        echo "  make elm-test  — run Elm tests with generated tailwind modules"
-        echo "  make watch     — watch + rebuild on changes"
+        echo "  make build-all  — build generator + Elm app"
+        echo "  make dist-ci    — build CI/deploy output in build/"
+        echo "  make watch      — watch generator inputs + run Vite"
         echo ""
       '';
     };

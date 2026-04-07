@@ -18,9 +18,11 @@ make elm-build
 - Node, Vite, `elm-test`, and `elm-tailwind-classes` come from [`pkgs/npm-tools.nix`](/workspaces/planet/pkgs/npm-tools.nix).
 - `devenv.nix` exposes those tools and symlinks `node_modules` into the repo root and `elm-app/`.
 - `elm-tailwind-classes gen` writes generated Elm modules to `elm-app/.elm-tailwind/`.
+- entrypoints live at [`main.js`](/workspaces/planet/elm-app/main.js) and [`main.css`](/workspaces/planet/elm-app/main.css)
 
 ## Elm package layout
 
+- `elm-app/packages` is a symlink to [`vendor/master-builder/packages`](/workspaces/planet/vendor/master-builder/packages).
 - `elm-app/packages/design-tokens` points to the shared design token package.
 - `elm-app/packages/ui-components` points to the shared UI component package.
 - `elm-app/elm.json` includes both package `src/` directories plus `.elm-tailwind/`.
