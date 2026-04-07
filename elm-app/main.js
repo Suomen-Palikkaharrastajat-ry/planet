@@ -158,7 +158,7 @@ function setupPullToRefresh() {
     'pointer-events:none',
     'user-select:none',
   ].join(';')
-  document.body.prepend(indicator)
+  document.documentElement.appendChild(indicator);
 
   function clearPullState() {
     isPulling = false
