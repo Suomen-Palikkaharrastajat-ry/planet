@@ -107,95 +107,117 @@ window.addEventListener('scroll', function () {
   app.ports.onScroll.send(window.scrollY)
 })
 
-// ── Pull-to-refresh ──────────────────────────────────────────────────────────
-;(function initPullToRefresh() {
-  // Touch-primary devices only (excludes mouse/trackpad users)
-  if (!window.matchMedia('(pointer: coarse)').matches) return
+// ── Pull-to-refresh (standalone PWA only) ───────────────────────────────────
+// Source: https://github.com/Suomen-Palikkaharrastajat-ry/master-builder/blob/1beab237edb509753536c6473b7ece2cbe809187/index.js
+function setupPullToRefresh() {
+  if (window.__pullToRefreshSetup) return
+  window.__pullToRefreshSetup = true
 
-  const THRESHOLD    = 80    // damped px needed to trigger reload
-  const DAMPING      = 0.45  // pull resistance (< 1 feels native)
-  const RELOAD_DELAY = 500   // ms of spinner before window.location.reload
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true
+  if (!isStandalone) return
 
-  const prefersReducedMotion =
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const THRESHOLD = 64
+  const RELOAD_THRESHOLD = THRESHOLD * 1.5
+  const RELOAD_COOLDOWN_MS = 10000
+  const RELOAD_KEY = 'pwa-pull-to-refresh-reload-at'
+  let startY = 0
+  let currentY = 0
+  let isPulling = false
+  let isReloading = false
+  let reloadCooldownUntil = 0
 
-  // Feather refresh-cw icon
-  const REFRESH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-      viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="23 4 23 10 17 10"></polyline>
-    <polyline points="1 20 1 14 7 14"></polyline>
-    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-  </svg>`
+  try {
+    const previousReloadAt = Number(window.sessionStorage.getItem(RELOAD_KEY) || '0')
+    if (Number.isFinite(previousReloadAt) && previousReloadAt > 0) {
+      reloadCooldownUntil = previousReloadAt + RELOAD_COOLDOWN_MS
+    }
+  } catch (_error) {
+    reloadCooldownUntil = 0
+  }
 
   const indicator = document.createElement('div')
-  indicator.id = 'ptr-indicator'
   indicator.setAttribute('aria-hidden', 'true')
-  indicator.innerHTML = REFRESH_ICON
-  document.body.appendChild(indicator)
+  indicator.style.cssText = [
+    'position:fixed',
+    'top:0',
+    'left:0',
+    'right:0',
+    'height:0',
+    'overflow:hidden',
+    'display:flex',
+    'align-items:center',
+    'justify-content:center',
+    'background:#fff',
+    'color:#05131D',
+    'font-family:system-ui,sans-serif',
+    'font-size:1.75rem',
+    'z-index:9999',
+    'transition:height 0.15s ease',
+    'pointer-events:none',
+    'user-select:none',
+  ].join(';')
+  document.body.prepend(indicator)
 
-  const svg = indicator.querySelector('svg')
+  function clearPullState() {
+    isPulling = false
+    startY = 0
+    currentY = 0
+    indicator.style.height = '0'
+  }
 
-  const RESTING_Y = -52  // px — keeps badge fully above viewport at rest
+  function isCoolingDown() {
+    return Date.now() < reloadCooldownUntil
+  }
 
-  let touchStartY  = 0
-  let currentPull  = 0  // current damped pull in px
-  let isDragging   = false
-  let isTriggered  = false
-
-  function applyPull(dampedPull) {
-    currentPull = dampedPull
-    indicator.style.transform =
-      `translateX(-50%) translateY(${RESTING_Y + dampedPull}px)`
-    if (!prefersReducedMotion) {
-      const deg = Math.min(dampedPull / THRESHOLD, 1) * 270
-      svg.style.transform = `rotate(${deg}deg)`
+  function navigateForRefresh() {
+    const refreshAt = Date.now()
+    reloadCooldownUntil = refreshAt + RELOAD_COOLDOWN_MS
+    isReloading = true
+    try {
+      window.sessionStorage.setItem(RELOAD_KEY, String(refreshAt))
+    } catch (_error) {
+      // Ignore sessionStorage failures; the in-memory guard still prevents rapid loops.
     }
-  }
-
-  function resetIndicator() {
-    currentPull = 0
-    indicator.style.transition = ''  // restore stylesheet transition for snap-back
-    indicator.style.transform =
-      `translateX(-50%) translateY(${RESTING_Y}px)`
-    if (!prefersReducedMotion) svg.style.transform = 'rotate(0deg)'
-  }
-
-  function triggerRefresh() {
-    isTriggered = true
-    indicator.style.transition = ''
-    indicator.style.transform =
-      `translateX(-50%) translateY(${RESTING_Y + THRESHOLD}px)`
-    indicator.classList.add('ptr-spinning')
-    svg.style.transform = ''  // hand rotation to keyframe animation
-    setTimeout(function () { window.location.reload(true) }, RELOAD_DELAY)
+    window.location.reload()
   }
 
   document.addEventListener('touchstart', function (e) {
-    if (window.scrollY !== 0 || e.touches.length !== 1) return
-    touchStartY = e.touches[0].clientY
-    isDragging  = true
-    indicator.style.transition = 'none'  // instant response while dragging
+    if (isReloading || isCoolingDown()) return
+    if (e.touches.length !== 1) { clearPullState(); return }
+    if (window.scrollY === 0) {
+      startY = e.touches[0].clientY
+      currentY = startY
+      isPulling = true
+    }
   }, { passive: true })
 
   document.addEventListener('touchmove', function (e) {
-    if (!isDragging || isTriggered) return
-    if (window.scrollY !== 0) { isDragging = false; resetIndicator(); return }
-
-    const rawPull = e.touches[0].clientY - touchStartY
-    if (rawPull <= 0) { applyPull(0); return }
-
-    applyPull(rawPull * DAMPING)
+    if (!isPulling) return
+    currentY = e.touches[0].clientY
+    const delta = currentY - startY
+    if (delta > 0) {
+      const h = Math.min(delta * 0.5, THRESHOLD)
+      indicator.style.height = h + 'px'
+      indicator.textContent = delta > RELOAD_THRESHOLD
+        ? '✓ Vapauta päivittymään'
+        : '↓ Vedä päivittääksesi'
+    } else {
+      clearPullState()
+    }
   }, { passive: true })
 
   document.addEventListener('touchend', function () {
-    if (!isDragging || isTriggered) return
-    isDragging = false
-
-    if (currentPull >= THRESHOLD) {
-      triggerRefresh()
-    } else {
-      resetIndicator()
+    if (!isPulling) return
+    const delta = currentY - startY
+    clearPullState()
+    if (delta > RELOAD_THRESHOLD && !isReloading && !isCoolingDown()) {
+      setTimeout(navigateForRefresh, 150)
     }
   }, { passive: true })
-})()
+
+  document.addEventListener('touchcancel', clearPullState, { passive: true })
+}
+
+setupPullToRefresh()
