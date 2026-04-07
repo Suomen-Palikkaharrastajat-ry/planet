@@ -19,14 +19,9 @@ elm-app/elm-stuff/
 elm-app/.elm-tailwind/
 elm-app/.vite/
 elm-app/dist/
-elm-app/public/*
-!elm-app/public/fonts/
-!elm-app/public/logo/
-!elm-app/public/favicon/
 elm-app/src/Data.elm
-
-# --- Generated output ---
-public/
+elm-app/public/opml.xml
+elm-app/public/search-index.json
 
 # --- Editor & OS ---
 .vscode/
