@@ -4,8 +4,8 @@
   "description": "Suomen Palikkaharrastajat ry:n tuottama syötekooste",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#FFFFFF",
+  "theme_color": "#05131D",
   "lang": "fi",
   "icons": [
     {
