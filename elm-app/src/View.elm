@@ -11,7 +11,7 @@ import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (formatDate)
 import DesignTokens.Spacing as Spacing
 import FeatherIcons
-import Html exposing (Html, a, button, div, footer, h2, h3, img, input, label, li, main_, nav, p, span, text, ul)
+import Html exposing (Html, a, button, div, footer, h2, h3, header, img, input, label, li, main_, nav, p, span, text, ul)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Keyed
@@ -24,51 +24,52 @@ import Types exposing (MonthGroup, Msg(..), ViewMode(..), ViewModel)
 -}
 view : ViewModel -> Html Msg
 view model =
-    div [ Attr.class "min-h-screen bg-white" ]
+    div [ Attr.class "min-h-screen flex flex-col bg-bg-page" ]
         [ -- Skip to content link for accessibility
           a
             [ Attr.href "#main-content"
             , Attr.class "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand focus:text-white focus:rounded-lg"
             ]
             [ text (I18n.translate model.lang I18n.SkipToContent) ]
-        , -- Mobile top bar: logo + title on left, hamburger on right (same height)
-          div [ Attr.class "flex items-center justify-between px-4 h-14 bg-brand border-b border-brand sticky top-0 z-40 md:static" ]
-            [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-2" ]
-                [ img
-                    [ Attr.src "/logo/square/square-smile.svg"
-                    , Attr.alt ""
-                    , Attr.attribute "aria-hidden" "true"
-                    , Attr.class "h-8 w-8"
+        , header [ Attr.class "bg-brand border-b border-brand sticky top-0 z-40 md:static" ]
+            [ div [ Attr.class "flex items-center justify-between px-4 h-14" ]
+                [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-2" ]
+                    [ img
+                        [ Attr.src "/logo/square/square-smile.svg"
+                        , Attr.alt ""
+                        , Attr.attribute "aria-hidden" "true"
+                        , Attr.class "h-8 w-8"
+                        ]
+                        []
+                    , span [ Attr.class "type-h4 text-white" ] [ text (I18n.translate model.lang I18n.Title) ]
                     ]
-                    []
-                , span [ Attr.class "text-lg font-bold text-white" ] [ text (I18n.translate model.lang I18n.Title) ]
-                ]
-            , button
-                [ Events.onClick ToggleSidebar
-                , Attr.class "md:hidden p-2 rounded-lg text-white"
-                , Attr.style "cursor" "pointer"
-                , Attr.attribute "aria-label"
-                    (if model.isSidebarVisible then
-                        I18n.translate model.lang I18n.CloseMenu
+                , button
+                    [ Events.onClick ToggleSidebar
+                    , Attr.class "md:hidden p-2 rounded-lg text-white"
+                    , Attr.style "cursor" "pointer"
+                    , Attr.attribute "aria-label"
+                        (if model.isSidebarVisible then
+                            I18n.translate model.lang I18n.CloseMenu
 
-                     else
-                        I18n.translate model.lang I18n.OpenMenu
-                    )
-                ]
-                [ if model.isSidebarVisible then
-                    FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+                         else
+                            I18n.translate model.lang I18n.OpenMenu
+                        )
+                    ]
+                    [ if model.isSidebarVisible then
+                        FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
 
-                  else
-                    FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+                      else
+                        FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+                    ]
                 ]
             ]
-        , div [ Attr.class "flex" ]
+        , div [ Attr.class "flex flex-1" ]
             [ -- Timeline navigation
               renderTimelineNav model.lang model.visibleGroups
             , -- Main content
               main_
                 [ Attr.id "main-content"
-                , Attr.class "flex-1 p-6 max-w-5xl mx-auto px-4"
+                , Attr.class "flex-1 max-w-5xl mx-auto w-full px-4 py-6"
                 ]
                 [ Html.Keyed.node "div"
                     []
@@ -175,7 +176,7 @@ viewBrandFooter lang timestamp =
 
 renderTimelineNav : Types.Lang -> List MonthGroup -> Html Msg
 renderTimelineNav lang groups =
-    nav [ Attr.class "hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
+    nav [ Attr.class "timeline-nav hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
         [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.Timeline) ]
         , ul [ Attr.class "space-y-2" ]
             (List.map
@@ -183,7 +184,7 @@ renderTimelineNav lang groups =
                     li []
                         [ button
                             [ Events.onClick (NavigateToSection group.monthId)
-                            , Attr.class "text-sm text-gray-600 hover:text-brand hover:underline text-left w-full"
+                            , Attr.class "type-caption text-text-muted hover:text-brand hover:underline text-left w-full"
                             , Attr.style "cursor" "pointer"
                             , Attr.attribute "aria-label" (I18n.translate lang I18n.NavigateTo ++ group.monthLabel)
                             ]
@@ -197,7 +198,7 @@ renderTimelineNav lang groups =
 
 renderFeedFilterNav : Types.Lang -> List FeedType -> String -> ViewMode -> Html Msg
 renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
-    nav [ Attr.class "hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
+    nav [ Attr.class "timeline-nav hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
         [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.FeedFilters) ]
         , div [ Attr.class "mb-4" ]
             [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.Search) ]
@@ -368,7 +369,7 @@ renderMobileSidebar model =
                             li []
                                 [ button
                                     [ Events.onClick (NavigateToSection group.monthId)
-                                    , Attr.class "text-sm text-gray-600 hover:text-brand hover:underline text-left w-full"
+                                    , Attr.class "type-caption text-text-muted hover:text-brand hover:underline text-left w-full"
                                     , Attr.style "cursor" "pointer"
                                     , Attr.attribute "aria-label" (I18n.translate model.lang I18n.NavigateTo ++ group.monthLabel)
                                     ]
@@ -407,7 +408,7 @@ renderIntro lang =
                 , Attr.class "w-20 h-20"
                 ]
                 []
-            , span [ Attr.class "text-3xl font-bold tracking-tight text-brand" ] [ text (I18n.translate lang I18n.Title) ]
+            , span [ Attr.class "type-h1 text-brand" ] [ text (I18n.translate lang I18n.Title) ]
             ]
         ]
 
@@ -419,7 +420,7 @@ renderMonthSection lang viewMode group =
         , Attr.class "mb-8"
         , Attr.style "scroll-margin-top" monthSectionScrollMarginTop
         ]
-        [ h2 [ Attr.class "text-2xl font-bold text-brand mb-4 border-b border-gray-200 pb-2" ]
+        [ h2 [ Attr.class "type-h2 text-brand mb-4 border-b border-gray-200 pb-2" ]
             [ text group.monthLabel ]
         , Html.Keyed.node "div"
             [ Attr.class "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" ]
@@ -447,7 +448,7 @@ renderCard lang viewMode item =
 
 renderFullCard : Types.Lang -> AppItem -> Html Msg
 renderFullCard lang item =
-    div [ Attr.class "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
+    div [ Attr.class "card-hover bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
         [ -- Card image
           case item.itemThumbnail of
             Just url ->
@@ -489,14 +490,14 @@ renderFullCard lang item =
                         , Attr.target "_blank"
                         , Attr.rel "noopener noreferrer"
                         , Attr.attribute "aria-label" (item.itemSourceTitle ++ I18n.translate lang I18n.OpenInNewWindow)
-                        , Attr.class "text-xs font-semibold uppercase tracking-widest text-gray-500 hover:underline"
+                        , Attr.class "type-overline text-text-muted hover:underline"
                         ]
                         [ text item.itemSourceTitle ]
 
                 Nothing ->
-                    span [ Attr.class "text-xs font-semibold uppercase tracking-widest text-gray-500" ] [ text item.itemSourceTitle ]
+                    span [ Attr.class "type-overline text-text-muted" ] [ text item.itemSourceTitle ]
             , -- Title
-              h3 [ Attr.class "text-xl font-semibold text-brand mt-1 line-clamp-2" ]
+              h3 [ Attr.class "type-h4 text-brand mt-1 line-clamp-2" ]
                 [ a
                     [ Attr.href item.itemLink
                     , Attr.target "_blank"
@@ -509,7 +510,7 @@ renderFullCard lang item =
             , -- Description (truncated)
               case item.itemDescSnippet of
                 Just desc ->
-                    p [ Attr.class "text-sm font-medium text-gray-500 mt-2 line-clamp-2" ]
+                    p [ Attr.class "type-caption text-text-muted mt-2 line-clamp-2" ]
                         [ text desc ]
 
                 Nothing ->
