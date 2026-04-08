@@ -58,3 +58,8 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCevQ7uLnqJYWeTDLtc8I
 # Megsu_Begsu
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSOLS4IYjrkEknhaabpr9Ow"
+
+[[feeds]]
+# Reiverin palikat
+type = "youtube"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCGWZzsvnKppNnzaK4wiwcHw"
