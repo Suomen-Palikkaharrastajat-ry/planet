@@ -104,7 +104,7 @@ suite =
                     View.view model
                         |> Query.fromHtml
                         |> Query.find [ Selector.tag "footer" ]
-                        |> Query.has [ Selector.text "Koottu 2026-01-09" ]
+                        |> Query.has [ Selector.text "Kooste päivitetty 2026-01-09" ]
             , test "renders OPML download link in footer" <|
                 \_ ->
                     let
@@ -572,7 +572,7 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.findAll [ Selector.attribute (Html.Attributes.attribute "aria-label" "👁️ Kuvaukset") ]
+                        |> Query.findAll [ Selector.attribute (Html.Attributes.attribute "aria-label" "Kuvaukset") ]
                         |> Query.first
                         |> Query.has [ Selector.text "Kuvaukset" ]
             , test "renders hamburger menu button on mobile" <|

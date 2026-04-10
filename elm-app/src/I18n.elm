@@ -36,6 +36,14 @@ type MsgKey
     | OpenInNewWindow
     | NavigateTo
     | OrgName
+    | FooterBrandName
+    | HomePage
+    | BrickCalendar
+    | BrickLinks
+    | ContentOwnership
+    | ReportInappropriateContent
+    | LegoTrademark
+    | LegoDisclaimer
 
 
 {-| Translate a key to the given language
@@ -79,7 +87,7 @@ translate lang key =
                     "Näkymä"
 
                 Descriptions ->
-                    "👁️ Kuvaukset"
+                    "Kuvaukset"
 
                 DescriptionsText ->
                     "Kuvaukset"
@@ -88,7 +96,7 @@ translate lang key =
                     "Palikkalinkit"
 
                 Compiled ->
-                    "Koottu "
+                    "Kooste päivitetty "
 
                 Description ->
                     "Suomen Palikkaharrastajat ry:n tuottama syötekooste"
@@ -116,6 +124,30 @@ translate lang key =
 
                 OrgName ->
                     "Suomen Palikkaharrastajat ry"
+
+                FooterBrandName ->
+                    "Palikkaharrastajat"
+
+                HomePage ->
+                    "Kotisivut"
+
+                BrickCalendar ->
+                    "Palikkakalenteri"
+
+                BrickLinks ->
+                    "Palikkalinkit"
+
+                ContentOwnership ->
+                    "Sisältö on tekijöidensä omistamaa."
+
+                ReportInappropriateContent ->
+                    "Ilmoita asiattomasta sisällöstä."
+
+                LegoTrademark ->
+                    "LEGO® on LEGO Groupin rekisteröity tavaramerkki."
+
+                LegoDisclaimer ->
+                    "Tämä sivusto ei ole LEGO Groupin virallinen sivusto."
 
         Types.En ->
             case key of
@@ -153,7 +185,7 @@ translate lang key =
                     "View"
 
                 Descriptions ->
-                    "👁️ Descriptions"
+                    "Descriptions"
 
                 DescriptionsText ->
                     "Descriptions"
@@ -190,3 +222,27 @@ translate lang key =
 
                 OrgName ->
                     "Suomen Palikkaharrastajat ry"
+
+                FooterBrandName ->
+                    "Palikkaharrastajat"
+
+                HomePage ->
+                    "Homepage"
+
+                BrickCalendar ->
+                    "Palikkakalenteri"
+
+                BrickLinks ->
+                    "Palikkalinkit"
+
+                ContentOwnership ->
+                    "Content is owned by its creators."
+
+                ReportInappropriateContent ->
+                    "Report inappropriate content."
+
+                LegoTrademark ->
+                    "LEGO® is a registered trademark of the LEGO Group."
+
+                LegoDisclaimer ->
+                    "This site is not an official LEGO Group site."

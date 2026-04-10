@@ -5,10 +5,10 @@ module FeedParserSpec (feedParserTests) where
 import qualified Data.Text as T
 import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.XML.Types
-import qualified Text.Atom.Feed as Atom
-import Text.Feed.Types (Item (AtomItem))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
+import qualified Text.Atom.Feed as Atom
+import Text.Feed.Types (Item (AtomItem))
 
 import Config
 import FeedParser

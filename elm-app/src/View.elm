@@ -125,28 +125,28 @@ viewBrandFooter lang timestamp =
                         []
                     , Html.div [ Attr.class "space-y-3" ]
                         [ Html.p [ Attr.class "text-xs font-semibold text-white/50 uppercase tracking-wider" ]
-                            [ Html.text "Palikkaharrastajat" ]
+                            [ Html.text (I18n.translate lang I18n.FooterBrandName) ]
                         , Html.ul [ Attr.class "space-y-2 list-none m-0 p-0" ]
                             [ Html.li []
                                 [ Html.a
                                     [ Attr.href "https://palikkaharrastajat.fi"
                                     , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
                                     ]
-                                    [ Html.text "Kotisivut" ]
+                                    [ Html.text (I18n.translate lang I18n.HomePage) ]
                                 ]
                             , Html.li []
                                 [ Html.a
                                     [ Attr.href "https://kalenteri.palikkaharrastajat.fi"
                                     , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
                                     ]
-                                    [ Html.text "Palikkakalenteri" ]
+                                    [ Html.text (I18n.translate lang I18n.BrickCalendar) ]
                                 ]
                             , Html.li []
                                 [ Html.a
                                     [ Attr.href "https://linkit.palikkaharrastajat.fi"
                                     , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
                                     ]
-                                    [ Html.text "Palikkalinkit" ]
+                                    [ Html.text (I18n.translate lang I18n.BrickLinks) ]
                                 ]
                             ]
                         ]
@@ -154,19 +154,20 @@ viewBrandFooter lang timestamp =
                 , -- Col 2: org name & legal
                   Html.div [ Attr.class "space-y-1 sm:text-right" ]
                     [ Html.div [ Attr.class "space-y-1 text-xs text-white/50" ]
-                        [ Html.p [] [ Html.text "© 2026 Suomen Palikkaharrastajat ry" ]
+                        [ Html.p [] [ Html.text (I18n.translate lang I18n.ContentOwnership) ]
                         , Html.p []
                             [ Html.a
                                 [ Attr.href "mailto:palikkaharrastajatry@outlook.com?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
                                 , Attr.class "text-white/80 hover:text-white underline transition-colors"
                                 ]
-                                [ Html.text "Ilmoita asiattomasta sisällöstä." ]
+                                [ Html.text (I18n.translate lang I18n.ReportInappropriateContent) ]
                             ]
                         , Html.p []
                             [ Html.text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | ")
                             , a [ Attr.class "hover:text-white underline", Attr.href "opml.xml", Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ]
                             ]
-                        , Html.p [] [ Html.text "LEGO® on LEGO Groupin rekisteröity tavaramerkki" ]
+                        , Html.p [] [ Html.text (I18n.translate lang I18n.LegoTrademark) ]
+                        , Html.p [] [ Html.text (I18n.translate lang I18n.LegoDisclaimer) ]
                         ]
                     ]
                 ]
@@ -269,7 +270,7 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                         "false"
                     )
                 ]
-                [ span [] [ text "👁️" ]
+                [ span [] [ FeatherIcons.eye |> FeatherIcons.withSize 16 |> FeatherIcons.toHtml [] ]
                 , span [] [ text (I18n.translate lang I18n.DescriptionsText) ]
                 ]
             ]
@@ -356,7 +357,7 @@ renderMobileSidebar model =
                                 "false"
                             )
                         ]
-                        [ span [] [ text "👁️" ]
+                        [ span [] [ FeatherIcons.eye |> FeatherIcons.withSize 16 |> FeatherIcons.toHtml [] ]
                         , span [] [ text (I18n.translate model.lang I18n.DescriptionsText) ]
                         ]
                     ]
