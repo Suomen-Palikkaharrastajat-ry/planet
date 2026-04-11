@@ -147,7 +147,7 @@ translate lang key =
                     "LEGO® on LEGO Groupin rekisteröity tavaramerkki."
 
                 LegoDisclaimer ->
-                    "LEGO Group ei ole valtuuttanut tai tukenut tätä sivustoa."
+                    "LEGO Group ei ylläpidä tai tue tätä itsenäistä sivustoa."
 
         Types.En ->
             case key of
