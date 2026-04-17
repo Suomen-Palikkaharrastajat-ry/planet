@@ -28,6 +28,7 @@ module FeedParser (
     getUrlAttr,
     join,
     getFeedTitle,
+    debugBodyPreview,
 ) where
 
 import Control.Applicative ((<|>))
@@ -38,14 +39,15 @@ import Data.List (find)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import Data.Text.Encoding (decodeUtf8, decodeUtf8With, encodeUtf8)
+import Data.Text.Encoding.Error (lenientDecode)
 
 -- Re-added missing import
 
 import Data.Time.Format (defaultTimeLocale, parseTimeM) -- Re-added missing import
 import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.XML.Types (Content (..), Element (..), Name (..), Node (..))
-import Network.HTTP.Simple (Response, getResponseBody, httpLBS, parseRequest)
+import Network.HTTP.Simple (Response, getResponseBody, getResponseHeader, getResponseStatusCode, httpLBS, parseRequest)
 import qualified Text.Atom.Feed as Atom
 import Text.Feed.Import (parseFeedSource)
 import Text.Feed.Query (getFeedItems, getItemDescription, getItemLink, getItemPublishDate, getItemTitle)
@@ -85,11 +87,28 @@ fetchFeed fc = do
             putStrLn $ "Error fetching " ++ T.unpack displayTitle ++ ": " ++ show err
             return []
         Right response -> do
+            let statusCode = getResponseStatusCode response
+            let contentType =
+                    case getResponseHeader "Content-Type" response of
+                        ct : _ -> decodeUtf8With lenientDecode ct
+                        [] -> "(missing)"
             let content = LBS.toStrict $ getResponseBody response
             let cleanedContent = T.replace "</media:keywords>" "" (decodeUtf8 content)
             case parseFeedSource (LBS.fromStrict $ encodeUtf8 cleanedContent) of
                 Nothing -> do
                     putStrLn $ "Failed to parse feed: " ++ T.unpack displayTitle ++ ": invalid or unsupported feed format"
+                    putStrLn $
+                        "  Debug: url="
+                            ++ T.unpack (feedUrl fc)
+                            ++ ", status="
+                            ++ show statusCode
+                            ++ ", content-type="
+                            ++ T.unpack contentType
+                    putStrLn $ "  Debug: body-preview=\"" ++ T.unpack (debugBodyPreview $ getResponseBody response) ++ "\""
+                    if T.isInfixOf "<html" (T.toLower cleanedContent) then
+                        putStrLn "  Hint: response looks like HTML, which often indicates bot protection or an error page instead of RSS/Atom XML."
+                    else
+                        pure ()
                     return []
                 Just feed ->
                     let altLink = feedLink fc <|> getFeedAlternateLink feed
@@ -266,6 +285,28 @@ isFollowItLink url =
 
 stripUrlFragment :: Text -> Text
 stripUrlFragment = T.takeWhile (/= '#')
+
+debugBodyPreview :: LBS.ByteString -> Text
+debugBodyPreview body =
+    body
+        |> LBS.toStrict
+        |> decodeUtf8With lenientDecode
+        |> normalizeWhitespace
+        |> T.take 320
+  where
+    normalizeWhitespace text =
+        text
+            |> T.map
+                (\c ->
+                    if c == '\n' || c == '\r' || c == '\t' then
+                        ' '
+                    else
+                        c
+                )
+            |> T.words
+            |> T.unwords
+
+    (|>) = flip ($)
 
 getMediaDescriptionFromElements :: [Element] -> Maybe Text
 getMediaDescriptionFromElements elements =

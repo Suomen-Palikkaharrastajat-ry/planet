@@ -3,13 +3,15 @@
 module FeedParserSpec (feedParserTests) where
 
 import qualified Data.Text as T
+import Data.Text.Encoding (encodeUtf8)
 import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.XML.Types
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (testCase, (@?=))
+import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 import qualified Text.Atom.Feed as Atom
 import Text.Feed.Types (Item (AtomItem, RSSItem))
 import qualified Text.RSS.Syntax as RSS
+import qualified Data.ByteString.Lazy as LBS
 
 import Config
 import FeedParser
@@ -148,8 +150,20 @@ feedParserTests =
                 feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
                 item = rssItemWithLinkAndDescription normalLink description
             fmap itemLink (parseItem feedConfig Nothing item) @?= Just normalLink
+        , testCase "debugBodyPreview normalizes whitespace and truncates output" $ do
+            let longText =
+                    T.replicate 200 "abc "
+                        |> (\t -> "\n\t" <> t <> "\r\nline2")
+                preview = debugBodyPreview (LBS.fromStrict (encodeUtf8 longText))
+            assertBool "preview should remove newline/tab characters" (not (T.any (\c -> c == '\n' || c == '\r' || c == '\t') preview))
+            assertBool "preview should be truncated to at most 320 chars" (T.length preview <= 320)
+        , testCase "debugBodyPreview tolerates invalid UTF-8 bytes" $ do
+            let preview = debugBodyPreview (LBS.pack [0xFF, 0xFE, 0x41])
+            assertBool "preview should contain surviving ASCII bytes" ("A" `T.isInfixOf` preview)
         ]
   where
+    (|>) = flip ($)
+
     mediaNs = "http://search.yahoo.com/mrss/"
 
     mediaDescriptionElement textValue =
