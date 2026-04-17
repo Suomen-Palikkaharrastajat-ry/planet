@@ -38,6 +38,7 @@ data AppItem = AppItem
     , itemSourceTitle :: Text
     , itemSourceLink :: Maybe Text
     , itemType :: FeedType
+    , itemGroup :: Text
     }
     deriving (Show, Eq, Generic, ToJSON)
 

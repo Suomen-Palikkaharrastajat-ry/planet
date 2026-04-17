@@ -3,8 +3,9 @@
 module Planet (main, generateOpml) where
 
 import Control.Concurrent.Async (mapConcurrently)
+import Control.Monad (forM_)
 import qualified Data.ByteString.Lazy as LBS
-import Data.List (sortOn)
+import Data.List (nub, sortOn)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
 import Data.Ord (Down (..))
@@ -20,9 +21,12 @@ import ElmGen
 import FeedParser
 import I18n
 
-generateOpml :: Config -> LT.Text
-generateOpml config =
-    XML.renderText XML.def $
+generateOpml :: Config -> Maybe T.Text -> LT.Text
+generateOpml config mGroup =
+    let feeds = case mGroup of
+            Nothing -> configFeeds config
+            Just g -> filter (\f -> feedGroup f == g) (configFeeds config)
+    in XML.renderText XML.def $
         XML.Document
             { XML.documentPrologue = XML.Prologue [] Nothing []
             , XML.documentRoot =
@@ -47,7 +51,7 @@ generateOpml config =
                             XML.Element
                                 { XML.elementName = XML.Name "body" Nothing Nothing
                                 , XML.elementAttributes = Map.empty
-                                , XML.elementNodes = map feedToOutline (configFeeds config)
+                                , XML.elementNodes = map feedToOutline feeds
                                 }
                         ]
                     }
@@ -84,7 +88,7 @@ main = do
             -- Sort by date descending
             let sortedItems = sortOn (Down . itemDate) allItems
 
-            let elmModule = generateElmModule sortedItems
+            let elmModule = generateElmModule config sortedItems
 
             -- Generate search index
             let searchIndex = generateSearchIndex sortedItems
@@ -92,10 +96,17 @@ main = do
             LBS.writeFile "elm-app/public/search-index.json" searchIndex
             putStrLn "Search index generated in elm-app/public/search-index.json"
 
-            -- Generate OPML export
-            let opmlContent = generateOpml config
-            LBS.writeFile "elm-app/public/opml.xml" $ LT.encodeUtf8 opmlContent
+            -- Generate OPML export: opml.xml for default group (backwards-compat)
+            let defaultGrp = configDefaultGroup config
+            LBS.writeFile "elm-app/public/opml.xml" $ LT.encodeUtf8 $ generateOpml config (Just defaultGrp)
             putStrLn "OPML export generated in elm-app/public/opml.xml"
+
+            -- Generate per-group OPML files
+            let groups = nub (defaultGrp : map feedGroup (configFeeds config))
+            forM_ groups $ \grp -> do
+                let path = "elm-app/public/opml." <> T.unpack grp <> ".xml"
+                LBS.writeFile path $ LT.encodeUtf8 $ generateOpml config (Just grp)
+                putStrLn $ "OPML export generated in " <> path
 
             -- No longer creating public/data.json
             createDirectoryIfMissing True "elm-app/src"

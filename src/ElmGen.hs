@@ -8,18 +8,22 @@ module ElmGen (generateElmModule, generateSearchIndex) where
 
 import Data.Aeson (encode, object, (.=))
 import qualified Data.ByteString.Lazy as LBS
+import Data.List (nub)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
+import Config (Config (..), FeedConfig (..))
 import I18n (AppItem (..), FeedType (..))
 
 -- | Generate a complete Elm module containing type definitions and data.
-generateElmModule :: [AppItem] -> Text
-generateElmModule items =
-    T.unlines
-        [ "module Data exposing (allAppItems, AppItem, FeedType(..))"
+generateElmModule :: Config -> [AppItem] -> Text
+generateElmModule config items =
+    let defGroup = configDefaultGroup config
+        groups = nub (defGroup : map feedGroup (configFeeds config))
+    in T.unlines
+        [ "module Data exposing (allAppItems, AppItem, FeedType(..), defaultGroup, allGroups)"
         , ""
         , "type FeedType"
         , "    = Feed"
@@ -35,7 +39,14 @@ generateElmModule items =
         , "    , itemSourceTitle : String"
         , "    , itemSourceLink : Maybe String"
         , "    , itemType : FeedType"
+        , "    , itemGroup : String"
         , "    }"
+        , ""
+        , "defaultGroup : String"
+        , "defaultGroup = " <> renderString defGroup
+        , ""
+        , "allGroups : List String"
+        , "allGroups = " <> renderStringList groups
         , ""
         , "allAppItems : List AppItem"
         , "allAppItems ="
@@ -83,6 +94,8 @@ renderItem item =
         , renderMaybeString (itemSourceLink item)
         , ", itemType = "
         , renderFeedType (itemType item)
+        , ", itemGroup = "
+        , renderString (itemGroup item)
         , " }"
         ]
 
@@ -94,6 +107,11 @@ renderString t = "\"" <> escapeElmString t <> "\""
 renderMaybeString :: Maybe Text -> Text
 renderMaybeString Nothing = "Nothing"
 renderMaybeString (Just t) = "Just " <> renderString t
+
+-- | Render a list of Text values as an Elm list of string literals.
+renderStringList :: [Text] -> Text
+renderStringList [] = "[]"
+renderStringList ts = "[ " <> T.intercalate ", " (map renderString ts) <> " ]"
 
 -- | Render a Maybe UTCTime as an Elm Maybe String (ISO8601 format).
 renderMaybeUTCTime :: Maybe UTCTime -> Text

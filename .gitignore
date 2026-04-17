@@ -21,6 +21,7 @@ elm-app/.vite/
 elm-app/dist/
 elm-app/src/Data.elm
 elm-app/public/opml.xml
+elm-app/public/opml.*.xml
 elm-app/public/search-index.json
 
 # --- Editor & OS ---

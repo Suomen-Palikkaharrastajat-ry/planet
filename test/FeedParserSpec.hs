@@ -8,7 +8,8 @@ import Data.XML.Types
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
 import qualified Text.Atom.Feed as Atom
-import Text.Feed.Types (Item (AtomItem))
+import Text.Feed.Types (Item (AtomItem, RSSItem))
+import qualified Text.RSS.Syntax as RSS
 
 import Config
 import FeedParser
@@ -23,6 +24,12 @@ feedParserTests =
                 @?= Just "http://example.com/image.jpg"
         , testCase "extractFirstImage returns Nothing without image" $
             extractFirstImage "<p>Some text without image</p>" @?= Nothing
+        , testCase "extractFirstImage skips tracking pixels" $
+            extractFirstImage "<img src=\"http://track.example.com/px.gif\" width=\"1\" height=\"1\"><img src=\"http://example.com/real.jpg\">"
+                @?= Just "http://example.com/real.jpg"
+        , testCase "extractFirstImage returns Nothing for only tracking pixel" $
+            extractFirstImage "<img src=\"http://track.example.com/px.gif\" width=\"1\" height=\"1\">"
+                @?= Nothing
         , testCase "getMediaDescriptionFromElements reads media description" $ do
             let elements = [mediaDescriptionElement "Test description"]
             getMediaDescriptionFromElements elements @?= Just "Test description"
@@ -48,6 +55,25 @@ feedParserTests =
         , testCase "getAtomMediaDescription keeps full HTML content" $ do
             let item = atomItemWithContent "<p>first</p><p>second</p>"
             getAtomMediaDescription item @?= Just "<p>first</p><p>second</p>"
+        , testCase "getContentEncoded extracts content:encoded from RSS item" $ do
+            let item = rssItemWithContentEncoded "<p>Hello <img src=\"http://example.com/img.jpg\"> world</p>"
+            getContentEncoded item @?= Just "<p>Hello <img src=\"http://example.com/img.jpg\"> world</p>"
+        , testCase "getContentEncoded returns Nothing for Atom item" $ do
+            let item = atomItemWithContent "<p>content</p>"
+            getContentEncoded item @?= Nothing
+        , testCase "extractFirstImage finds image in content:encoded" $ do
+            let item = rssItemWithContentEncoded "<p><img src=\"http://example.com/thumb.jpg\"></p>"
+            (getContentEncoded item >>= extractFirstImage) @?= Just "http://example.com/thumb.jpg"
+        , testCase "parseItem extracts thumbnail from description when mediaDesc has no image" $ do
+            let entry =
+                    (Atom.nullEntry "id" (Atom.TextString "Title") (read "2000-01-01 00:00:00 UTC"))
+                        { Atom.entryContent = Just (Atom.HTMLContent "<p>no images here</p>")
+                        , Atom.entrySummary = Just (Atom.HTMLString "<img src=\"http://example.com/desc-thumb.jpg\">")
+                        , Atom.entryLinks = [Atom.nullLink "http://example.com/link"]
+                        }
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
+            fmap itemThumbnail (parseItem feedConfig Nothing (AtomItem entry))
+                @?= Just (Just "http://example.com/desc-thumb.jpg")
         , testCase "parseItem prefers Atom published date" $ do
             let publishedDate = "2025-12-31T23:55:00Z"
                 updatedDate = "2026-01-01T17:45:09Z"
@@ -58,7 +84,7 @@ feedParserTests =
                         , Atom.entryLinks = [Atom.nullLink "http://example.com/atom-link"]
                         }
                 expectedDate = iso8601ParseM (T.unpack publishedDate)
-                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com"
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
             parseItem feedConfig Nothing (AtomItem entry)
                 @?= Just
                     ( AppItem
@@ -72,6 +98,7 @@ feedParserTests =
                         "Test Feed"
                         Nothing
                         Feed
+                        "fi"
                     )
         , testCase "parseItem uses updated date when published missing" $ do
             let updatedDate = "2026-01-01T17:45:09Z"
@@ -82,7 +109,7 @@ feedParserTests =
                         , Atom.entryLinks = [Atom.nullLink "http://example.com/atom-link"]
                         }
                 expectedDate = iso8601ParseM (T.unpack updatedDate)
-                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com"
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
             parseItem feedConfig Nothing (AtomItem entry)
                 @?= Just
                     ( AppItem
@@ -96,7 +123,31 @@ feedParserTests =
                         "Test Feed"
                         Nothing
                         Feed
+                        "fi"
                     )
+        , testCase "parseItem replaces api.follow.it link with Continue reading target from description" $ do
+            let trackingLink = "https://api.follow.it/track-rss-story-click/v1/abc123"
+                realLink = "https://www.newelementary.com/2026/04/review-71052-series-29-from-lego.html#more"
+                resolvedLink = "https://www.newelementary.com/2026/04/review-71052-series-29-from-lego.html"
+                description =
+                    "<p>Guest writer <a href=\"https://fourbrickstall.com/\">Four Bricks Tall</a>.</p><p>Other links <a href=\"https://www.instagram.com/fourbrickstall\">Instagram</a>.</p><a href=\""
+                        <> realLink
+                        <> "\">Continue reading \187</a>"
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
+                item = rssItemWithLinkAndDescription trackingLink description
+            fmap itemLink (parseItem feedConfig Nothing item) @?= Just resolvedLink
+        , testCase "parseItem keeps api.follow.it link when no safe article link can be extracted" $ do
+            let trackingLink = "https://api.follow.it/track-rss-story-click/v1/abc123"
+                description = "<p>No anchors here, just text and an image.</p>"
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
+                item = rssItemWithLinkAndDescription trackingLink description
+            fmap itemLink (parseItem feedConfig Nothing item) @?= Just trackingLink
+        , testCase "parseItem keeps normal non-follow.it link unchanged" $ do
+            let normalLink = "https://example.com/posts/123"
+                description = "<a href=\"https://elsewhere.example/path\">Continue reading</a>"
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
+                item = rssItemWithLinkAndDescription normalLink description
+            fmap itemLink (parseItem feedConfig Nothing item) @?= Just normalLink
         ]
   where
     mediaNs = "http://search.yahoo.com/mrss/"
@@ -112,3 +163,20 @@ feedParserTests =
             (Atom.nullEntry "tag:example.com,2023:test" (Atom.TextString "Title") (read "2023-01-01 00:00:00 UTC"))
                 { Atom.entryContent = Just (Atom.HTMLContent content)
                 }
+
+    rssItemWithContentEncoded content =
+        let base = RSS.nullItem "Title"
+            encoded =
+                Element
+                    (Name "encoded" (Just "http://purl.org/rss/1.0/modules/content/") Nothing)
+                    []
+                    [NodeContent (ContentText content)]
+         in RSSItem $ base{RSS.rssItemOther = [encoded]}
+
+    rssItemWithLinkAndDescription link description =
+        let base = RSS.nullItem "Title"
+         in RSSItem $
+                base
+                    { RSS.rssItemLink = Just link
+                    , RSS.rssItemDescription = Just description
+                    }

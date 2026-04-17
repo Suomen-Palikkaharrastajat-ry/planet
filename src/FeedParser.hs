@@ -17,6 +17,7 @@ module FeedParser (
     isMediaDescription,
     isMediaGroup,
     extractFirstImage,
+    getContentEncoded,
     getItemThumbnail,
     elementChildren,
     getAtomThumbnail,
@@ -92,14 +93,16 @@ fetchFeed fc = do
                     putStrLn $ "Failed to parse feed: " ++ T.unpack displayTitle ++ ": invalid or unsupported feed format"
                     return []
                 Just feed ->
-                    let altLink = getFeedAlternateLink feed
+                    let altLink = feedLink fc <|> getFeedAlternateLink feed
                         extractedTitle = getFeedTitle feed
                         finalTitle = case feedTitle fc of
                             Just t -> t
                             Nothing -> case extractedTitle of
                                 Just t -> t
                                 Nothing -> T.pack "Unknown Feed"
-                     in return $ mapMaybe (parseItem (fc{feedTitle = Just finalTitle}) altLink) (getFeedItems feed)
+                        items = mapMaybe (parseItem (fc{feedTitle = Just finalTitle}) altLink) (getFeedItems feed)
+                        excluded = feedExcludeList fc
+                     in return $ filter (\i -> itemLink i `notElem` excluded) items
 
 -- Helper for date join
 join :: Maybe (Maybe a) -> Maybe a
@@ -117,7 +120,6 @@ parseItem :: FeedConfig -> Maybe Text -> Item -> Maybe AppItem
 parseItem fc altLink item = do
     rawTitle <- getItemTitle item
     let title = cleanTitle rawTitle
-    link <- normalizeUrl <$> getItemLink item
     let date = case item of
             AtomItem entry -> case Atom.entryPublished entry of
                 Just pub -> parseTimeM True defaultTimeLocale "%Y-%m-%dT%H:%M:%S%Q%Z" (T.unpack pub) <|> iso8601ParseM (T.unpack pub)
@@ -126,13 +128,15 @@ parseItem fc altLink item = do
     let defaultDesc = getItemDescription item
     let mediaDesc = getMediaDescription fc item
     let desc = mediaDesc <|> defaultDesc
+    originalLink <- normalizeUrl <$> getItemLink item
+    let link = resolveFollowItTrackingLink originalLink desc
     let descText = fmap stripHtml desc
     let descSnippet = fmap (T.take 250) descText
-    let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage)
+    let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage) <|> (defaultDesc >>= extractFirstImage) <|> (getContentEncoded item >>= extractFirstImage)
     let sourceTitle = case feedTitle fc of
             Just t -> t
             Nothing -> T.pack "Unknown Feed"
-    return $ AppItem title link date desc descText descSnippet thumb sourceTitle altLink (feedType fc)
+    return $ AppItem title link date desc descText descSnippet thumb sourceTitle altLink (feedType fc) (feedGroup fc)
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text
@@ -195,6 +199,75 @@ cleanTitle title =
   where
     isHashtagToRemove w = T.isPrefixOf "#" w && not (T.all isDigit (T.drop 1 w))
 
+resolveFollowItTrackingLink :: Text -> Maybe Text -> Text
+resolveFollowItTrackingLink originalLink maybeDescription
+    | isApiFollowItTrackingLink originalLink =
+        case maybeDescription >>= extractPreferredArticleLinkFromDescription of
+            Just extractedLink -> stripUrlFragment $ normalizeUrl extractedLink
+            Nothing -> originalLink
+    | otherwise = originalLink
+
+isApiFollowItTrackingLink :: Text -> Bool
+isApiFollowItTrackingLink url =
+    T.isInfixOf "//api.follow.it/" (T.toLower url)
+
+extractPreferredArticleLinkFromDescription :: Text -> Maybe Text
+extractPreferredArticleLinkFromDescription description =
+    case continueReadingLinks of
+        (u : _) -> Just u
+        [] ->
+            case reverse nonFollowLinks of
+                (u : _) -> Just u
+                [] -> Nothing
+  where
+    linksWithText = extractAnchorHrefsWithText description
+    continueReadingLinks =
+        [ href
+        | (href, anchorText) <- linksWithText
+        , isHttpUrl href
+        , not (isFollowItLink href)
+        , isContinueReadingText anchorText
+        ]
+    nonFollowLinks =
+        [ href
+        | (href, _) <- linksWithText
+        , isHttpUrl href
+        , not (isFollowItLink href)
+        ]
+
+extractAnchorHrefsWithText :: Text -> [(Text, Text)]
+extractAnchorHrefsWithText html = go (parseTags html)
+  where
+    go [] = []
+    go (TagOpen "a" attrs : rest) =
+        let (inside, remaining) = break isAnchorCloseTag rest
+            remainingAfterClose = drop 1 remaining
+            anchorText = T.toLower $ T.strip $ T.concat [t | TagText t <- inside]
+         in case lookup "href" attrs of
+                Just href -> (href, anchorText) : go remainingAfterClose
+                Nothing -> go remainingAfterClose
+    go (_ : rest) = go rest
+
+    isAnchorCloseTag (TagClose "a") = True
+    isAnchorCloseTag _ = False
+
+isContinueReadingText :: Text -> Bool
+isContinueReadingText txt =
+    T.isInfixOf "continue reading" txt
+        || T.isInfixOf "read more" txt
+
+isHttpUrl :: Text -> Bool
+isHttpUrl url =
+    "http://" `T.isPrefixOf` url || "https://" `T.isPrefixOf` url
+
+isFollowItLink :: Text -> Bool
+isFollowItLink url =
+    let lower = T.toLower url
+     in T.isInfixOf "//api.follow.it/" lower || T.isInfixOf "//follow.it/" lower
+
+stripUrlFragment :: Text -> Text
+stripUrlFragment = T.takeWhile (/= '#')
+
 getMediaDescriptionFromElements :: [Element] -> Maybe Text
 getMediaDescriptionFromElements elements =
     -- First check for descriptions directly in the elements
@@ -231,10 +304,25 @@ isMediaGroup e =
 extractFirstImage :: Text -> Maybe Text
 extractFirstImage html =
     let tags = parseTags html
-        imgTags = filter (\case TagOpen "img" _ -> True; _ -> False) tags
+        imgTags = [attrs | TagOpen "img" attrs <- tags, not (isTrackingPixel attrs)]
      in case imgTags of
-            (TagOpen "img" attrs : _) -> normalizeUrl <$> lookup "src" attrs
+            (attrs : _) -> normalizeUrl <$> lookup "src" attrs
             _ -> Nothing
+  where
+    isTrackingPixel attrs = lookup "width" attrs == Just "1" && lookup "height" attrs == Just "1"
+
+getContentEncoded :: Item -> Maybe Text
+getContentEncoded (RSSItem rssItem) =
+    case filter isContentEncoded (RSS.rssItemOther rssItem) of
+        (e : _) ->
+            let texts = [t | NodeContent (ContentText t) <- elementNodes e]
+             in if null texts then Nothing else Just (T.concat texts)
+        [] -> Nothing
+  where
+    isContentEncoded e =
+        nameLocalName (elementName e) == "encoded"
+            && nameNamespace (elementName e) == Just "http://purl.org/rss/1.0/modules/content/"
+getContentEncoded _ = Nothing
 
 -- Thumbnail extraction
 getItemThumbnail :: Item -> Maybe Text

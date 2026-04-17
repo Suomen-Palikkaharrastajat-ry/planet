@@ -13,6 +13,9 @@ data FeedConfig = FeedConfig
     { feedType :: FeedType
     , feedTitle :: Maybe Text
     , feedUrl :: Text
+    , feedGroup :: Text
+    , feedExcludeList :: [Text]
+    , feedLink :: Maybe Text
     }
     deriving (Show)
 
@@ -21,6 +24,7 @@ data Config = Config
     , configFeeds :: [FeedConfig]
     , configLocale :: Locale
     , configTimezone :: Text
+    , configDefaultGroup :: Text
     }
     deriving (Show)
 
@@ -35,18 +39,19 @@ parseConfig content = do
     let localeStr = fromMaybe (T.pack "fi") $ HM.lookup (T.pack "locale") toml >>= extractText
     let locale = parseLocale localeStr
     let timezone = fromMaybe (T.pack "Europe/Helsinki") $ HM.lookup (T.pack "timezone") toml >>= extractText
+    let defaultGroup = fromMaybe (T.pack "default") $ HM.lookup (T.pack "default_group") toml >>= extractText
 
     feeds <- case HM.lookup (T.pack "feeds") toml of
         Just (Toml.VTArray nodes) ->
-            mapM (parseFeedConfig . Toml.VTable) (V.toList nodes)
+            mapM (parseFeedConfig defaultGroup . Toml.VTable) (V.toList nodes)
         _ -> Right []
 
-    return $ Config title feeds locale timezone
+    return $ Config title feeds locale timezone defaultGroup
   where
     extractText (Toml.VString t) = Just t
     extractText _ = Nothing
 
-    parseFeedConfig node = do
+    parseFeedConfig defaultGroup node = do
         let lookupKey k = case node of
                 Toml.VTable t -> HM.lookup (T.pack k) t
                 _ -> Nothing
@@ -72,4 +77,16 @@ parseConfig content = do
             Just (Toml.VString t) -> Right t
             _ -> Left $ T.pack "Missing or invalid feed url"
 
-        return $ FeedConfig ft title url
+        let group = fromMaybe defaultGroup $ case lookupKey "group" of
+                Just (Toml.VString t) -> Just t
+                _ -> Nothing
+
+        let excludeList = case lookupKey "exclude_list" of
+                Just (Toml.VArray xs) -> [t | Toml.VString t <- V.toList xs]
+                _ -> []
+
+        let link = case lookupKey "link" of
+                Just (Toml.VString t) -> Just t
+                _ -> Nothing
+
+        return $ FeedConfig ft title url group excludeList link

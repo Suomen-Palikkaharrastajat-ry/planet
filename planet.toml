@@ -1,6 +1,9 @@
 # Planet Configuration
 
 title = "Palikkalinkit"
+default_group = "fi"
+
+# fi
 
 [[feeds]]
 type = "atom"
@@ -63,3 +66,21 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSOLS4IYjrkEknhaabpr
 # Reiverin palikat
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCGWZzsvnKppNnzaK4wiwcHw"
+
+# en
+
+[[feeds]]
+type = "rss"
+url = "https://www.brothers-brick.com/feed/"
+group = "en"
+
+[[feeds]]
+type = "atom"
+link = "https://www.newelementary.com/"
+url = "https://follow.it/newelementary/rss"
+group = "en"
+
+[[feeds]]
+type = "youtube"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCqLbTAc5Mn2cJDu1-FZ2W3g"
+group = "en"
