@@ -111,6 +111,13 @@ dist-ci: elm-app/dist/.elm-stamp-ci ## Build CI-ready static output using the Ni
 	rm -rf build
 	mkdir -p build
 	cp -R elm-app/dist/. build/
+	for opml in build/opml.*.xml; do \
+		[ -e "$$opml" ] || continue; \
+		group="$${opml#build/opml.}"; \
+		group="$${group%.xml}"; \
+		mkdir -p "build/$$group"; \
+		cp build/index.html "build/$$group/index.html"; \
+	done
 
 .PHONY: build-all
 build-all: planet elm-app/src/Data.elm elm-app/dist/.elm-stamp ## Full local build: generator + Elm app
