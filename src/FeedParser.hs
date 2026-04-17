@@ -33,6 +33,7 @@ module FeedParser (
 
 import Control.Applicative ((<|>))
 import Control.Exception (SomeException, try)
+import Control.Monad (when)
 import qualified Data.ByteString.Lazy as LBS
 import Data.Char (isDigit)
 import Data.List (find)
@@ -105,10 +106,9 @@ fetchFeed fc = do
                             ++ ", content-type="
                             ++ T.unpack contentType
                     putStrLn $ "  Debug: body-preview=\"" ++ T.unpack (debugBodyPreview $ getResponseBody response) ++ "\""
-                    if T.isInfixOf "<html" (T.toLower cleanedContent) then
-                        putStrLn "  Hint: response looks like HTML, which often indicates bot protection or an error page instead of RSS/Atom XML."
-                    else
-                        pure ()
+                    when
+                        (T.isInfixOf "<html" (T.toLower cleanedContent))
+                        (putStrLn "  Hint: response looks like HTML, which often indicates bot protection or an error page instead of RSS/Atom XML.")
                     return []
                 Just feed ->
                     let altLink = feedLink fc <|> getFeedAlternateLink feed
