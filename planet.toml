@@ -71,7 +71,8 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCGWZzsvnKppNnzaK4wiw
 
 [[feeds]]
 type = "rss"
-url = "https://www.brothers-brick.com/feed/"
+url = "https://feeds.feedburner.com/TheBrothersBrick"
+# url = "https://www.brothers-brick.com/feed/"
 group = "en"
 
 [[feeds]]
