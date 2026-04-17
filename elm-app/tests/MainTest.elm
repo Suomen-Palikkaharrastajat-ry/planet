@@ -4,9 +4,9 @@ module MainTest exposing (suite)
 
 -}
 
-import Data exposing (allAppItems, FeedType(..))
+import Data exposing (FeedType(..), allAppItems, defaultGroup)
 import Expect
-import Main exposing (addAsterisks)
+import Main exposing (addAsterisks, canonicalGroupPath, groupFromPath)
 import RemoteData
 import Test exposing (Test, describe, test)
 import Types exposing (Msg(..), Model, Lang(..))
@@ -28,6 +28,7 @@ createTestModel =
     , scrollY = 0
     , navKey = Nothing
     , lang = Fi
+    , currentGroup = "fi"
     }
 
 
@@ -44,6 +45,23 @@ suite =
             , test "handles multiple spaces" <|
                 \_ ->
                     Expect.equal (addAsterisks "hello   world") "*hello* *world*"
+            ]
+        , describe "group routing helpers"
+            [ test "groupFromPath returns explicit fi group" <|
+                \_ ->
+                    Expect.equal "fi" (groupFromPath "/fi/")
+            , test "groupFromPath supports en group even if empty" <|
+                \_ ->
+                    Expect.equal "en" (groupFromPath "/en/")
+            , test "groupFromPath falls back to default for unknown group" <|
+                \_ ->
+                    Expect.equal defaultGroup (groupFromPath "/sv/")
+            , test "canonicalGroupPath redirects root to default group path" <|
+                \_ ->
+                    Expect.equal ("/" ++ defaultGroup ++ "/") (canonicalGroupPath "/")
+            , test "canonicalGroupPath normalizes missing trailing slash" <|
+                \_ ->
+                    Expect.equal "/fi/" (canonicalGroupPath "/fi")
             ]
         , describe "init"
             [ test "initializes model with items and timestamp" <|

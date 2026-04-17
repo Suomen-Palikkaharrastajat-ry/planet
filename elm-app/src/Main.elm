@@ -1,4 +1,4 @@
-module Main exposing (addAsterisks, init, main, subscriptions, update)
+module Main exposing (addAsterisks, canonicalGroupPath, groupFromPath, init, main, subscriptions, update)
 
 {-| Main entry point for the Palikkalinkit application
 
@@ -13,7 +13,7 @@ This module orchestrates the Elm application, delegating to specialized modules:
 
 import Browser
 import Browser.Navigation
-import Data exposing (AppItem, FeedType(..), allAppItems)
+import Data exposing (AppItem, FeedType(..), allAppItems, defaultGroup)
 import DateUtils exposing (groupByMonth)
 import Html exposing (Html)
 import Http
@@ -176,7 +176,34 @@ modelToViewModel model =
     , searchedIds = model.searchedIds
     , scrollY = model.scrollY
     , lang = model.lang
+    , currentGroup = model.currentGroup
     }
+
+
+{-| Extract group name from URL path: "/fi/" or "/fi" → "fi", "/" → defaultGroup
+-}
+groupFromPath : String -> String
+groupFromPath path =
+    case path |> String.split "/" |> List.filter (not << String.isEmpty) of
+        group :: _ ->
+            if isKnownGroup group then
+                group
+
+            else
+                defaultGroup
+
+        [] ->
+            defaultGroup
+
+
+isKnownGroup : String -> Bool
+isKnownGroup group =
+    List.member group Data.allGroups || List.member group [ "fi", "en" ]
+
+
+canonicalGroupPath : String -> String
+canonicalGroupPath path =
+    "/" ++ groupFromPath path ++ "/"
 
 
 
@@ -186,8 +213,11 @@ modelToViewModel model =
 {-| Initialize the model with feed items, generation timestamp, and all feed types selected
 -}
 init : Flags -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
-init flags _ navKey =
+init flags url navKey =
     let
+        group =
+            groupFromPath url.path
+
         model =
             { items = allAppItems
             , generatedAt = flags.timestamp
@@ -201,9 +231,21 @@ init flags _ navKey =
             , scrollY = 0
             , navKey = Just navKey
             , lang = Fi
+            , currentGroup = group
             }
+
+        redirectCmd =
+            let
+                canonicalPath =
+                    canonicalGroupPath url.path
+            in
+            if url.path /= canonicalPath then
+                Browser.Navigation.replaceUrl navKey canonicalPath
+
+            else
+                Cmd.none
     in
-    ( recalculateVisibleGroups { model | visibleGroups = groupByMonth allAppItems }, Cmd.none )
+    ( recalculateVisibleGroups { model | visibleGroups = groupByMonth allAppItems }, redirectCmd )
 
 
 
@@ -331,8 +373,32 @@ update msg model =
                 Browser.External href ->
                     ( model, Browser.Navigation.load href )
 
+        NavigateToGroup group ->
+            case model.navKey of
+                Just key ->
+                    ( model, Browser.Navigation.pushUrl key ("/" ++ group ++ "/") )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
         UrlChanged url ->
-            ( model, Cmd.none )
+            let
+                newGroup =
+                    groupFromPath url.path
+
+                canonicalPath =
+                    canonicalGroupPath url.path
+            in
+            if url.path /= canonicalPath then
+                case model.navKey of
+                    Just key ->
+                        ( recalculateVisibleGroups { model | currentGroup = newGroup }, Browser.Navigation.replaceUrl key canonicalPath )
+
+                    Nothing ->
+                        ( recalculateVisibleGroups { model | currentGroup = newGroup }, Cmd.none )
+
+            else
+                ( recalculateVisibleGroups { model | currentGroup = newGroup }, Cmd.none )
 
 
 recalculateVisibleGroups : Model -> Model
@@ -348,6 +414,7 @@ recalculateVisibleGroups model =
 
         filteredItems =
             baseItems
+                |> List.filter (\item -> item.itemGroup == model.currentGroup)
                 |> List.filter (\item -> List.member item.itemType model.selectedFeedTypes)
     in
     { model | visibleGroups = groupByMonth filteredItems }

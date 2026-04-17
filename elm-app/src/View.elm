@@ -43,23 +43,26 @@ view model =
                         []
                     , span [ Attr.class "type-h4 text-white" ] [ text (I18n.translate model.lang I18n.Title) ]
                     ]
-                , button
-                    [ Events.onClick ToggleSidebar
-                    , Attr.class "md:hidden p-2 rounded-lg text-white"
-                    , Attr.style "cursor" "pointer"
-                    , Attr.attribute "aria-label"
-                        (if model.isSidebarVisible then
-                            I18n.translate model.lang I18n.CloseMenu
+                , div [ Attr.class "flex items-center gap-2" ]
+                    [ renderGroupToggle model.currentGroup
+                    , button
+                        [ Events.onClick ToggleSidebar
+                        , Attr.class "md:hidden p-2 rounded-lg text-white"
+                        , Attr.style "cursor" "pointer"
+                        , Attr.attribute "aria-label"
+                            (if model.isSidebarVisible then
+                                I18n.translate model.lang I18n.CloseMenu
 
-                         else
-                            I18n.translate model.lang I18n.OpenMenu
-                        )
-                    ]
-                    [ if model.isSidebarVisible then
-                        FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+                             else
+                                I18n.translate model.lang I18n.OpenMenu
+                            )
+                        ]
+                        [ if model.isSidebarVisible then
+                            FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
 
-                      else
-                        FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+                          else
+                            FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+                        ]
                     ]
                 ]
             ]
@@ -90,7 +93,7 @@ view model =
             , breakpoint = MobileDrawer.Md
             }
         , -- Brand footer
-          viewBrandFooter model.lang model.generatedAt
+          viewBrandFooter model.lang model.generatedAt model.currentGroup
         , -- Scroll to top button
           if model.scrollY > 200 then
             button
@@ -107,8 +110,8 @@ view model =
         ]
 
 
-viewBrandFooter : Types.Lang -> String -> Html Msg
-viewBrandFooter lang timestamp =
+viewBrandFooter : Types.Lang -> String -> String -> Html Msg
+viewBrandFooter lang timestamp currentGroup =
     Html.footer
         [ Attr.class "bg-brand text-white py-12 px-4" ]
         [ Html.div [ Attr.class "max-w-5xl mx-auto" ]
@@ -164,7 +167,7 @@ viewBrandFooter lang timestamp =
                             ]
                         , Html.p []
                             [ Html.text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | ")
-                            , a [ Attr.class "hover:text-white underline", Attr.href "opml.xml", Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ]
+                            , a [ Attr.class "hover:text-white underline", Attr.href ("/opml." ++ currentGroup ++ ".xml"), Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ]
                             ]
                         , Html.p [] [ Html.text (I18n.translate lang I18n.LegoTrademark) ]
                         , Html.p [] [ Html.text (I18n.translate lang I18n.LegoDisclaimer) ]
@@ -172,6 +175,51 @@ viewBrandFooter lang timestamp =
                     ]
                 ]
             ]
+        ]
+
+
+renderGroupToggle : String -> Html Msg
+renderGroupToggle currentGroup =
+    div [ Attr.class "flex items-center gap-1 rounded-lg bg-white/10 p-1" ]
+        [ groupToggleButton currentGroup "fi" [ finnishFlagIcon ]
+        , groupToggleButton currentGroup "en" [ FeatherIcons.globe |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [] ]
+        ]
+
+
+groupToggleButton : String -> String -> List (Html Msg) -> Html Msg
+groupToggleButton currentGroup group iconContent =
+    button
+        [ Events.onClick (NavigateToGroup group)
+        , Attr.class
+            ("cursor-pointer rounded-md p-2 transition-colors "
+                ++ (if currentGroup == group then
+                        "bg-brand-yellow text-brand"
+
+                    else
+                        "text-white hover:bg-white/20"
+                   )
+            )
+        , Attr.attribute "aria-label" ("Navigate to " ++ String.toUpper group ++ " group")
+        , Attr.attribute "aria-pressed"
+            (if currentGroup == group then
+                "true"
+
+             else
+                "false"
+            )
+        ]
+        iconContent
+
+
+finnishFlagIcon : Html Msg
+finnishFlagIcon =
+    span
+        [ Attr.class "relative block h-[18px] w-[18px] overflow-hidden rounded-sm border border-black/20 bg-white"
+        , Attr.attribute "role" "img"
+        , Attr.attribute "aria-hidden" "true"
+        ]
+        [ span [ Attr.class "absolute left-[5px] top-0 h-full w-[4px] bg-[#003580]" ] []
+        , span [ Attr.class "absolute left-0 top-[7px] h-[4px] w-full bg-[#003580]" ] []
         ]
 
 

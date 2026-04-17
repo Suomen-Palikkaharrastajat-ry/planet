@@ -36,6 +36,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -57,6 +58,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -78,6 +80,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -99,6 +102,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -121,12 +125,61 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.find [ Selector.tag "a", Selector.attribute (Html.Attributes.href "opml.xml") ]
+                        |> Query.find [ Selector.tag "a", Selector.attribute (Html.Attributes.href "/opml.fi.xml") ]
                         |> Query.has [ Selector.text "Lataa OPML" ]
+            , test "renders group-specific OPML link for en group" <|
+                \_ ->
+                    let
+                        model : ViewModel
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            , currentGroup = "en"
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.find [ Selector.tag "a", Selector.attribute (Html.Attributes.href "/opml.en.xml") ]
+                        |> Query.has [ Selector.text "Lataa OPML" ]
+            , test "renders fi and en top group toggle buttons" <|
+                \_ ->
+                    let
+                        model : ViewModel
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            , currentGroup = "fi"
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has
+                            [ Selector.attribute (Html.Attributes.attribute "aria-label" "Navigate to FI group")
+                            , Selector.attribute (Html.Attributes.attribute "aria-label" "Navigate to EN group")
+                            ]
             , test "renders title as link to root" <|
                 \_ ->
                     let
@@ -143,6 +196,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -163,6 +217,7 @@ suite =
                                   , itemSourceTitle = "Test Source"
                                   , itemSourceLink = Nothing
                                   , itemType = Feed
+                                  , itemGroup = "fi"
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
@@ -181,6 +236,7 @@ suite =
                                           , itemSourceTitle = "Test Source"
                                           , itemSourceLink = Nothing
                                           , itemType = Feed
+                                          , itemGroup = "fi"
                                           }
                                         ]
                                   }
@@ -190,6 +246,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -216,6 +273,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -239,6 +297,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -256,6 +315,7 @@ suite =
                             , itemSourceTitle = "Test Source"
                             , itemSourceLink = Nothing
                             , itemType = Feed
+                            , itemGroup = "fi"
                             }
 
                         model =
@@ -270,6 +330,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -288,6 +349,7 @@ suite =
                                   , itemSourceTitle = "RSS Source"
                                   , itemSourceLink = Nothing
                                   , itemType = Feed
+                                  , itemGroup = "fi"
                                   }
                                 , { itemTitle = "YouTube Item"
                                   , itemLink = "https://example.com/yt"
@@ -297,6 +359,7 @@ suite =
                                   , itemSourceTitle = "YouTube Source"
                                   , itemSourceLink = Nothing
                                   , itemType = YouTube
+                                  , itemGroup = "fi"
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
@@ -315,6 +378,7 @@ suite =
                                           , itemSourceTitle = "RSS Source"
                                           , itemSourceLink = Nothing
                                           , itemType = Feed
+                                          , itemGroup = "fi"
                                           }
                                         ]
                                   }
@@ -324,6 +388,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -342,6 +407,7 @@ suite =
                                   , itemSourceTitle = "RSS Source"
                                   , itemSourceLink = Nothing
                                   , itemType = Feed
+                                  , itemGroup = "fi"
                                   }
                                 , { itemTitle = "YouTube Item"
                                   , itemLink = "https://example.com/yt"
@@ -351,6 +417,7 @@ suite =
                                   , itemSourceTitle = "YouTube Source"
                                   , itemSourceLink = Nothing
                                   , itemType = YouTube
+                                  , itemGroup = "fi"
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
@@ -369,6 +436,7 @@ suite =
                                           , itemSourceTitle = "RSS Source"
                                           , itemSourceLink = Nothing
                                           , itemType = Feed
+                                          , itemGroup = "fi"
                                           }
                                         ]
                                   }
@@ -378,6 +446,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -398,6 +467,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -416,6 +486,7 @@ suite =
                                   , itemSourceTitle = "Source"
                                   , itemSourceLink = Nothing
                                   , itemType = Feed
+                                  , itemGroup = "fi"
                                   }
                                 , { itemTitle = "Other Item"
                                   , itemLink = "https://example.com/other"
@@ -425,6 +496,7 @@ suite =
                                   , itemSourceTitle = "Other Source"
                                   , itemSourceLink = Nothing
                                   , itemType = Feed
+                                  , itemGroup = "fi"
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
@@ -443,6 +515,7 @@ suite =
                                           , itemSourceTitle = "Source"
                                           , itemSourceLink = Nothing
                                           , itemType = Feed
+                                          , itemGroup = "fi"
                                           }
                                         ]
                                   }
@@ -452,6 +525,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -470,6 +544,7 @@ suite =
                                   , itemSourceTitle = "Source"
                                   , itemSourceLink = Nothing
                                   , itemType = Feed
+                                  , itemGroup = "fi"
                                   }
                                 , { itemTitle = "Other Item"
                                   , itemLink = "https://example.com/other"
@@ -479,6 +554,7 @@ suite =
                                   , itemSourceTitle = "Other Source"
                                   , itemSourceLink = Nothing
                                   , itemType = Feed
+                                  , itemGroup = "fi"
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
@@ -497,6 +573,7 @@ suite =
                                           , itemSourceTitle = "Source"
                                           , itemSourceLink = Nothing
                                           , itemType = Feed
+                                          , itemGroup = "fi"
                                           }
                                         ]
                                   }
@@ -506,6 +583,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -526,6 +604,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -548,6 +627,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -568,6 +648,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -590,6 +671,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -610,6 +692,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -630,6 +713,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -652,6 +736,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -672,6 +757,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -692,6 +778,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -712,6 +799,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , currentGroup = "fi"
                             }
                     in
                     View.view model
@@ -733,4 +821,5 @@ createTestItem date title =
     , itemSourceTitle = "Test Source"
     , itemSourceLink = Nothing
     , itemType = Feed
+    , itemGroup = "fi"
     }

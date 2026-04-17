@@ -119,6 +119,7 @@ createTestItem date =
     , itemSourceTitle = "Test Source"
     , itemSourceLink = Nothing
     , itemType = Feed
+    , itemGroup = "fi"
     }
 
 
@@ -134,4 +135,5 @@ createTestItemNoDate =
     , itemSourceTitle = "Test Source"
     , itemSourceLink = Nothing
     , itemType = Feed
+    , itemGroup = "fi"
     }

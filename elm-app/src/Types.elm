@@ -56,6 +56,7 @@ type alias Model =
     , scrollY : Float
     , navKey : Maybe Browser.Navigation.Key
     , lang : Lang
+    , currentGroup : String
     }
 
 
@@ -73,6 +74,7 @@ type alias ViewModel =
     , searchedIds : List Int
     , scrollY : Float
     , lang : Lang
+    , currentGroup : String
     }
 
 
@@ -101,5 +103,6 @@ type Msg
     | ScrollY Float
     | ScrollToTop
     | NavigateToSection String
+    | NavigateToGroup String
     | UrlRequested Browser.UrlRequest
     | UrlChanged Url.Url

@@ -29,7 +29,9 @@ suite =
                             , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
-                            , navKey = "dummy" -- dummy value for testing
+                            , navKey = Nothing
+                            , lang = Types.Fi
+                            , currentGroup = "fi"
                             }
                     in
                     Expect.equal model.generatedAt "2026-01-09"
