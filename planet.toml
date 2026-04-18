@@ -46,7 +46,7 @@ type = "flickr"
 url = "https://www.flickr.com/services/feeds/photos_public.gne?id=63411232@N00&lang=en-us&format=atom"
 
 [[feeds]]
-# title = "Palikkatakomo"
+title = "Palikkatakomo"
 type = "kuvatfi"
 url = "https://palikkatakomo.kuvat.fi/kuvat/rss/"
 
@@ -71,9 +71,8 @@ type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSOLS4IYjrkEknhaabpr9Ow"
 
 [[feeds]]
-# Reiverin palikat
+# title = "Reiverin palikat"
 type = "youtube"
-title = "Reiverin palikat"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCGWZzsvnKppNnzaK4wiwcHw"
 
 # en
