@@ -6,82 +6,94 @@ default_group = "fi"
 # fi
 
 [[feeds]]
+# title = "Cyclopic Bricks"
 type = "atom"
 url = "https://cyclopicbricks.blogspot.com/feeds/posts/default"
 
 [[feeds]]
+# title = "HoviNet"
 type = "rss"
 url = "https://hovinet.com/?feed=rss2"
 
 [[feeds]]
+# title = "LEGO Channel 1"
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1gpjceZQv8qKxcCJB4BKhw"
 
 [[feeds]]
+# title = "LEGO Channel 2"
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIobvkZGI5zAd55vooUokqg"
 
 [[feeds]]
+title = "LEGO Channel 3"
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCWNl-SeihlkLKGsx9L9450Q"
 
 [[feeds]]
+# title = "LEGO Channel 4"
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCRM3pjKaP5BoevfZuE9_kEw"
 
 [[feeds]]
+# title = "LEGO Channel 5"
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC3doy6NwIkzNMMBba3xOOJw"
 
 [[feeds]]
+# title = "Flickr Public Feed"
 type = "flickr"
 url = "https://www.flickr.com/services/feeds/photos_public.gne?id=63411232@N00&lang=en-us&format=atom"
 
 [[feeds]]
+# title = "Palikkatakomo"
 type = "kuvatfi"
-title = "Palikkatakomo"
 url = "https://palikkatakomo.kuvat.fi/kuvat/rss/"
 
 [[feeds]]
-# Kristallikuningas
+# title = "Kristallikuningas"
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC2oUI4QDXFBJ6kHorUvV4TA"
 
 [[feeds]]
-# BrickDevil
+# title = "BrickDevil"
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCevQ7uLnqJYWeTDLtc8I4uw"
 
 #[[feeds]]
-## Vilzu
+# title = Vilzu
 #type = "youtube"
 ##url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIDvVMnuu8WAeIXA_GsnNwA"
 
 [[feeds]]
-# Megsu_Begsu
+# title = "Megsu_Begsu"
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSOLS4IYjrkEknhaabpr9Ow"
 
 [[feeds]]
 # Reiverin palikat
 type = "youtube"
+title = "Reiverin palikat"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCGWZzsvnKppNnzaK4wiwcHw"
 
 # en
 
 [[feeds]]
+# title = "The Brothers Brick"
 type = "rss"
 url = "https://feeds.feedburner.com/TheBrothersBrick"
 # url = "https://www.brothers-brick.com/feed/"
 group = "en"
 
 [[feeds]]
+# title = "New Elementary"
 type = "atom"
 link = "https://www.newelementary.com/"
 url = "https://follow.it/newelementary/rss"
 group = "en"
 
 [[feeds]]
+# title = "Tiago Catarino"
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCqLbTAc5Mn2cJDu1-FZ2W3g"
 group = "en"
