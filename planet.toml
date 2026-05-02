@@ -75,6 +75,11 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCSOLS4IYjrkEknhaabpr
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCGWZzsvnKppNnzaK4wiwcHw"
 
+[[feeds]]
+# title = "Jonkun palikat"
+type = "youtube"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC9rJxMmK5Yk4wphnwv3abQA"
+
 # en
 
 [[feeds]]
