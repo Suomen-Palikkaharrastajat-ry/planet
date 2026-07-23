@@ -15,45 +15,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - uses: cachix/install-nix-action@v31
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: cachix/cachix-action@v16
-        with:
-          name: palikkaharrastajat
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-          extraPullNames: devenv
-
-      - name: Install devenv
-        run: nix profile install "github:cachix/devenv/v2.0.6"
-
-      - name: Restore Elm cache
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ~/.elm
-            elm-app/elm-stuff
-          key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
-          restore-keys: elm-${{ runner.os }}-
-
-      - name: Build
-        run: devenv shell --profile ci -- make dist-ci
-
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./build
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      skip-tests: true
+    secrets: inherit

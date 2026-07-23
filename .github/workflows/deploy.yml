@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      skip-tests:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -17,43 +22,17 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      CABAL_DIR: ${{ github.workspace }}/.cabal-ci
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
 
-      - uses: cachix/install-nix-action@v31
+      - name: Setup Nix + devenv
+        uses: ./.github/workflows/setup-nix
         with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: cachix/cachix-action@v16
-        with:
-          name: palikkaharrastajat
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-          extraPullNames: devenv
-
-      - name: Install devenv
-        run: nix profile install "github:cachix/devenv/v2.0.6"
-
-      - name: Restore Cabal index cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.CABAL_DIR }}/packages
-          key: cabal-index-${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
-          restore-keys: cabal-index-${{ runner.os }}-
-
-      - name: Restore Cabal store cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.CABAL_DIR }}/store
-          key: cabal-store-${{ runner.os }}-${{ hashFiles('cabal.project.freeze', 'statics/statics.cabal', 'devenv.lock', 'devenv.nix', 'overrides.nix') }}
-          restore-keys: cabal-store-${{ runner.os }}-
-
-      - name: Update Cabal package index
-        run: devenv shell --profile ci -- cabal update
+          cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Restore Elm cache
         id: elm-cache-restore
@@ -65,8 +44,17 @@ jobs:
           key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
           restore-keys: elm-${{ runner.os }}-
 
-      - name: Run tests
-        run: devenv shell --profile ci -- make test
+      - name: Run Elm tests
+        if: ${{ !inputs.skip-tests }}
+        run: devenv shell --profile ci -- make check elm-test
+
+      - name: Run Haskell tests
+        if: ${{ !inputs.skip-tests }}
+        run: |
+          export CABAL_DIR="${{ github.workspace }}/.cabal-test"
+          mkdir -p "$CABAL_DIR"
+          devenv shell --profile ci -- cabal --config-file="$CABAL_DIR/config" update
+          devenv shell --profile ci -- cabal --config-file="$CABAL_DIR/config" test
 
       - name: Build
         run: devenv shell --profile ci -- make dist-ci
@@ -101,6 +89,7 @@ jobs:
 
   verify:
     needs: deploy
+    if: ${{ !inputs.skip-tests }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
