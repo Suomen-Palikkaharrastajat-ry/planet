@@ -48,7 +48,7 @@ jobs:
           
       - name: Update Cabal package index
         if: ${{ !inputs.skip-tests }}
-        run: devenv shell --profile ci -- cabal update
+        run: devenv shell --profile ci -- bash -c "cd /tmp && cabal update"
 
       - name: Run Elm tests
         if: ${{ !inputs.skip-tests }}
