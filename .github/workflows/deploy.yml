@@ -22,6 +22,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CABAL_DIR: ${{ github.workspace }}/.cabal-ci
 
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +45,10 @@ jobs:
             elm-app/elm-stuff
           key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
           restore-keys: elm-${{ runner.os }}-
+          
+      - name: Update Cabal package index
+        if: ${{ !inputs.skip-tests }}
+        run: devenv shell --profile ci -- cabal update
 
       - name: Run Elm tests
         if: ${{ !inputs.skip-tests }}
@@ -50,11 +56,7 @@ jobs:
 
       - name: Run Haskell tests
         if: ${{ !inputs.skip-tests }}
-        run: |
-          export CABAL_DIR="${{ github.workspace }}/.cabal-test"
-          mkdir -p "$CABAL_DIR"
-          devenv shell --profile ci -- cabal --config-file="$CABAL_DIR/config" update
-          devenv shell --profile ci -- cabal --config-file="$CABAL_DIR/config" test
+        run: devenv shell --profile ci -- cabal test
 
       - name: Build
         run: devenv shell --profile ci -- make dist-ci
