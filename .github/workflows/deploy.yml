@@ -43,6 +43,9 @@ jobs:
           key: cabal-index-${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
           restore-keys: cabal-index-${{ runner.os }}-
 
+      - name: Clean stale Cabal lock files
+        run: find ~/.cabal/packages -name "*.timestamp" -delete 2>/dev/null || true
+
       - name: Restore Cabal store cache
         uses: actions/cache@v4
         with:
