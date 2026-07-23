@@ -17,6 +17,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CABAL_DIR: ${{ github.workspace }}/.cabal-ci
 
     steps:
       - uses: actions/checkout@v4
@@ -39,17 +41,14 @@ jobs:
       - name: Restore Cabal index cache
         uses: actions/cache@v4
         with:
-          path: ~/.cabal/packages
+          path: ${{ env.CABAL_DIR }}/packages
           key: cabal-index-${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
           restore-keys: cabal-index-${{ runner.os }}-
-
-      - name: Clean stale Cabal lock files
-        run: find ~/.cabal/packages -name "*.timestamp" -delete 2>/dev/null || true
 
       - name: Restore Cabal store cache
         uses: actions/cache@v4
         with:
-          path: ~/.cabal/store
+          path: ${{ env.CABAL_DIR }}/store
           key: cabal-store-${{ runner.os }}-${{ hashFiles('cabal.project.freeze', 'statics/statics.cabal', 'devenv.lock', 'devenv.nix', 'overrides.nix') }}
           restore-keys: cabal-store-${{ runner.os }}-
 
