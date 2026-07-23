@@ -80,6 +80,11 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCGWZzsvnKppNnzaK4wiw
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC9rJxMmK5Yk4wphnwv3abQA"
 
+[[feeds]]
+# title = "Harkkola"
+type = "youtube"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCRI73XE4RvxHFaAA2Yz1onQ"
+
 # en
 
 [[feeds]]
