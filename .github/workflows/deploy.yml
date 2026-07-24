@@ -111,10 +111,12 @@ jobs:
         with:
           ghc-version: '9.6.7'
           cabal-version: '3.10.3.0'
+          update-index: false
 
       - name: Build Native Binary
         run: |
-          cabal update
+          rm -f cabal.project.freeze
+          bash -c "cd /tmp && cabal update"
           cabal install --installdir=.bin --install-method=copy
 
       - name: Cache Native Binary
