@@ -60,7 +60,7 @@ jobs:
         run: |
           cd pkgs
           npm ci
-          npm install --no-save elm elm-review
+          npm install --no-save elm@0.19.1 elm-review
 
       - name: Link Node Modules
         run: |
