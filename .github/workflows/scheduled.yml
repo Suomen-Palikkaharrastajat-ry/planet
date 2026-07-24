@@ -41,6 +41,7 @@ jobs:
 
       - name: Install Frontend Dependencies
         run: |
+          npm install -g elm elm-review
           cd pkgs
           npm ci
           cd ../elm-app
