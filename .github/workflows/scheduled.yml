@@ -32,6 +32,15 @@ jobs:
       - name: Run Generator
         run: ./.bin/planet
 
+      - name: Restore Elm cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.elm
+            elm-app/elm-stuff
+          key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
+          restore-keys: elm-${{ runner.os }}-
+
       - name: Setup Node (Native)
         uses: actions/setup-node@v4
         with:
@@ -39,12 +48,23 @@ jobs:
           cache: 'npm'
           cache-dependency-path: pkgs/package-lock.json
 
+      - name: Node Modules Cache
+        id: node-cache
+        uses: actions/cache@v4
+        with:
+          path: pkgs/node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('pkgs/package-lock.json') }}
+
       - name: Install Frontend Dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
         run: |
-          npm install -g elm elm-review
           cd pkgs
           npm ci
-          cd ../elm-app
+          npm install --no-save elm elm-review
+
+      - name: Link Node Modules
+        run: |
+          cd elm-app
           ln -sfn ../pkgs/node_modules node_modules
 
       - name: Build Frontend
