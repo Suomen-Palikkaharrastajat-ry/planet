@@ -15,8 +15,74 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Restore Native Binary
+        uses: actions/cache/restore@v4
+        with:
+          path: .bin
+          key: planet-native-bin-${{ github.sha }}
+          restore-keys: planet-native-bin-
+
+      - name: Run Generator
+        run: ./.bin/planet
+
+      - name: Setup Node (Native)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: pkgs/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd pkgs
+          npm ci
+          cd ../elm-app
+          ln -sfn ../pkgs/node_modules node_modules
+
+      - name: Build Frontend
+        run: |
+          export PATH=$PWD/pkgs/node_modules/.bin:$PATH
+          cd elm-app
+          elm-tailwind-classes gen
+          mkdir -p .elm-tailwind
+          touch .elm-tailwind/.stamp
+          vite build
+
+      - name: Prepare Output
+        run: |
+          rm -rf build
+          mkdir -p build
+          cp -R elm-app/dist/. build/
+          for opml in build/opml.*.xml; do
+            [ -e "$opml" ] || continue
+            group="${opml#build/opml.}"
+            group="${group%.xml}"
+            mkdir -p "build/$group"
+            cp build/index.html "build/$group/index.html"
+          done
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./build
+
   deploy:
-    uses: ./.github/workflows/deploy.yml
-    with:
-      skip-tests: true
-    secrets: inherit
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
