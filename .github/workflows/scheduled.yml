@@ -78,22 +78,22 @@ jobs:
 
       - name: Prepare Output
         run: |
-          rm -rf build
-          mkdir -p build
-          cp -R elm-app/dist/. build/
-          for opml in build/opml.*.xml; do
+          rm -rf dist
+          mkdir -p dist
+          cp -R elm-app/dist/. dist/
+          for opml in dist/opml.*.xml; do
             [ -e "$opml" ] || continue
-            group="${opml#build/opml.}"
+            group="${opml#dist/opml.}"
             group="${group%.xml}"
-            mkdir -p "build/$group"
-            cp build/index.html "build/$group/index.html"
+            mkdir -p "dist/$group"
+            cp dist/index.html "dist/$group/index.html"
           done
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build
+          path: ./dist
 
   deploy:
     needs: update

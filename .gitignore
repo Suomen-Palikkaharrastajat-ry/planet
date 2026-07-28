@@ -10,7 +10,7 @@ devenv.local.yaml
 .stack-work/
 dist-newstyle/
 planet
-src/Main
+
 
 # --- Elm / frontend build artifacts ---
 node_modules
@@ -35,3 +35,5 @@ Thumbs.db
 # --- Misc / local ---
 .claude/
 TODO*
+/dist/
+review/elm-stuff/

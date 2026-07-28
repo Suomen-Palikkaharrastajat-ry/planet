@@ -16,14 +16,16 @@ There is no `pnpm` in the current project. Frontend tooling is provided through 
 ## Repository Layout
 
 ```text
-src/                  Haskell library + executable modules
-test/                 Active Haskell test suite used by `make test`
+statics/src/          Haskell library modules
+statics/app/          Haskell executable entry point
+statics/tests/        Active Haskell test suite used by `make test`
 elm-app/              Elm frontend
   src/                Elm application modules
   tests/              Elm unit tests
   .elm-tailwind/      Generated elm-tailwind-classes output
   packages/           Symlink to shared Elm packages in vendor/master-builder
 pkgs/                 Nix-managed Node/Vite/Elm tooling manifest + lockfile
+review/               elm-review config (shared LlmAgent rules via vendor/master-builder)
 vendor/master-builder Shared Elm packages for design tokens and UI components
 .github/workflows/    CI/CD workflows
 devenv.nix            Dev shell and CI profile
@@ -45,20 +47,21 @@ Run commands either:
 Key commands:
 
 - `make shell` — open the dev shell
-- `make build` — build the Haskell CLI
-- `make run` — regenerate [`elm-app/src/Data.elm`](/workspaces/planet/elm-app/src/Data.elm)
+- `make build` — build the Elm app (SPA) → `dist/` (alias for `make elm-build`)
+- `make run` — build and run the Haskell CLI to regenerate [`elm-app/src/Data.elm`](/workspaces/planet/elm-app/src/Data.elm)
 - `make elm-build` — build the Elm app
-- `make build-all` — full local build
+- `make dist` — full local build → dist/
 - `make elm-test` — run Elm tests
-- `make test` — run Haskell + Elm checks and tests
-- `make dist-ci` — produce CI-ready static output in `build/`
+- `make elm-review` — run elm-review with the shared LlmAgent rules from `vendor/master-builder`
+- `make check` / `make test` — run formatting + elm-review + hlint (and, for `test`, the Haskell + Elm suites)
+- `make dist-ci` — produce CI-ready static output in `dist/`
 - `make watch` — run the generator and start Vite dev mode
 
 ## Source of Truth
 
 When changing behavior, use this order of trust:
 
-1. Active tests in [`test/`](/workspaces/planet/test) and [`elm-app/tests/`](/workspaces/planet/elm-app/tests)
+1. Active tests in [`statics/tests/`](/workspaces/planet/statics/tests) and [`elm-app/tests/`](/workspaces/planet/elm-app/tests)
 2. Current code and build pipeline
 3. Inline comments and docs
 
@@ -99,6 +102,7 @@ Raw Tailwind class strings are acceptable in legacy code, but new code should pr
 
 For UI work, follow the Suomen Palikkaharrastajat brand guide:
 
+- Design-system reference (single source of truth): [`vendor/master-builder/AGENTS.md`](/workspaces/planet/vendor/master-builder/AGENTS.md), section "Design system"
 - Human guide: https://logo.palikkaharrastajat.fi/
 - Canonical CSS tokens: https://logo.palikkaharrastajat.fi/brand.css
 
@@ -125,7 +129,7 @@ Node tooling is defined in:
 
 - [`pkgs/package.json`](/workspaces/planet/pkgs/package.json)
 - [`pkgs/package-lock.json`](/workspaces/planet/pkgs/package-lock.json)
-- [`pkgs/npm-tools.nix`](/workspaces/planet/pkgs/npm-tools.nix)
+- [`pkgs/npm-tools.nix`](/workspaces/planet/pkgs/npm-tools.nix) — a thin wrapper; the shared derivation logic lives in `vendor/master-builder/pkgs/mk-npm-tools.nix`. The repo-specific hash stays in this wrapper.
 
 If you need to update frontend tooling:
 

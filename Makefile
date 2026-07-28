@@ -21,16 +21,6 @@ vendor: ## Init and update all git submodules to their pinned commits
 shell: ## Enter devenv shell
 	devenv shell
 
-.PHONY: develop
-develop: devenv.local.nix devenv.local.yaml ## Bootstrap opinionated development environment
-	devenv shell --profile=devcontainer -- code .
-
-devenv.local.nix:
-	cp devenv.local.nix.example devenv.local.nix
-
-devenv.local.yaml:
-	cp devenv.local.yaml.example devenv.local.yaml
-
 # ── Elm frontend ──────────────────────────────────────────────────────────────
 
 .PHONY: elm-dev
@@ -71,8 +61,13 @@ elm-test: elm-app/.elm-tailwind/.stamp elm-app/src/Data.elm ## Run Elm tests wit
 	cd elm-app && elm-test
 
 .PHONY: elm-check
-elm-check: ## Check Elm formatting (no changes)
+elm-check: ## Check Elm formatting + elm-review (no changes)
 	cd elm-app && find src -name '*.elm' ! -name 'Data.elm' -print0 | xargs -0 elm-format --validate
+	$(MAKE) elm-review
+
+.PHONY: elm-review
+elm-review: elm-app/.elm-tailwind/.stamp elm-app/src/Data.elm ## Run elm-review with the shared LlmAgent rules from vendor/master-builder
+	cd elm-app && elm-review --config ../review
 
 .PHONY: elm-format
 elm-format: ## Auto-format Elm source files
@@ -80,20 +75,17 @@ elm-format: ## Auto-format Elm source files
 
 # ── Haskell generator ─────────────────────────────────────────────────────────
 
-HS_SOURCES := $(shell find src -name '*.hs') planet.cabal $(wildcard cabal.project*)
+HS_SOURCES := $(shell find statics/src statics/app -name '*.hs') statics/planet.cabal $(wildcard cabal.project*)
 
 planet: $(HS_SOURCES)
-	cabal build
+	cabal build planet
 	cp $$(cabal list-bin planet) $@
 
 .PHONY: build
-build: planet ## Build the Haskell generator executable
+build: elm-build ## Production build of Elm SPA
 
 .PHONY: run
-run: elm-app/src/Data.elm ## Run the planet generator to refresh generated data
-
-.PHONY: run-bin
-run-bin: ## Run the compiled executable directly
+run: planet ## Build and run the planet generator to refresh generated data
 	./planet
 
 .PHONY: repl
@@ -106,33 +98,38 @@ cabal-check: ## Check the package for common errors
 
 # ── Combined targets ──────────────────────────────────────────────────────────
 
-.PHONY: dist-ci
-dist-ci: elm-app/dist/.elm-stamp-ci ## Build CI-ready static output using the Nix-provided generator binary
-	rm -rf build
-	mkdir -p build
-	cp -R elm-app/dist/. build/
-	for opml in build/opml.*.xml; do \
-		[ -e "$$opml" ] || continue; \
-		group="$${opml#build/opml.}"; \
-		group="$${group%.xml}"; \
-		mkdir -p "build/$$group"; \
-		cp build/index.html "build/$$group/index.html"; \
-	done
+.PHONY: dist
+dist: elm-app/dist/.elm-stamp ## Full production build: generator + Elm app → dist/
+	$(MAKE) dist-assemble
 
-.PHONY: build-all
-build-all: planet elm-app/src/Data.elm elm-app/dist/.elm-stamp ## Full local build: generator + Elm app
+.PHONY: dist-ci
+dist-ci: elm-app/dist/.elm-stamp-ci ## CI build: same as dist, using the Nix-provided generator binary
+	$(MAKE) dist-assemble
+
+.PHONY: dist-assemble
+dist-assemble:
+	rm -rf dist
+	mkdir -p dist
+	cp -R elm-app/dist/. dist/
+	for opml in dist/opml.*.xml; do \
+		[ -e "$$opml" ] || continue; \
+		group="$${opml#dist/opml.}"; \
+		group="$${group%.xml}"; \
+		mkdir -p "dist/$$group"; \
+		cp dist/index.html "dist/$$group/index.html"; \
+	done
 
 .PHONY: watch
 watch: ## Watch for changes in Haskell and Elm files and rebuild
-	make run-bin
-	find src planet.cabal planet.toml -name "*.hs" -o -name "*.cabal" -o -name "*.toml" | entr -s 'make run-bin' &
+	make run
+	find statics/src statics/app statics/planet.cabal planet.toml -name "*.hs" -o -name "*.cabal" -o -name "*.toml" | entr -s 'make run' &
 	cd elm-app && elm-tailwind-classes gen && vite dev
 
 # ── Test & quality ────────────────────────────────────────────────────────────
 
 .PHONY: check
 check: ## Check formatting and run hlint (no changes)
-	$(HLINT) src test
+	$(HLINT) statics/src statics/app statics/tests
 	$(MAKE) elm-check
 
 .PHONY: test
@@ -142,7 +139,7 @@ test: check ## Run Haskell and Elm tests
 
 .PHONY: format
 format: ## Auto-format Haskell and Elm source files
-	find src test -name '*.hs' | xargs $(FOURMOLU) --mode inplace
+	find statics/src statics/app statics/tests -name '*.hs' | xargs $(FOURMOLU) --mode inplace
 	$(MAKE) elm-format
 	treefmt
 
@@ -151,4 +148,4 @@ format: ## Auto-format Haskell and Elm source files
 .PHONY: clean
 clean: ## Clean build artifacts, output, and test artifacts
 	cabal clean
-	rm -rf public build planet .hpc *.html src/Main elm-app/.elm-tailwind elm-app/src/.data-nix-stamp
+	rm -rf public dist planet .hpc *.html elm-app/.elm-tailwind elm-app/src/.data-nix-stamp

@@ -31,7 +31,7 @@ jobs:
           submodules: true
 
       - name: Setup Nix + devenv
-        uses: ./.github/workflows/setup-nix
+        uses: ./vendor/master-builder/.github/actions/setup-nix
         with:
           cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -74,7 +74,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build
+          path: ./dist
 
   deploy:
     needs: build

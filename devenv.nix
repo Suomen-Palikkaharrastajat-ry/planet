@@ -6,7 +6,7 @@ let
         overrides = import ./overrides.nix { inherit pkgs; };
       };
       npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
-      planetPackage = hpkgs.callCabal2nix "planet" ./. { };
+      planetPackage = hpkgs.callCabal2nix "planet" ./statics { };
       planetCommand = pkgs.writeShellScriptBin "planet-nix" ''
         exec ${planetPackage}/bin/planet "$@"
       '';

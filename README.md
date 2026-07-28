@@ -9,7 +9,7 @@ The project combines:
 - a Haskell generator that reads [`planet.toml`](/workspaces/planet/planet.toml), fetches feeds, and generates frontend data
 - an Elm frontend in [`elm-app/`](/workspaces/planet/elm-app) that renders the aggregated output
 
-Key generated outputs include [`elm-app/src/Data.elm`](/workspaces/planet/elm-app/src/Data.elm), [`elm-app/public/search-index.json`](/workspaces/planet/elm-app/public/search-index.json), [`elm-app/public/opml.xml`](/workspaces/planet/elm-app/public/opml.xml), and CI-ready builds in [`build/`](/workspaces/planet/build).
+Key generated outputs include [`elm-app/src/Data.elm`](/workspaces/planet/elm-app/src/Data.elm), [`elm-app/public/search-index.json`](/workspaces/planet/elm-app/public/search-index.json), [`elm-app/public/opml.xml`](/workspaces/planet/elm-app/public/opml.xml), and CI-ready builds in [`dist/`](/workspaces/planet/dist).
 
 ## Development Environment
 
@@ -23,7 +23,7 @@ make shell
 You can also run one-off commands through `devenv`:
 
 ```sh
-devenv shell -- make build-all
+devenv shell -- make dist
 ```
 
 ## Common Commands
@@ -34,11 +34,11 @@ devenv shell -- make build-all
 | `make build` | Build the Haskell generator executable |
 | `make run` | Refresh generated feed data |
 | `make elm-build` | Build the Elm frontend |
-| `make build-all` | Build the generator and Elm app together |
+| `make dist` | Build the generator and Elm app together → dist/ |
 | `make elm-test` | Run Elm tests |
 | `make test` | Run formatting checks plus Haskell and Elm tests |
 | `make watch` | Run the generator and start Vite dev mode |
-| `make dist-ci` | Produce the CI/deploy build in `build/` |
+| `make dist-ci` | Produce the CI/deploy build in `dist/` |
 | `make clean` | Remove build artifacts |
 
 ## Project Structure
@@ -49,8 +49,9 @@ elm-app/          Elm 0.19 SPA frontend
   tests/          Elm unit tests
   public/         Static frontend assets
   packages/       Symlink to shared Elm packages in vendor/master-builder
-src/              Haskell library + executable modules
-test/             Haskell test suite
+statics/src/      Haskell library modules
+statics/app/      Haskell executable entry point
+statics/tests/    Haskell test suite
 pkgs/             Nix-managed Node/Vite/Elm tooling manifest + lockfile
 vendor/master-builder  Shared Elm design tokens and UI components
 .github/workflows CI/CD workflows
