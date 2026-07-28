@@ -32,6 +32,8 @@ let
         pkgs.nodejs_22
         pkgs.fourmolu
         hpkgs.ghc
+        pkgs.elmPackages.elm-review
+        pkgs.elmPackages.elm-json
       ];
 
       enterShell = ''
