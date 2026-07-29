@@ -1,24 +1,25 @@
 # --- Environment / local ---
 .env
+.env.*
+!.env.example
+.devcontainer/
 .devcontainer.json
 .devenv*
+.direnv
 devenv.local.nix
 devenv.local.yaml
-.direnv
 
 # --- Haskell build artifacts ---
 .stack-work/
 dist-newstyle/
-planet
-
+statics/planet
 
 # --- Elm / frontend build artifacts ---
 node_modules
-elm-app/node_modules/
+elm-app/node_modules
 elm-app/elm-stuff/
 elm-app/.elm-tailwind/
 elm-app/.vite/
-elm-app/dist/
 elm-app/src/Data.elm
 elm-app/public/opml.xml
 elm-app/public/opml.*.xml

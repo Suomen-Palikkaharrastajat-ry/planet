@@ -22,6 +22,9 @@ jobs:
         with:
           submodules: true
 
+      - name: Setup vendor
+        run: make vendor
+
       - name: Restore Native Binary
         uses: actions/cache/restore@v4
         with:
@@ -29,6 +32,10 @@ jobs:
           key: planet-native-bin-${{ github.sha }}
           restore-keys: planet-native-bin-
 
+      # planet's generator feeds the frontend build: it writes elm-app/src/Data.elm
+      # and the OPML/search-index assets that Vite then bundles. It therefore runs
+      # *before* the frontend build, unlike event-calendar and service-map where
+      # the generator emits into dist/ afterwards.
       - name: Run Generator
         run: ./.bin/planet
 
@@ -41,53 +48,11 @@ jobs:
           key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
           restore-keys: elm-${{ runner.os }}-
 
-      - name: Setup Node (Native)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: pkgs/package-lock.json
-
-      - name: Node Modules Cache
-        id: node-cache
-        uses: actions/cache@v4
-        with:
-          path: pkgs/node_modules
-          key: node-${{ runner.os }}-${{ hashFiles('pkgs/package-lock.json') }}
-
-      - name: Install Frontend Dependencies
-        if: steps.node-cache.outputs.cache-hit != 'true'
-        run: |
-          cd pkgs
-          npm ci
-          npm install --no-save elm@0.19.1 elm-review
-
-      - name: Link Node Modules
-        run: |
-          cd elm-app
-          ln -sfn ../pkgs/node_modules node_modules
-
-      - name: Build Frontend
-        run: |
-          export PATH=$PWD/pkgs/node_modules/.bin:$PATH
-          cd elm-app
-          elm-tailwind-classes gen
-          mkdir -p .elm-tailwind
-          touch .elm-tailwind/.stamp
-          vite build
+      - name: Build frontend
+        uses: ./vendor/master-builder/.github/actions/build-frontend
 
       - name: Prepare Output
-        run: |
-          rm -rf dist
-          mkdir -p dist
-          cp -R elm-app/dist/. dist/
-          for opml in dist/opml.*.xml; do
-            [ -e "$opml" ] || continue
-            group="${opml#dist/opml.}"
-            group="${group%.xml}"
-            mkdir -p "dist/$group"
-            cp dist/index.html "dist/$group/index.html"
-          done
+        run: make dist-assemble
 
       - uses: actions/configure-pages@v5
 

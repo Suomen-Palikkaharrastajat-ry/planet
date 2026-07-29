@@ -1,7 +1,7 @@
 [formatter.fourmolu]
 command = "fourmolu"
 options = ["--mode", "inplace"]
-includes = ["src/**/*.hs", "test/**/*.hs", "tests/**/*.hs"]
+includes = ["statics/**/*.hs"]
 
 [formatter.elm-format]
 command = "elm-format"

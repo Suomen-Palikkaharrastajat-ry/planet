@@ -1,15 +1,23 @@
 let
+  mkTools = pkgs: pkgs.callPackage ./pkgs/npm-tools.nix { };
+
+  # Haskell package set with this repo's local overrides (see overrides.nix).
+  #
+  # planet deliberately does not consume master-builder's statics-common: its
+  # HtmlSanitizer sanitizes syndicated feed HTML, which is a different job from
+  # the shared DescriptionHtml used by event-calendar and service-map.
+  hpkgsFor =
+    pkgs:
+    pkgs.haskell.packages.ghc96.override {
+      overrides = import ./overrides.nix { inherit pkgs; };
+    };
+
   ci =
     { pkgs, ... }:
     let
-      hpkgs = pkgs.haskell.packages.ghc96.override {
-        overrides = import ./overrides.nix { inherit pkgs; };
-      };
-      npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
-      planetPackage = hpkgs.callCabal2nix "planet" ./statics { };
-      planetCommand = pkgs.writeShellScriptBin "planet-nix" ''
-        exec ${planetPackage}/bin/planet "$@"
-      '';
+      npmTools = mkTools pkgs;
+      hpkgs = hpkgsFor pkgs;
+      staticsPackage = hpkgs.callCabal2nix "planet" ./statics { };
     in
     {
       # Elm 0.19 tools
@@ -20,18 +28,14 @@ let
       languages.haskell.package = pkgs.haskell.packages.ghc96.ghc;
 
       env.NODE_PATH = "${npmTools}/lib/node_modules";
-      env.HLINT = "${pkgs.hlint}/bin/hlint";
-      env.FOURMOLU = "${pkgs.fourmolu}/bin/fourmolu";
-      env.PLANET_NIX = "${planetCommand}/bin/planet-nix";
 
       packages = [
-        planetCommand
-        npmTools
         pkgs.cabal-install
-        pkgs.hlint
+        staticsPackage
+        npmTools
         pkgs.nodejs_22
-        pkgs.fourmolu
-        hpkgs.ghc
+        hpkgs.hlint
+        hpkgs.fourmolu
         pkgs.elmPackages.elm-review
         pkgs.elmPackages.elm-json
       ];
@@ -47,7 +51,7 @@ let
   shell =
     { pkgs, ... }:
     let
-      npmTools = pkgs.callPackage ./pkgs/npm-tools.nix { };
+      npmTools = mkTools pkgs;
     in
     {
       # Elm 0.19 tools

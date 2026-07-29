@@ -22,13 +22,14 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      CABAL_DIR: ${{ github.workspace }}/.cabal-ci
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
+
+      - name: Setup vendor
+        run: make vendor
 
       - name: Setup Nix + devenv
         uses: ./vendor/master-builder/.github/actions/setup-nix
@@ -45,21 +46,49 @@ jobs:
             elm-app/elm-stuff
           key: elm-${{ runner.os }}-${{ hashFiles('elm-app/elm.json') }}
           restore-keys: elm-${{ runner.os }}-
-          
+
+      - name: Restore Cabal index cache
+        id: cabal-index-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cabal/packages
+          key: cabal-index-${{ runner.os }}-${{ hashFiles('cabal.project.freeze') }}
+          restore-keys: cabal-index-${{ runner.os }}-
+
+      - name: Restore Cabal store cache
+        id: cabal-store-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cabal/store
+          key: cabal-store-${{ runner.os }}-${{ hashFiles('cabal.project.freeze', 'statics/planet.cabal', 'devenv.lock', 'devenv.nix', 'overrides.nix') }}
+          restore-keys: cabal-store-${{ runner.os }}-
+
       - name: Update Cabal package index
         if: ${{ !inputs.skip-tests }}
-        run: devenv shell --profile ci -- bash -c "cd /tmp && cabal update"
+        run: devenv shell --profile ci -- cabal update
 
-      - name: Run Elm tests
+      - name: Run checks
         if: ${{ !inputs.skip-tests }}
-        run: devenv shell --profile ci -- make check elm-test
+        run: devenv shell --profile ci -- make check PLANET_NIX=1
 
-      - name: Run Haskell tests
+      - name: Run tests
         if: ${{ !inputs.skip-tests }}
-        run: devenv shell --profile ci -- cabal test
+        run: devenv shell --profile ci -- make test PLANET_NIX=1
 
       - name: Build
         run: devenv shell --profile ci -- make dist-ci
+
+      - name: Save Cabal store cache
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cabal/store
+          key: ${{ steps.cabal-store-restore.outputs.cache-primary-key }}
+
+      - name: Save Cabal index cache
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cabal/packages
+          key: ${{ steps.cabal-index-restore.outputs.cache-primary-key }}
 
       - name: Save Elm cache
         if: steps.elm-cache-restore.outputs.cache-hit != 'true'
@@ -105,6 +134,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Setup Native Haskell
         uses: haskell-actions/setup@v2
@@ -117,7 +148,7 @@ jobs:
         run: |
           rm -f cabal.project.freeze
           bash -c "cd /tmp && cabal update"
-          cabal install --installdir=.bin --install-method=copy
+          cabal install planet --installdir=.bin --install-method=copy
 
       - name: Cache Native Binary
         uses: actions/cache/save@v4
