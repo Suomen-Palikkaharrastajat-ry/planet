@@ -49,7 +49,7 @@ shell: ## Enter devenv shell
 
 .PHONY: elm-dev
 elm-dev: ## Start Elm + Vite dev server (hot reload)
-	cd elm-app && vite
+	cd elm-app && vite $(VITE_FLAGS)
 
 ELM_APP_SOURCES := $(shell find elm-app/src -name '*.elm' ! -name 'Data.elm')
 ELM_PACKAGE_SOURCES := $(shell find vendor/master-builder/packages -name '*.elm' -o -name '*.css' 2>/dev/null)
@@ -151,7 +151,7 @@ dist-assemble: ## Duplicate index.html into a directory per OPML feed group
 watch: ## Watch for changes in Haskell and Elm files and rebuild
 	make run
 	find statics/src statics/app statics/planet.cabal planet.toml -name "*.hs" -o -name "*.cabal" -o -name "*.toml" | entr -s 'make run' &
-	cd elm-app && elm-tailwind-classes gen && vite dev
+	cd elm-app && elm-tailwind-classes gen && vite dev $(VITE_FLAGS)
 
 # ── Test & quality ────────────────────────────────────────────────────────────
 

@@ -60,10 +60,11 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC2oUI4QDXFBJ6kHorUvV
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCevQ7uLnqJYWeTDLtc8I4uw"
 
-#[[feeds]]
-# title = Vilzu
-#type = "youtube"
-##url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIDvVMnuu8WAeIXA_GsnNwA"
+[[feeds]]
+title = Vilzu
+type = "youtube"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIDvVMnuu8WAeIXA_GsnNwA"
+exclude_list = ["https://www.youtube.com/shorts/bS2uZDv-l0Q"]
 
 [[feeds]]
 # title = "Megsu_Begsu"
@@ -88,7 +89,7 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCRI73XE4RvxHFaAA2Yz1
 [[feeds]]
 # title = "SamuTheBuilder"
 type = "youtube"
-url = "https://www.youtube.com/feeds/videos.xml?channel_id=a-2muI1hCGw"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC_ZxMr62Y6KLz-2muI1hCGw"
 exclude_keywords = ["minecraft"]
 
 # en
