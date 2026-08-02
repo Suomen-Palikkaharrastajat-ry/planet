@@ -20,8 +20,8 @@ planetTests =
                     Config
                         { configTitle = "Test Planet"
                         , configFeeds =
-                            [ FeedConfig Feed (Just "Test Blog") "http://example.com/rss.xml" "fi" [] Nothing
-                            , FeedConfig YouTube Nothing "http://youtube.com/feed" "en" [] Nothing
+                            [ FeedConfig Feed (Just "Test Blog") "http://example.com/rss.xml" "fi" [] [] Nothing
+                            , FeedConfig YouTube Nothing "http://youtube.com/feed" "en" [] [] Nothing
                             ]
                         , configLocale = Fi
                         , configTimezone = "Europe/Helsinki"
@@ -38,8 +38,8 @@ planetTests =
                     Config
                         { configTitle = "Test Planet"
                         , configFeeds =
-                            [ FeedConfig Feed (Just "Test Blog") "http://example.com/rss.xml" "fi" [] Nothing
-                            , FeedConfig YouTube Nothing "http://youtube.com/feed" "en" [] Nothing
+                            [ FeedConfig Feed (Just "Test Blog") "http://example.com/rss.xml" "fi" [] [] Nothing
+                            , FeedConfig YouTube Nothing "http://youtube.com/feed" "en" [] [] Nothing
                             ]
                         , configLocale = Fi
                         , configTimezone = "Europe/Helsinki"

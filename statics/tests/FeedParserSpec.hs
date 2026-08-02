@@ -73,7 +73,7 @@ feedParserTests =
                         , Atom.entrySummary = Just (Atom.HTMLString "<img src=\"http://example.com/desc-thumb.jpg\">")
                         , Atom.entryLinks = [Atom.nullLink "http://example.com/link"]
                         }
-                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] [] Nothing
             fmap itemThumbnail (parseItem feedConfig Nothing (AtomItem entry))
                 @?= Just (Just "http://example.com/desc-thumb.jpg")
         , testCase "parseItem prefers Atom published date" $ do
@@ -86,7 +86,7 @@ feedParserTests =
                         , Atom.entryLinks = [Atom.nullLink "http://example.com/atom-link"]
                         }
                 expectedDate = iso8601ParseM (T.unpack publishedDate)
-                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] [] Nothing
             parseItem feedConfig Nothing (AtomItem entry)
                 @?= Just
                     ( AppItem
@@ -111,7 +111,7 @@ feedParserTests =
                         , Atom.entryLinks = [Atom.nullLink "http://example.com/atom-link"]
                         }
                 expectedDate = iso8601ParseM (T.unpack updatedDate)
-                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] [] Nothing
             parseItem feedConfig Nothing (AtomItem entry)
                 @?= Just
                     ( AppItem
@@ -135,19 +135,19 @@ feedParserTests =
                     "<p>Guest writer <a href=\"https://fourbrickstall.com/\">Four Bricks Tall</a>.</p><p>Other links <a href=\"https://www.instagram.com/fourbrickstall\">Instagram</a>.</p><a href=\""
                         <> realLink
                         <> "\">Continue reading \187</a>"
-                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] [] Nothing
                 item = rssItemWithLinkAndDescription trackingLink description
             fmap itemLink (parseItem feedConfig Nothing item) @?= Just resolvedLink
         , testCase "parseItem keeps api.follow.it link when no safe article link can be extracted" $ do
             let trackingLink = "https://api.follow.it/track-rss-story-click/v1/abc123"
                 description = "<p>No anchors here, just text and an image.</p>"
-                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] [] Nothing
                 item = rssItemWithLinkAndDescription trackingLink description
             fmap itemLink (parseItem feedConfig Nothing item) @?= Just trackingLink
         , testCase "parseItem keeps normal non-follow.it link unchanged" $ do
             let normalLink = "https://example.com/posts/123"
                 description = "<a href=\"https://elsewhere.example/path\">Continue reading</a>"
-                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] Nothing
+                feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] [] Nothing
                 item = rssItemWithLinkAndDescription normalLink description
             fmap itemLink (parseItem feedConfig Nothing item) @?= Just normalLink
         , testCase "debugBodyPreview normalizes whitespace and truncates output" $ do
@@ -160,8 +160,25 @@ feedParserTests =
         , testCase "debugBodyPreview tolerates invalid UTF-8 bytes" $ do
             let preview = debugBodyPreview (LBS.pack [0xFF, 0xFE, 0x41])
             assertBool "preview should contain surviving ASCII bytes" ("A" `T.isInfixOf` preview)
+        , testCase "filterExcludedItems removes items matching exclude_list exactly" $ do
+            let feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" ["http://example.com/bad"] [] Nothing
+                item1 = dummyAppItem { itemTitle = "Good", itemLink = "http://example.com/good" }
+                item2 = dummyAppItem { itemTitle = "Bad", itemLink = "http://example.com/bad" }
+            map itemTitle (filterExcludedItems feedConfig [item1, item2]) @?= ["Good"]
+        , testCase "filterExcludedItems removes items with title containing exclude_keywords" $ do
+            let feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] ["badword"] Nothing
+                item1 = dummyAppItem { itemTitle = "This is a good title", itemLink = "http://example.com/1" }
+                item2 = dummyAppItem { itemTitle = "This contains BadWord inside", itemLink = "http://example.com/2" }
+            map itemTitle (filterExcludedItems feedConfig [item1, item2]) @?= ["This is a good title"]
+        , testCase "filterExcludedItems removes items with descText containing exclude_keywords" $ do
+            let feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] ["spam"] Nothing
+                item1 = dummyAppItem { itemTitle = "Good", itemDescText = Just "Nice post", itemLink = "http://example.com/1" }
+                item2 = dummyAppItem { itemTitle = "Okay", itemDescText = Just "This is sPaM text", itemLink = "http://example.com/2" }
+            map itemTitle (filterExcludedItems feedConfig [item1, item2]) @?= ["Good"]
         ]
   where
+    dummyAppItem = AppItem "" "" Nothing Nothing Nothing Nothing Nothing "" Nothing Feed ""
+
     (|>) = flip ($)
 
     mediaNs = "http://search.yahoo.com/mrss/"

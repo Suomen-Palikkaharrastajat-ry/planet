@@ -46,7 +46,7 @@ elmGenTests =
             let configWithoutDefaultFeed =
                     Config
                         { configTitle = "Planet"
-                        , configFeeds = [FeedConfig Feed Nothing "http://example.com/en.xml" "en" [] Nothing]
+                        , configFeeds = [FeedConfig Feed Nothing "http://example.com/en.xml" "en" [] [] Nothing]
                         , configLocale = Fi
                         , configTimezone = "Europe/Helsinki"
                         , configDefaultGroup = "fi"
@@ -61,8 +61,8 @@ elmGenTests =
         Config
             { configTitle = "Planet"
             , configFeeds =
-                [ FeedConfig Feed Nothing "http://example.com/fi.xml" "fi" [] Nothing
-                , FeedConfig Feed Nothing "http://example.com/en.xml" "en" [] Nothing
+                [ FeedConfig Feed Nothing "http://example.com/fi.xml" "fi" [] [] Nothing
+                , FeedConfig Feed Nothing "http://example.com/en.xml" "en" [] [] Nothing
                 ]
             , configLocale = Fi
             , configTimezone = "Europe/Helsinki"

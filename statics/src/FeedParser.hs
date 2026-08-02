@@ -4,6 +4,7 @@ module FeedParser (
     FeedHandler (..),
     getFeedHandler,
     fetchFeed,
+    filterExcludedItems,
     parseItem,
     getMediaDescription,
     getYouTubeMediaDescription,
@@ -119,8 +120,18 @@ fetchFeed fc = do
                                 Just t -> t
                                 Nothing -> T.pack "Unknown Feed"
                         items = mapMaybe (parseItem (fc{feedTitle = Just finalTitle}) altLink) (getFeedItems feed)
-                        excluded = feedExcludeList fc
-                     in return $ filter (\i -> itemLink i `notElem` excluded) items
+                     in return $ filterExcludedItems fc items
+
+filterExcludedItems :: FeedConfig -> [AppItem] -> [AppItem]
+filterExcludedItems fc items =
+    let excludedLinks = feedExcludeList fc
+        excludedWords = map T.toLower (feedExcludeKeywords fc)
+        containsExcludedWord txt = any (`T.isInfixOf` T.toLower txt) excludedWords
+        isNotExcluded i = 
+            (itemLink i `notElem` excludedLinks) && 
+            not (containsExcludedWord (itemTitle i)) &&
+            not (maybe False containsExcludedWord (itemDescText i))
+     in filter isNotExcluded items
 
 -- Helper for date join
 join :: Maybe (Maybe a) -> Maybe a

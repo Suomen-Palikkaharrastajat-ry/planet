@@ -15,6 +15,7 @@ data FeedConfig = FeedConfig
     , feedUrl :: Text
     , feedGroup :: Text
     , feedExcludeList :: [Text]
+    , feedExcludeKeywords :: [Text]
     , feedLink :: Maybe Text
     }
     deriving (Show)
@@ -85,8 +86,12 @@ parseConfig content = do
                 Just (Toml.VArray xs) -> [t | Toml.VString t <- V.toList xs]
                 _ -> []
 
+        let excludeKeywords = case lookupKey "exclude_keywords" of
+                Just (Toml.VArray xs) -> [t | Toml.VString t <- V.toList xs]
+                _ -> []
+
         let link = case lookupKey "link" of
                 Just (Toml.VString t) -> Just t
                 _ -> Nothing
 
-        return $ FeedConfig ft title url group excludeList link
+        return $ FeedConfig ft title url group excludeList excludeKeywords link

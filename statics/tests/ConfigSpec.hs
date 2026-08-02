@@ -144,6 +144,20 @@ configTests =
                     let feed = head (configFeeds config)
                     feedExcludeList feed @?= ["https://example.com/a", "https://example.com/b"]
                 Left err -> assertFailure ("Parse failed: " ++ T.unpack err)
+        , testCase "supports feed exclude_keywords" $ do
+            let toml =
+                    T.unlines
+                        [ "[[feeds]]"
+                        , "type = \"youtube\""
+                        , "title = \"Video Feed\""
+                        , "url = \"http://example.com/feed.xml\""
+                        , "exclude_keywords = [\"shorts\", \"sponsored\"]"
+                        ]
+            case parseConfig toml of
+                Right config -> do
+                    let feed = head (configFeeds config)
+                    feedExcludeKeywords feed @?= ["shorts", "sponsored"]
+                Left err -> assertFailure ("Parse failed: " ++ T.unpack err)
         , testCase "supports optional feed link override" $ do
             let toml =
                     T.unlines
