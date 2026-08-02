@@ -88,7 +88,7 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCRI73XE4RvxHFaAA2Yz1
 [[feeds]]
 # title = "SamuTheBuilder"
 type = "youtube"
-url = "view-source:https://www.youtube.com/feeds/videos.xml?channel_id=a-2muI1hCGw"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=a-2muI1hCGw"
 exclude_keywords = ["minecraft"]
 
 # en
