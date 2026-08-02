@@ -49,10 +49,23 @@ import Data.Text.Encoding.Error (lenientDecode)
 import Data.Time.Format (defaultTimeLocale, parseTimeM) -- Re-added missing import
 import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.XML.Types (Content (..), Element (..), Name (..), Node (..))
-import Network.HTTP.Simple (Response, getResponseBody, getResponseHeader, getResponseStatusCode, httpLBS, parseRequest)
+import Network.HTTP.Simple (
+    Response,
+    getResponseBody,
+    getResponseHeader,
+    getResponseStatusCode,
+    httpLBS,
+    parseRequest,
+ )
 import qualified Text.Atom.Feed as Atom
 import Text.Feed.Import (parseFeedSource)
-import Text.Feed.Query (getFeedItems, getItemDescription, getItemLink, getItemPublishDate, getItemTitle)
+import Text.Feed.Query (
+    getFeedItems,
+    getItemDescription,
+    getItemLink,
+    getItemPublishDate,
+    getItemTitle,
+ )
 import Text.Feed.Types (Feed (..), Item (..))
 import Text.HTML.TagSoup (Tag (..), parseTags, renderTags)
 import qualified Text.RSS.Syntax as RSS
@@ -98,7 +111,8 @@ fetchFeed fc = do
             let cleanedContent = T.replace "</media:keywords>" "" (decodeUtf8 content)
             case parseFeedSource (LBS.fromStrict $ encodeUtf8 cleanedContent) of
                 Nothing -> do
-                    putStrLn $ "Failed to parse feed: " ++ T.unpack displayTitle ++ ": invalid or unsupported feed format"
+                    putStrLn $
+                        "Failed to parse feed: " ++ T.unpack displayTitle ++ ": invalid or unsupported feed format"
                     putStrLn $
                         "  Debug: url="
                             ++ T.unpack (feedUrl fc)
@@ -106,10 +120,13 @@ fetchFeed fc = do
                             ++ show statusCode
                             ++ ", content-type="
                             ++ T.unpack contentType
-                    putStrLn $ "  Debug: body-preview=\"" ++ T.unpack (debugBodyPreview $ getResponseBody response) ++ "\""
+                    putStrLn $
+                        "  Debug: body-preview=\"" ++ T.unpack (debugBodyPreview $ getResponseBody response) ++ "\""
                     when
                         (T.isInfixOf "<html" (T.toLower cleanedContent))
-                        (putStrLn "  Hint: response looks like HTML, which often indicates bot protection or an error page instead of RSS/Atom XML.")
+                        ( putStrLn
+                            "  Hint: response looks like HTML, which often indicates bot protection or an error page instead of RSS/Atom XML."
+                        )
                     return []
                 Just feed ->
                     let altLink = feedLink fc <|> getFeedAlternateLink feed
@@ -127,10 +144,10 @@ filterExcludedItems fc items =
     let excludedLinks = feedExcludeList fc
         excludedWords = map T.toLower (feedExcludeKeywords fc)
         containsExcludedWord txt = any (`T.isInfixOf` T.toLower txt) excludedWords
-        isNotExcluded i = 
-            (itemLink i `notElem` excludedLinks) && 
-            not (containsExcludedWord (itemTitle i)) &&
-            not (maybe False containsExcludedWord (itemDescText i))
+        isNotExcluded i =
+            itemLink i `notElem` excludedLinks
+                && not (containsExcludedWord (itemTitle i))
+                && not (maybe False containsExcludedWord (itemDescText i))
      in filter isNotExcluded items
 
 -- Helper for date join
@@ -151,7 +168,9 @@ parseItem fc altLink item = do
     let title = cleanTitle rawTitle
     let date = case item of
             AtomItem entry -> case Atom.entryPublished entry of
-                Just pub -> parseTimeM True defaultTimeLocale "%Y-%m-%dT%H:%M:%S%Q%Z" (T.unpack pub) <|> iso8601ParseM (T.unpack pub)
+                Just pub ->
+                    parseTimeM True defaultTimeLocale "%Y-%m-%dT%H:%M:%S%Q%Z" (T.unpack pub)
+                        <|> iso8601ParseM (T.unpack pub)
                 Nothing -> iso8601ParseM (T.unpack $ Atom.entryUpdated entry)
             _ -> join $ getItemPublishDate item
     let defaultDesc = getItemDescription item
@@ -161,11 +180,27 @@ parseItem fc altLink item = do
     let link = resolveFollowItTrackingLink originalLink desc
     let descText = fmap stripHtml desc
     let descSnippet = fmap (T.take 250) descText
-    let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage) <|> (defaultDesc >>= extractFirstImage) <|> (getContentEncoded item >>= extractFirstImage)
+    let thumb =
+            getItemThumbnail item
+                <|> (desc >>= extractFirstImage)
+                <|> (defaultDesc >>= extractFirstImage)
+                <|> (getContentEncoded item >>= extractFirstImage)
     let sourceTitle = case feedTitle fc of
             Just t -> t
             Nothing -> T.pack "Unknown Feed"
-    return $ AppItem title link date desc descText descSnippet thumb sourceTitle altLink (feedType fc) (feedGroup fc)
+    return $
+        AppItem
+            title
+            link
+            date
+            desc
+            descText
+            descSnippet
+            thumb
+            sourceTitle
+            altLink
+            (feedType fc)
+            (feedGroup fc)
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text
@@ -308,11 +343,12 @@ debugBodyPreview body =
     normalizeWhitespace text =
         text
             |> T.map
-                (\c ->
-                    if c == '\n' || c == '\r' || c == '\t' then
-                        ' '
-                    else
-                        c
+                ( \c ->
+                    if c == '\n' || c == '\r' || c == '\t'
+                        then
+                            ' '
+                        else
+                            c
                 )
             |> T.words
             |> T.unwords
@@ -380,7 +416,8 @@ getItemThumbnail :: Item -> Maybe Text
 getItemThumbnail item = case item of
     AtomItem entry -> getAtomThumbnail entry
     RSSItem rssItem -> getRSSThumbnail rssItem
-    XMLItem element -> findMediaThumbnail (elementChildren element) <|> findMediaGroupThumbnail (elementChildren element)
+    XMLItem element ->
+        findMediaThumbnail (elementChildren element) <|> findMediaGroupThumbnail (elementChildren element)
     _ -> Nothing
 
 elementChildren :: Element -> [Element]
@@ -396,7 +433,12 @@ getAtomThumbnail entry =
 
 findEnclosureImage :: [Atom.Link] -> Maybe Text
 findEnclosureImage links =
-    case filter (\l -> Atom.linkRel l == Just (Right (T.pack "enclosure")) && maybe False (T.isPrefixOf "image/") (Atom.linkType l)) links of
+    case filter
+        ( \l ->
+            Atom.linkRel l == Just (Right (T.pack "enclosure"))
+                && maybe False (T.isPrefixOf "image/") (Atom.linkType l)
+        )
+        links of
         (l : _) -> Just (normalizeUrl $ Atom.linkHref l)
         [] -> Nothing
 
@@ -434,7 +476,13 @@ getUrlAttr e =
 
 getFeedAlternateLink :: Text.Feed.Types.Feed -> Maybe Text
 getFeedAlternateLink feed = case feed of
-    Text.Feed.Types.AtomFeed af -> case find (\l -> case Atom.linkRel l of Just (Left r) -> r == "alternate" || r == "http://www.iana.org/assignments/relation/alternate"; Just (Right uri) -> uri == "alternate" || uri == "http://www.iana.org/assignments/relation/alternate"; _ -> False) (Atom.feedLinks af) of
+    Text.Feed.Types.AtomFeed af -> case find
+        ( \l -> case Atom.linkRel l of
+            Just (Left r) -> r == "alternate" || r == "http://www.iana.org/assignments/relation/alternate"
+            Just (Right uri) -> uri == "alternate" || uri == "http://www.iana.org/assignments/relation/alternate"
+            _ -> False
+        )
+        (Atom.feedLinks af) of
         Just l -> Just (Atom.linkHref l)
         Nothing -> findAlternateLink (map NodeElement (Atom.feedOther af))
     Text.Feed.Types.RSSFeed rf ->
