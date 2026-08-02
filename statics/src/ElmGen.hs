@@ -6,6 +6,7 @@ avoiding the need for JSON interchange (which would redistribute data).
 -}
 module ElmGen (generateElmModule, generateSearchIndex) where
 
+import Config (Config (..), FeedConfig (..))
 import Data.Aeson (encode, object, (.=))
 import qualified Data.ByteString.Lazy as LBS
 import Data.List (nub)
@@ -14,7 +15,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
-import Config (Config (..), FeedConfig (..))
 import I18n (AppItem (..), FeedType (..))
 
 -- | Generate a complete Elm module containing type definitions and data.
@@ -22,36 +22,36 @@ generateElmModule :: Config -> [AppItem] -> Text
 generateElmModule config items =
     let defGroup = configDefaultGroup config
         groups = nub (defGroup : map feedGroup (configFeeds config))
-    in T.unlines
-        [ "module Data exposing (allAppItems, AppItem, FeedType(..), defaultGroup, allGroups)"
-        , ""
-        , "type FeedType"
-        , "    = Feed"
-        , "    | YouTube"
-        , "    | Image"
-        , ""
-        , "type alias AppItem ="
-        , "    { itemTitle : String"
-        , "    , itemLink : String"
-        , "    , itemDate : Maybe String"
-        , "    , itemDescSnippet : Maybe String"
-        , "    , itemThumbnail : Maybe String"
-        , "    , itemSourceTitle : String"
-        , "    , itemSourceLink : Maybe String"
-        , "    , itemType : FeedType"
-        , "    , itemGroup : String"
-        , "    }"
-        , ""
-        , "defaultGroup : String"
-        , "defaultGroup = " <> renderString defGroup
-        , ""
-        , "allGroups : List String"
-        , "allGroups = " <> renderStringList groups
-        , ""
-        , "allAppItems : List AppItem"
-        , "allAppItems ="
-        , renderItemList items
-        ]
+     in T.unlines
+            [ "module Data exposing (allAppItems, AppItem, FeedType(..), defaultGroup, allGroups)"
+            , ""
+            , "type FeedType"
+            , "    = Feed"
+            , "    | YouTube"
+            , "    | Image"
+            , ""
+            , "type alias AppItem ="
+            , "    { itemTitle : String"
+            , "    , itemLink : String"
+            , "    , itemDate : Maybe String"
+            , "    , itemDescSnippet : Maybe String"
+            , "    , itemThumbnail : Maybe String"
+            , "    , itemSourceTitle : String"
+            , "    , itemSourceLink : Maybe String"
+            , "    , itemType : FeedType"
+            , "    , itemGroup : String"
+            , "    }"
+            , ""
+            , "defaultGroup : String"
+            , "defaultGroup = " <> renderString defGroup
+            , ""
+            , "allGroups : List String"
+            , "allGroups = " <> renderStringList groups
+            , ""
+            , "allAppItems : List AppItem"
+            , "allAppItems ="
+            , renderItemList items
+            ]
 
 -- | Generate a search index as JSON.
 generateSearchIndex :: [AppItem] -> LBS.ByteString

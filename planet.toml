@@ -61,7 +61,7 @@ type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCevQ7uLnqJYWeTDLtc8I4uw"
 
 [[feeds]]
-title = Vilzu
+# title = Vilzu
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIDvVMnuu8WAeIXA_GsnNwA"
 exclude_list = ["https://www.youtube.com/shorts/bS2uZDv-l0Q"]

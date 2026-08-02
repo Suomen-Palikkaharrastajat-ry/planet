@@ -42,7 +42,11 @@ normalizeVoids (TagOpen name attrs : rest)
 normalizeVoids (x : xs) = x : normalizeVoids xs
 
 pruneTree :: [TagTree Text] -> [TagTree Text]
-pruneTree = filter (not . isEmptyTree) . filter (not . isSeparator) . filter (not . isImageTree) . map pruneBranch
+pruneTree =
+    filter (not . isEmptyTree)
+        . filter (not . isSeparator)
+        . filter (not . isImageTree)
+        . map pruneBranch
   where
     pruneBranch (TagBranch name attrs children) = TagBranch name attrs (pruneTree children)
     pruneBranch leaf = leaf
@@ -66,7 +70,27 @@ pruneTree = filter (not . isEmptyTree) . filter (not . isSeparator) . filter (no
     isVisibleTag _ = False
 
 voidTags :: [Text]
-voidTags = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr", "video", "audio", "iframe", "object", "svg"]
+voidTags =
+    [ "area"
+    , "base"
+    , "br"
+    , "col"
+    , "embed"
+    , "hr"
+    , "img"
+    , "input"
+    , "link"
+    , "meta"
+    , "param"
+    , "source"
+    , "track"
+    , "wbr"
+    , "video"
+    , "audio"
+    , "iframe"
+    , "object"
+    , "svg"
+    ]
 
 takeWithLimit :: Int -> [Text] -> [Tag Text] -> [Tag Text]
 takeWithLimit _ stack [] = map TagClose stack

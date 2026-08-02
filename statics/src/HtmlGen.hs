@@ -38,10 +38,22 @@ renderHead config = H.head $ do
     H.meta H.! A.name "viewport" H.! A.content "width=device-width, initial-scale=1.0"
     H.title (H.toHtml $ configTitle config <> " \x2014 Suomen Palikkaharrastajat ry")
     H.link H.! A.rel "icon" H.! A.href "/favicon/favicon.ico"
-    H.link H.! A.rel "icon" H.! A.type_ "image/png" H.! A.sizes "32x32" H.! A.href "/favicon/favicon-32.png"
+    H.link
+        H.! A.rel "icon"
+        H.! A.type_ "image/png"
+        H.! A.sizes "32x32"
+        H.! A.href "/favicon/favicon-32.png"
     H.link H.! A.rel "apple-touch-icon" H.! A.sizes "180x180" H.! A.href "/favicon/apple-touch-icon.png"
-    H.link H.! A.rel "icon" H.! A.type_ "image/png" H.! A.sizes "192x192" H.! A.href "/favicon/icon-192.png"
-    H.link H.! A.rel "icon" H.! A.type_ "image/png" H.! A.sizes "512x512" H.! A.href "/favicon/icon-512.png"
+    H.link
+        H.! A.rel "icon"
+        H.! A.type_ "image/png"
+        H.! A.sizes "192x192"
+        H.! A.href "/favicon/icon-192.png"
+    H.link
+        H.! A.rel "icon"
+        H.! A.type_ "image/png"
+        H.! A.sizes "512x512"
+        H.! A.href "/favicon/icon-512.png"
     H.style $ H.toHtml css
 
 renderCookieConsent :: Messages -> H.Html
@@ -53,13 +65,18 @@ renderCookieConsent msgs = H.div H.! A.id "cookie-consent" H.! A.class_ "cookie-
 
 renderRevokeButton :: Messages -> H.Html
 renderRevokeButton msgs =
-    H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $
-        "⚙️"
+    H.button
+        H.! A.id "revoke-btn"
+        H.! A.class_ "revoke-btn hidden"
+        H.! A.title (H.toValue $ msgRevokeConsentTitle msgs)
+        $ "⚙️"
 
-renderTimelineNav :: Messages -> TimeLocale -> UTCTime -> TimeZone -> [(Text, Text, [AppItem])] -> H.Html
+renderTimelineNav
+    :: Messages -> TimeLocale -> UTCTime -> TimeZone -> [(Text, Text, [AppItem])] -> H.Html
 renderTimelineNav msgs locale now localTZ groups = H.nav H.! A.class_ "timeline" $ do
     H.h2 H.! A.class_ "sr-only" $ H.toHtml (msgTimeline msgs)
-    H.div H.! A.class_ "timeline-header" H.! A.attribute "aria-hidden" "" "true" $ H.toHtml (formatTime locale "%Y" (utcToZonedTime localTZ now))
+    H.div H.! A.class_ "timeline-header" H.! A.attribute "aria-hidden" "" "true" $
+        H.toHtml (formatTime locale "%Y" (utcToZonedTime localTZ now))
     H.ul $ forM_ groups $ \(monthLabel, monthId, _) ->
         H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
 
@@ -138,9 +155,13 @@ renderCard locale item = H.div H.! A.class_ "card" $ do
         Nothing -> return ()
     H.div H.! A.class_ "card-content" $ do
         case itemSourceLink item of
-            Just url -> H.a H.! A.class_ "source" H.! A.href (H.textValue url) H.! A.target "_blank" $ H.toHtml (itemSourceTitle item)
+            Just url ->
+                H.a H.! A.class_ "source" H.! A.href (H.textValue url) H.! A.target "_blank" $
+                    H.toHtml (itemSourceTitle item)
             Nothing -> H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
-        H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)
+        H.h3 $
+            H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $
+                H.toHtml (itemTitle item)
         case itemDesc item of
             Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 160 d)
             Nothing -> return ()

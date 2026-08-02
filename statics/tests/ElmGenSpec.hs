@@ -52,7 +52,9 @@ elmGenTests =
                         , configDefaultGroup = "fi"
                         }
                 elmCode = ElmGen.generateElmModule configWithoutDefaultFeed []
-            assertBool "contains default group in allGroups" ("allGroups = [ \"fi\", \"en\" ]" `T.isInfixOf` elmCode)
+            assertBool
+                "contains default group in allGroups"
+                ("allGroups = [ \"fi\", \"en\" ]" `T.isInfixOf` elmCode)
         ]
   where
     elemSubstr needle haystack = needle `T.isInfixOf` T.pack haystack

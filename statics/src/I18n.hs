@@ -70,7 +70,8 @@ messagesEn =
         , msgGeneratedOn = "Generated on"
         , msgPoweredBy = "Powered by Haskell Planet Generator"
         , msgCookieConsentTitle = "Cookie Consent"
-        , msgCookieConsentText = "This site uses external images that may track you. Do you agree to load them?"
+        , msgCookieConsentText =
+            "This site uses external images that may track you. Do you agree to load them?"
         , msgCookieConsentButton = "I Agree"
         , msgCookieRejectButton = "Reject"
         , msgRevokeConsentTitle = "Revoke consent"
@@ -86,7 +87,8 @@ messagesFi =
         , msgGeneratedOn = "Koottu"
         , msgPoweredBy = "Suomen Palikkaharrastajat ry:n tuottama syötekooste"
         , msgCookieConsentTitle = "Yksityisyys"
-        , msgCookieConsentText = "Tämä sivu käyttää ulkoisia kuvia, jotka voivat seurata sinua. Sallitko niiden lataamisen?"
+        , msgCookieConsentText =
+            "Tämä sivu käyttää ulkoisia kuvia, jotka voivat seurata sinua. Sallitko niiden lataamisen?"
         , msgCookieConsentButton = "Salli"
         , msgCookieRejectButton = "Estä"
         , msgRevokeConsentTitle = "Muuta asetuksia"

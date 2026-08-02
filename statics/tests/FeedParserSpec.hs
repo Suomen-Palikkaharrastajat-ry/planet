@@ -2,6 +2,7 @@
 
 module FeedParserSpec (feedParserTests) where
 
+import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time.Format.ISO8601 (iso8601ParseM)
@@ -11,7 +12,6 @@ import Test.Tasty.HUnit (assertBool, testCase, (@?=))
 import qualified Text.Atom.Feed as Atom
 import Text.Feed.Types (Item (AtomItem, RSSItem))
 import qualified Text.RSS.Syntax as RSS
-import qualified Data.ByteString.Lazy as LBS
 
 import Config
 import FeedParser
@@ -22,12 +22,14 @@ feedParserTests =
     testGroup
         "FeedParser"
         [ testCase "extractFirstImage finds image src" $
-            extractFirstImage "<p>Some text <img src=\"http://example.com/image.jpg\" alt=\"test\"> more text</p>"
+            extractFirstImage
+                "<p>Some text <img src=\"http://example.com/image.jpg\" alt=\"test\"> more text</p>"
                 @?= Just "http://example.com/image.jpg"
         , testCase "extractFirstImage returns Nothing without image" $
             extractFirstImage "<p>Some text without image</p>" @?= Nothing
         , testCase "extractFirstImage skips tracking pixels" $
-            extractFirstImage "<img src=\"http://track.example.com/px.gif\" width=\"1\" height=\"1\"><img src=\"http://example.com/real.jpg\">"
+            extractFirstImage
+                "<img src=\"http://track.example.com/px.gif\" width=\"1\" height=\"1\"><img src=\"http://example.com/real.jpg\">"
                 @?= Just "http://example.com/real.jpg"
         , testCase "extractFirstImage returns Nothing for only tracking pixel" $
             extractFirstImage "<img src=\"http://track.example.com/px.gif\" width=\"1\" height=\"1\">"
@@ -45,7 +47,8 @@ feedParserTests =
         , testCase "stripFirstPTag removes leading paragraph wrapper" $
             stripFirstPTag "<p>This is content</p><p>More</p>" @?= "<p>More</p>"
         , testCase "stripFirstPTag decodes flickr-style encoded content" $
-            stripFirstPTag "&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/people/infamousq/&quot;&gt;InfamousQ&lt;/a&gt; posted a photo:&lt;/p&gt;\n\t\n&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/photos/infamousq/54774659725/&quot; title=&quot;Plan for Tervahovi LEGO display version 2&quot;&gt;&lt;img src=&quot;https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg&quot; width=&quot;240&quot; height=&quot;135&quot; alt=&quot;Plan for Tervahovi LEGO display version 2&quot; /&gt;&lt;/a&gt;&lt;/p&gt;\n\n&lt;p&gt;Further development of the Tervahovi harbor area&lt;/p&gt;"
+            stripFirstPTag
+                "&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/people/infamousq/&quot;&gt;InfamousQ&lt;/a&gt; posted a photo:&lt;/p&gt;\n\t\n&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/photos/infamousq/54774659725/&quot; title=&quot;Plan for Tervahovi LEGO display version 2&quot;&gt;&lt;img src=&quot;https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg&quot; width=&quot;240&quot; height=&quot;135&quot; alt=&quot;Plan for Tervahovi LEGO display version 2&quot; /&gt;&lt;/a&gt;&lt;/p&gt;\n\n&lt;p&gt;Further development of the Tervahovi harbor area&lt;/p&gt;"
                 @?= "\n\t\n<p><a href=\"https://www.flickr.com/photos/infamousq/54774659725/\" title=\"Plan for Tervahovi LEGO display version 2\"><img src=\"https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg\" width=\"240\" height=\"135\" alt=\"Plan for Tervahovi LEGO display version 2\"></img></a></p>\n\n<p>Further development of the Tervahovi harbor area</p>"
         , testCase "cleanTitle removes trailing hashtags" $
             cleanTitle "My post #tag1 #tag2" @?= "My post"
@@ -155,25 +158,38 @@ feedParserTests =
                     T.replicate 200 "abc "
                         |> (\t -> "\n\t" <> t <> "\r\nline2")
                 preview = debugBodyPreview (LBS.fromStrict (encodeUtf8 longText))
-            assertBool "preview should remove newline/tab characters" (not (T.any (\c -> c == '\n' || c == '\r' || c == '\t') preview))
+            assertBool
+                "preview should remove newline/tab characters"
+                (not (T.any (\c -> c == '\n' || c == '\r' || c == '\t') preview))
             assertBool "preview should be truncated to at most 320 chars" (T.length preview <= 320)
         , testCase "debugBodyPreview tolerates invalid UTF-8 bytes" $ do
             let preview = debugBodyPreview (LBS.pack [0xFF, 0xFE, 0x41])
             assertBool "preview should contain surviving ASCII bytes" ("A" `T.isInfixOf` preview)
         , testCase "filterExcludedItems removes items matching exclude_list exactly" $ do
-            let feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" ["http://example.com/bad"] [] Nothing
-                item1 = dummyAppItem { itemTitle = "Good", itemLink = "http://example.com/good" }
-                item2 = dummyAppItem { itemTitle = "Bad", itemLink = "http://example.com/bad" }
+            let feedConfig =
+                    FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" ["http://example.com/bad"] [] Nothing
+                item1 = dummyAppItem{itemTitle = "Good", itemLink = "http://example.com/good"}
+                item2 = dummyAppItem{itemTitle = "Bad", itemLink = "http://example.com/bad"}
             map itemTitle (filterExcludedItems feedConfig [item1, item2]) @?= ["Good"]
         , testCase "filterExcludedItems removes items with title containing exclude_keywords" $ do
             let feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] ["badword"] Nothing
-                item1 = dummyAppItem { itemTitle = "This is a good title", itemLink = "http://example.com/1" }
-                item2 = dummyAppItem { itemTitle = "This contains BadWord inside", itemLink = "http://example.com/2" }
+                item1 = dummyAppItem{itemTitle = "This is a good title", itemLink = "http://example.com/1"}
+                item2 = dummyAppItem{itemTitle = "This contains BadWord inside", itemLink = "http://example.com/2"}
             map itemTitle (filterExcludedItems feedConfig [item1, item2]) @?= ["This is a good title"]
         , testCase "filterExcludedItems removes items with descText containing exclude_keywords" $ do
             let feedConfig = FeedConfig Feed (Just "Test Feed") "http://example.com" "fi" [] ["spam"] Nothing
-                item1 = dummyAppItem { itemTitle = "Good", itemDescText = Just "Nice post", itemLink = "http://example.com/1" }
-                item2 = dummyAppItem { itemTitle = "Okay", itemDescText = Just "This is sPaM text", itemLink = "http://example.com/2" }
+                item1 =
+                    dummyAppItem
+                        { itemTitle = "Good"
+                        , itemDescText = Just "Nice post"
+                        , itemLink = "http://example.com/1"
+                        }
+                item2 =
+                    dummyAppItem
+                        { itemTitle = "Okay"
+                        , itemDescText = Just "This is sPaM text"
+                        , itemLink = "http://example.com/2"
+                        }
             map itemTitle (filterExcludedItems feedConfig [item1, item2]) @?= ["Good"]
         ]
   where
@@ -187,11 +203,18 @@ feedParserTests =
         Element (Name "description" (Just mediaNs) Nothing) [] [NodeContent (ContentText textValue)]
 
     mediaThumbnailElement url =
-        Element (Name "thumbnail" (Just mediaNs) Nothing) [(Name "url" Nothing Nothing, [ContentText url])] []
+        Element
+            (Name "thumbnail" (Just mediaNs) Nothing)
+            [(Name "url" Nothing Nothing, [ContentText url])]
+            []
 
     atomItemWithContent content =
         AtomItem $
-            (Atom.nullEntry "tag:example.com,2023:test" (Atom.TextString "Title") (read "2023-01-01 00:00:00 UTC"))
+            ( Atom.nullEntry
+                "tag:example.com,2023:test"
+                (Atom.TextString "Title")
+                (read "2023-01-01 00:00:00 UTC")
+            )
                 { Atom.entryContent = Just (Atom.HTMLContent content)
                 }
 

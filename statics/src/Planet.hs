@@ -26,37 +26,37 @@ generateOpml config mGroup =
     let feeds = case mGroup of
             Nothing -> configFeeds config
             Just g -> filter (\f -> feedGroup f == g) (configFeeds config)
-    in XML.renderText XML.def $
-        XML.Document
-            { XML.documentPrologue = XML.Prologue [] Nothing []
-            , XML.documentRoot =
-                XML.Element
-                    { XML.elementName = XML.Name "opml" Nothing (Just "http://www.opml.org/spec2")
-                    , XML.elementAttributes = Map.fromList [(XML.Name "version" Nothing Nothing, "2.0")]
-                    , XML.elementNodes =
-                        [ XML.NodeElement $
-                            XML.Element
-                                { XML.elementName = XML.Name "head" Nothing Nothing
-                                , XML.elementAttributes = Map.empty
-                                , XML.elementNodes =
-                                    [ XML.NodeElement $
-                                        XML.Element
-                                            { XML.elementName = XML.Name "title" Nothing Nothing
-                                            , XML.elementAttributes = Map.empty
-                                            , XML.elementNodes = [XML.NodeContent $ configTitle config]
-                                            }
-                                    ]
-                                }
-                        , XML.NodeElement $
-                            XML.Element
-                                { XML.elementName = XML.Name "body" Nothing Nothing
-                                , XML.elementAttributes = Map.empty
-                                , XML.elementNodes = map feedToOutline feeds
-                                }
-                        ]
-                    }
-            , XML.documentEpilogue = []
-            }
+     in XML.renderText XML.def $
+            XML.Document
+                { XML.documentPrologue = XML.Prologue [] Nothing []
+                , XML.documentRoot =
+                    XML.Element
+                        { XML.elementName = XML.Name "opml" Nothing (Just "http://www.opml.org/spec2")
+                        , XML.elementAttributes = Map.fromList [(XML.Name "version" Nothing Nothing, "2.0")]
+                        , XML.elementNodes =
+                            [ XML.NodeElement $
+                                XML.Element
+                                    { XML.elementName = XML.Name "head" Nothing Nothing
+                                    , XML.elementAttributes = Map.empty
+                                    , XML.elementNodes =
+                                        [ XML.NodeElement $
+                                            XML.Element
+                                                { XML.elementName = XML.Name "title" Nothing Nothing
+                                                , XML.elementAttributes = Map.empty
+                                                , XML.elementNodes = [XML.NodeContent $ configTitle config]
+                                                }
+                                        ]
+                                    }
+                            , XML.NodeElement $
+                                XML.Element
+                                    { XML.elementName = XML.Name "body" Nothing Nothing
+                                    , XML.elementAttributes = Map.empty
+                                    , XML.elementNodes = map feedToOutline feeds
+                                    }
+                            ]
+                        }
+                , XML.documentEpilogue = []
+                }
 
 feedToOutline :: FeedConfig -> XML.Node
 feedToOutline feed =
