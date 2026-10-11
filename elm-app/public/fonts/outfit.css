@@ -1,0 +1,8 @@
+/* Outfit variable font — covers weight axis 100–900 in a single file */
+@font-face {
+  font-display: swap;
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 100 900;
+  src: url('/fonts/Outfit-VariableFont_wght.ttf') format('truetype');
+}

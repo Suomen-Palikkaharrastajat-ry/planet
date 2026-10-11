@@ -56,12 +56,20 @@ view model =
                              else
                                 I18n.translate model.lang I18n.OpenMenu
                             )
+                        , Attr.attribute "aria-expanded"
+                            (if model.isSidebarVisible then
+                                "true"
+
+                             else
+                                "false"
+                            )
+                        , Attr.attribute "aria-controls" "mobile-sidebar"
                         ]
                         [ if model.isSidebarVisible then
-                            FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+                            FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml decorativeIconAttrs
 
                           else
-                            FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml []
+                            FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml decorativeIconAttrs
                         ]
                     ]
                 ]
@@ -103,7 +111,7 @@ view model =
                 , Attr.style "cursor" "pointer"
                 , Attr.attribute "aria-label" (I18n.translate model.lang I18n.ScrollToTop)
                 ]
-                [ FeatherIcons.arrowUp |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml [] ]
+                [ FeatherIcons.arrowUp |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml decorativeIconAttrs ]
 
           else
             text ""
@@ -182,7 +190,7 @@ renderGroupToggle : String -> Html Msg
 renderGroupToggle currentGroup =
     div [ Attr.class "flex items-center gap-1 rounded-lg bg-white/10 p-1" ]
         [ groupToggleButton currentGroup "fi" [ finnishFlagIcon ]
-        , groupToggleButton currentGroup "en" [ FeatherIcons.globe |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [] ]
+        , groupToggleButton currentGroup "en" [ FeatherIcons.globe |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml decorativeIconAttrs ]
         ]
 
 
@@ -318,11 +326,16 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                         "false"
                     )
                 ]
-                [ span [] [ FeatherIcons.eye |> FeatherIcons.withSize 16 |> FeatherIcons.toHtml [] ]
+                [ span [] [ FeatherIcons.eye |> FeatherIcons.withSize 16 |> FeatherIcons.toHtml decorativeIconAttrs ]
                 , span [] [ text (I18n.translate lang I18n.DescriptionsText) ]
                 ]
             ]
         ]
+
+
+decorativeIconAttrs : List (Html.Attribute msg)
+decorativeIconAttrs =
+    [ Attr.attribute "aria-hidden" "true", Attr.attribute "focusable" "false" ]
 
 
 renderMobileSidebar : ViewModel -> Html Msg
@@ -330,6 +343,7 @@ renderMobileSidebar model =
     MobileDrawer.view
         { isOpen = model.isSidebarVisible
         , id = "mobile-sidebar"
+        , label = I18n.translate model.lang I18n.Filters
         , onClose = ToggleSidebar
         , breakpoint = MobileDrawer.Md
         , content =
@@ -405,7 +419,7 @@ renderMobileSidebar model =
                                 "false"
                             )
                         ]
-                        [ span [] [ FeatherIcons.eye |> FeatherIcons.withSize 16 |> FeatherIcons.toHtml [] ]
+                        [ span [] [ FeatherIcons.eye |> FeatherIcons.withSize 16 |> FeatherIcons.toHtml decorativeIconAttrs ]
                         , span [] [ text (I18n.translate model.lang I18n.DescriptionsText) ]
                         ]
                     ]
@@ -628,13 +642,13 @@ feedTypeIcon : FeedType -> Html Msg
 feedTypeIcon feedType =
     case feedType of
         Feed ->
-            FeatherIcons.rss |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml []
+            FeatherIcons.rss |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml decorativeIconAttrs
 
         YouTube ->
-            FeatherIcons.youtube |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml []
+            FeatherIcons.youtube |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml decorativeIconAttrs
 
         Image ->
-            FeatherIcons.camera |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml []
+            FeatherIcons.camera |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml decorativeIconAttrs
 
 
 {-| Get human-readable name for feed type
