@@ -5,9 +5,10 @@ import siteConfig from 'virtual:site-config'
 import { appSettings, pickLang, requestedLang, setDocumentLang } from './packages/site-config/browser.mjs'
 
 // App settings come from [app] in ../config.toml, in the language being shown.
-const settings = appSettings(siteConfig, pickLang(siteConfig))
+const lang = pickLang(siteConfig)
+const settings = appSettings(siteConfig, lang)
 
-// Format date in Finnish locale with Europe/Helsinki timezone
+// Format the build-page timestamp in Europe/Helsinki time
 const now = new Date()
 const options = {
   timeZone: 'Europe/Helsinki',
@@ -32,7 +33,9 @@ const formatted = new Intl.DateTimeFormat('fi-FI', options)
     return acc
   }, {})
 
-const formattedDate = `${formatted.day}.${formatted.month}.${formatted.year} ${formatted.hour}:${formatted.minute}:${formatted.second}`
+// Day first in both languages; the separators follow the language being shown.
+const dateSeparator = lang === 'en' ? '/' : '.'
+const formattedDate = `${[formatted.day, formatted.month, formatted.year].join(dateSeparator)} ${formatted.hour}:${formatted.minute}:${formatted.second}`
 
 // Load saved view mode from localStorage
 const savedViewMode = localStorage.getItem('palikkalinkit-viewMode') || 'Full'
@@ -47,7 +50,7 @@ const app = Elm.Main.init({
     viewMode: savedViewMode,
     selectedFeedTypes: savedSelectedFeedTypes,
     siteConfig,
-    requestedLang: requestedLang(),
+    requestedLang: requestedLang(siteConfig),
   },
 })
 

@@ -81,7 +81,7 @@ elm-app/.elm-tailwind/.stamp: elm-app/elm.json elm-app/vite.config.mjs elm-app/m
 	mkdir -p elm-app/.elm-tailwind
 	touch $@
 
-dist/.elm-stamp: elm-app/.elm-tailwind/.stamp $(ELM_APP_SOURCES) $(ELM_PACKAGE_SOURCES) elm-app/elm.json elm-app/vite.config.mjs elm-app/index.html elm-app/src/Data.elm elm-app/main.js elm-app/main.css config.toml
+dist/.elm-stamp: elm-app/.elm-tailwind/.stamp $(ELM_APP_SOURCES) $(ELM_PACKAGE_SOURCES) elm-app/elm.json elm-app/vite.config.mjs elm-app/index.html elm-app/src/Data.elm elm-app/main.js elm-app/main.css config.toml $(SITE_CONFIG)/family.toml $(wildcard $(SITE_CONFIG)/*.mjs)
 	cd elm-app && vite build $(VITE_FLAGS)
 	touch $@
 
