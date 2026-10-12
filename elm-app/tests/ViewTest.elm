@@ -804,7 +804,7 @@ suite =
                     View.view model
                         |> Query.fromHtml
                         |> Query.hasNot [ Selector.class "bg-black/50" ]
-            , test "desktop search input has associated label" <|
+            , test "desktop search input has associated label and search type" <|
                 \_ ->
                     let
                         model =
@@ -828,7 +828,16 @@ suite =
                             [ Selector.tag "label"
                             , Selector.attribute (Html.Attributes.for "desktop-search-input")
                             ]
-            , test "mobile search input has associated label" <|
+                        |> (\_ ->
+                                View.view model
+                                    |> Query.fromHtml
+                                    |> Query.has
+                                        [ Selector.tag "input"
+                                        , Selector.id "desktop-search-input"
+                                        , Selector.attribute (Html.Attributes.type_ "search")
+                                        ]
+                           )
+            , test "mobile search input has associated label and search type" <|
                 \_ ->
                     let
                         model =
@@ -852,6 +861,15 @@ suite =
                             [ Selector.tag "label"
                             , Selector.attribute (Html.Attributes.for "mobile-search-input")
                             ]
+                        |> (\_ ->
+                                View.view model
+                                    |> Query.fromHtml
+                                    |> Query.has
+                                        [ Selector.tag "input"
+                                        , Selector.id "mobile-search-input"
+                                        , Selector.attribute (Html.Attributes.type_ "search")
+                                        ]
+                           )
             , test "filter buttons expose aria-pressed attribute for selected and unselected states" <|
                 \_ ->
                     let
@@ -869,18 +887,39 @@ suite =
                             , lang = Fi
                             , currentGroup = "fi"
                             }
+
+                        html =
+                            View.view model
+                                |> Query.fromHtml
                     in
-                    View.view model
-                        |> Query.fromHtml
-                        |> Query.has
-                            [ Selector.tag "button"
-                            , Selector.attribute (Html.Attributes.attribute "aria-pressed" "true")
-                            , Selector.attribute (Html.Attributes.attribute "aria-label" "Syöte")
-                            ]
-            , test "renders scroll to top button when scrolled" <|
+                    Expect.all
+                        [ \h ->
+                            h
+                                |> Query.has
+                                    [ Selector.tag "button"
+                                    , Selector.attribute (Html.Attributes.attribute "aria-pressed" "true")
+                                    , Selector.attribute (Html.Attributes.attribute "aria-label" "Syöte")
+                                    ]
+                        , \h ->
+                            h
+                                |> Query.has
+                                    [ Selector.tag "button"
+                                    , Selector.attribute (Html.Attributes.attribute "aria-pressed" "false")
+                                    , Selector.attribute (Html.Attributes.attribute "aria-label" "YouTube-video")
+                                    ]
+                        , \h ->
+                            h
+                                |> Query.has
+                                    [ Selector.tag "button"
+                                    , Selector.attribute (Html.Attributes.attribute "aria-pressed" "false")
+                                    , Selector.attribute (Html.Attributes.attribute "aria-label" "Kuva")
+                                    ]
+                        ]
+                        html
+            , test "renders scroll to top button when scrolled and hides when at top" <|
                 \_ ->
                     let
-                        model =
+                        scrolledModel =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
@@ -894,13 +933,91 @@ suite =
                             , lang = Fi
                             , currentGroup = "fi"
                             }
+
+                        topModel =
+                            { scrolledModel | scrollY = 0 }
+                    in
+                    Expect.all
+                        [ \_ ->
+                            View.view scrolledModel
+                                |> Query.fromHtml
+                                |> Query.has
+                                    [ Selector.tag "button"
+                                    , Selector.attribute (Html.Attributes.attribute "aria-label" "Siirry ylös")
+                                    ]
+                        , \_ ->
+                            View.view topModel
+                                |> Query.fromHtml
+                                |> Query.hasNot
+                                    [ Selector.tag "button"
+                                    , Selector.attribute (Html.Attributes.attribute "aria-label" "Siirry ylös")
+                                    ]
+                        ]
+                        ()
+            , test "renders skip to content link targeting main-content" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            , currentGroup = "fi"
+                            }
                     in
                     View.view model
                         |> Query.fromHtml
                         |> Query.has
-                            [ Selector.tag "button"
-                            , Selector.attribute (Html.Attributes.attribute "aria-label" "Siirry ylös")
+                            [ Selector.tag "a"
+                            , Selector.attribute (Html.Attributes.href "#main-content")
                             ]
+            , test "view mode button exposes aria-pressed according to viewMode" <|
+                \_ ->
+                    let
+                        fullModel =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            , currentGroup = "fi"
+                            }
+
+                        thumbModel =
+                            { fullModel | viewMode = Types.Thumbnail }
+                    in
+                    Expect.all
+                        [ \_ ->
+                            View.view fullModel
+                                |> Query.fromHtml
+                                |> Query.has
+                                    [ Selector.tag "button"
+                                    , Selector.attribute (Html.Attributes.attribute "aria-pressed" "true")
+                                    , Selector.containing [ Selector.text "Kuvaukset" ]
+                                    ]
+                        , \_ ->
+                            View.view thumbModel
+                                |> Query.fromHtml
+                                |> Query.has
+                                    [ Selector.tag "button"
+                                    , Selector.attribute (Html.Attributes.attribute "aria-pressed" "false")
+                                    , Selector.containing [ Selector.text "Kuvaukset" ]
+                                    ]
+                        ]
+                        ()
             ]
         ]
 

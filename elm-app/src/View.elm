@@ -18,7 +18,7 @@ import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (formatDate)
 import DesignTokens.Spacing as Spacing
 import FeatherIcons
-import Html exposing (Html, a, button, div, h2, h3, img, label, li, main_, nav, p, span, text, ul)
+import Html exposing (Html, a, button, div, h2, h3, img, li, main_, nav, p, span, text, ul)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Keyed
@@ -49,7 +49,7 @@ view model =
                     , title = I18n.translate model.lang I18n.Title
                     , onClick = Just ScrollToTop
                     }
-            , navLabel = ""
+            , navLabel = I18n.translate model.lang I18n.Title
             , links = []
             , trailing = [ renderGroupToggle model.currentGroup ]
             , menuToggle =
@@ -110,14 +110,26 @@ viewBrandFooter lang timestamp currentGroup =
             [ Html.p []
                 [ Html.a
                     [ Attr.href "mailto:palikkaharrastajatry@outlook.com?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
-                    , classes [ TwEx.text_white_80, Bp.hover [ Tw.text_simple Th.white ], Tw.underline, Tw.transition_colors ]
+                    , classes
+                        [ TwEx.text_white_80
+                        , Bp.hover [ Tw.text_simple Th.white ]
+                        , Tw.underline
+                        , Bp.withVariant "motion-safe" [ Tw.transition_colors ]
+                        , Bp.focus_visible [ Tw.outline_none, Tw.ring_2, TwEx.ring_brand_yellow ]
+                        ]
                     ]
                     [ Html.text (I18n.translate lang I18n.ReportInappropriateContent) ]
                 ]
             , Html.p []
                 [ Html.text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | ")
                 , Html.a
-                    [ classes [ TwEx.text_white_80, Bp.hover [ Tw.text_simple Th.white ], Tw.underline, Tw.transition_colors ]
+                    [ classes
+                        [ TwEx.text_white_80
+                        , Bp.hover [ Tw.text_simple Th.white ]
+                        , Tw.underline
+                        , Bp.withVariant "motion-safe" [ Tw.transition_colors ]
+                        , Bp.focus_visible [ Tw.outline_none, Tw.ring_2, TwEx.ring_brand_yellow ]
+                        ]
                     , Attr.href ("/opml." ++ currentGroup ++ ".xml")
                     , Attr.download ""
                     ]
@@ -237,12 +249,12 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                         }
                         |> Button.withVariant
                             (if isSelected then
-                                Button.Secondary
+                                Button.Primary
 
                              else
                                 Button.Ghost
                             )
-                        |> Button.withSize Button.Small
+                        |> Button.withSize Button.Medium
                         |> Button.withIcon (feedTypeFeatherIcon feedType)
                         |> Button.iconOnly
                         |> Button.withPressed (Just isSelected)
@@ -251,8 +263,7 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                 [ Feed, YouTube, Image ]
             )
         , div [ Attr.class "mb-4" ]
-            [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.View) ]
-            , button
+            [ button
                 [ Events.onClick
                     (ToggleViewMode
                         (if viewMode == Full then
@@ -327,12 +338,12 @@ renderMobileSidebar model =
                                 }
                                 |> Button.withVariant
                                     (if isSelected then
-                                        Button.Secondary
+                                        Button.Primary
 
                                      else
                                         Button.Ghost
                                     )
-                                |> Button.withSize Button.Small
+                                |> Button.withSize Button.Medium
                                 |> Button.withIcon (feedTypeFeatherIcon feedType)
                                 |> Button.iconOnly
                                 |> Button.withPressed (Just isSelected)
@@ -341,8 +352,7 @@ renderMobileSidebar model =
                         [ Feed, YouTube, Image ]
                     )
                 , div [ Attr.class "mb-4" ]
-                    [ label [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.View) ]
-                    , button
+                    [ button
                         [ Events.onClick
                             (ToggleViewMode
                                 (if model.viewMode == Full then
