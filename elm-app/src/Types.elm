@@ -1,11 +1,11 @@
 module Types exposing
-    ( Model, MonthGroup, Msg(..), ViewMode(..), SearchItem, Lang(..)
+    ( Model, MonthGroup, Msg(..), ViewMode(..), SearchItem
     , ViewModel
     )
 
 {-| Core types for the application
 
-@docs Model, MonthGroup, Msg, ViewMode, SearchItem, Lang
+@docs Model, MonthGroup, Msg, ViewMode, SearchItem
 
 -}
 
@@ -13,15 +13,10 @@ import Browser
 import Browser.Navigation
 import Data exposing (AppItem)
 import Http
+import Lang exposing (Lang)
 import RemoteData exposing (RemoteData)
+import SiteSettings exposing (SiteSettings)
 import Url
-
-
-{-| Language for internationalization
--}
-type Lang
-    = Fi
-    | En
 
 
 {-| View mode for displaying items
@@ -57,6 +52,7 @@ type alias Model =
     , navKey : Maybe Browser.Navigation.Key
     , lang : Lang
     , currentGroup : String
+    , site : SiteSettings
     }
 
 
@@ -75,6 +71,7 @@ type alias ViewModel =
     , scrollY : Float
     , lang : Lang
     , currentGroup : String
+    , site : SiteSettings
     }
 
 

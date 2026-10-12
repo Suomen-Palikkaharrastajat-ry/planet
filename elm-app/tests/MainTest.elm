@@ -1,15 +1,16 @@
 module MainTest exposing (suite)
 
 {-| Tests for Main module
-
 -}
 
 import Data exposing (FeedType(..), allAppItems, defaultGroup)
 import Expect
+import Lang exposing (Lang(..))
 import Main exposing (addAsterisks, canonicalGroupPath, groupFromPath)
 import RemoteData
 import Test exposing (Test, describe, test)
-import Types exposing (Msg(..), Model, Lang(..))
+import TestSite
+import Types exposing (Model, Msg(..))
 
 
 {-| Create a test model for testing
@@ -28,6 +29,7 @@ createTestModel =
     , scrollY = 0
     , navKey = Nothing
     , lang = Fi
+    , site = TestSite.site Fi
     , currentGroup = "fi"
     }
 
@@ -81,7 +83,8 @@ suite =
             [ test "NoOp returns unchanged model" <|
                 \_ ->
                     let
-                        initialModel = createTestModel
+                        initialModel =
+                            createTestModel
 
                         ( updatedModel, _ ) =
                             Main.update NoOp initialModel
@@ -90,7 +93,8 @@ suite =
             , test "ToggleFeedType toggles the feed type in selectedFeedTypes" <|
                 \_ ->
                     let
-                        initialModel = createTestModel
+                        initialModel =
+                            createTestModel
 
                         ( updatedModel, _ ) =
                             Main.update (ToggleFeedType Feed) initialModel
@@ -99,7 +103,8 @@ suite =
             , test "UpdateSearchText updates the search text" <|
                 \_ ->
                     let
-                        initialModel = createTestModel
+                        initialModel =
+                            createTestModel
 
                         ( updatedModel, _ ) =
                             Main.update (UpdateSearchText "test search") initialModel
@@ -108,7 +113,8 @@ suite =
             , test "ToggleSidebar toggles the sidebar visibility" <|
                 \_ ->
                     let
-                        initialModel = createTestModel
+                        initialModel =
+                            createTestModel
 
                         ( updatedModel, _ ) =
                             Main.update ToggleSidebar initialModel
@@ -119,7 +125,8 @@ suite =
             [ test "returns subscriptions for ports" <|
                 \_ ->
                     let
-                        model = createTestModel
+                        model =
+                            createTestModel
                     in
                     Main.subscriptions model
                         |> Expect.notEqual Sub.none

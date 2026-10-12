@@ -7,13 +7,8 @@ module View exposing (view)
 -}
 
 import Component.Button as Button
-import Component.Footer as Footer
-import Component.Footer.Family as Family
 import Component.Form as Form
-import Component.MobileDrawer as MobileDrawer
-import Component.Navbar as Navbar
-import Component.ScrollToTop as ScrollToTop
-import Component.SkipLink as SkipLink
+import Component.Layout as Layout
 import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (formatDate)
 import DesignTokens.Spacing as Spacing
@@ -24,153 +19,123 @@ import Html.Events as Events
 import Html.Keyed
 import I18n
 import Json.Decode as Decode
+import Lang exposing (Lang)
 import Tailwind as Tw exposing (classes)
 import Tailwind.Breakpoints as Bp
 import Tailwind.Theme as Th
 import TailwindExtra as TwEx
 import Types exposing (MonthGroup, Msg(..), ViewMode(..), ViewModel)
+import UiStrings
 
 
-{-| Main view function
+{-| Main view function: the shared family shell around the feed timeline.
 -}
 view : ViewModel -> Html Msg
 view model =
-    div [ Attr.class "min-h-screen flex flex-col bg-bg-page" ]
-        [ -- Skip to content link for accessibility
-          SkipLink.view
-            { target = "main-content"
-            , label = I18n.translate model.lang I18n.SkipToContent
-            }
-        , Navbar.viewAppHeader
-            { brand =
-                Navbar.viewBrand
-                    { href = "/"
-                    , iconSrc = "/logo/square/square-smile.svg"
-                    , title = I18n.translate model.lang I18n.Title
-                    , onClick = Just ScrollToTop
-                    }
-            , navLabel = I18n.translate model.lang I18n.Title
+    let
+        lang =
+            model.lang
+    in
+    div []
+        (Layout.view
+            { site = model.site
+            , strings = UiStrings.forLang lang
+            , attributes = [ Attr.class "min-h-screen flex flex-col bg-bg-page" ]
+            , home = { href = "/", onClick = Just ScrollToTop }
             , links = []
-            , trailing = [ renderGroupToggle model.currentGroup ]
-            , menuToggle =
+            , headerActions = [ renderGroupToggle lang model.currentGroup ]
+            , showHeader = True
+            , menu =
                 Just
-                    (Navbar.viewMenuToggle
-                        { isOpen = model.isSidebarVisible
-                        , onToggle = ToggleSidebar
-                        , controls = "mobile-sidebar"
-                        , openLabel = I18n.translate model.lang I18n.OpenMenu
-                        , closeLabel = I18n.translate model.lang I18n.CloseMenu
-                        }
-                    )
-            , sticky = True
-            }
-        , div [ Attr.class "flex flex-1" ]
-            [ -- Timeline navigation
-              renderTimelineNav model.lang model.visibleGroups
-            , -- Main content
-              main_
-                [ Attr.id "main-content"
-                , Attr.class "flex-1 max-w-5xl mx-auto w-full px-4 py-6"
-                ]
-                [ Html.Keyed.node "div"
-                    []
-                    (List.map
-                        (\group -> ( group.monthId, renderMonthSection model.lang model.viewMode group ))
-                        model.visibleGroups
-                    )
-                ]
-            , -- Feed filter navigation
-              renderFeedFilterNav model.lang model.selectedFeedTypes model.searchText model.viewMode
-            ]
-        , -- Mobile sidebar
-          renderMobileSidebar model
-        , -- Overlay for mobile sidebar
-          MobileDrawer.viewOverlay
-            { isOpen = model.isSidebarVisible
-            , onClose = ToggleSidebar
-            , breakpoint = MobileDrawer.Md
-            }
-        , -- Brand footer
-          viewBrandFooter model.lang model.generatedAt model.currentGroup
-        , -- Scroll to top button
-          ScrollToTop.view
-            { visible = model.scrollY > 200
-            , onClick = ScrollToTop
-            , label = I18n.translate model.lang I18n.ScrollToTop
-            , clearRightColumn = True
-            }
-        ]
-
-
-viewBrandFooter : Types.Lang -> String -> String -> Html Msg
-viewBrandFooter lang timestamp currentGroup =
-    Family.viewWith
-        { topMargin = False
-        , extra =
-            [ Html.p []
-                [ Html.a
-                    [ Attr.href "mailto:palikkaharrastajatry@outlook.com?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
-                    , classes
-                        [ TwEx.text_white_80
-                        , Bp.hover [ Tw.text_simple Th.white ]
-                        , Tw.underline
-                        , Bp.withVariant "motion-safe" [ Tw.transition_colors ]
-                        , Bp.focus_visible [ Tw.outline_none, Tw.ring_2, TwEx.ring_brand_yellow ]
+                    { isOpen = model.isSidebarVisible
+                    , onToggle = ToggleSidebar
+                    , onClose = ToggleSidebar
+                    , content = \_ -> mobileSidebarContent model
+                    }
+            , main =
+                div [ Attr.class "flex flex-1" ]
+                    [ -- Timeline navigation
+                      renderTimelineNav lang model.visibleGroups
+                    , -- Main content
+                      main_
+                        [ Attr.id "main-content"
+                        , Attr.class "flex-1 max-w-5xl mx-auto w-full px-4 py-6"
                         ]
-                    ]
-                    [ Html.text (I18n.translate lang I18n.ReportInappropriateContent) ]
-                ]
-            , Html.p []
-                [ Html.text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | ")
-                , Html.a
-                    [ classes
-                        [ TwEx.text_white_80
-                        , Bp.hover [ Tw.text_simple Th.white ]
-                        , Tw.underline
-                        , Bp.withVariant "motion-safe" [ Tw.transition_colors ]
-                        , Bp.focus_visible [ Tw.outline_none, Tw.ring_2, TwEx.ring_brand_yellow ]
+                        [ Html.Keyed.node "div"
+                            []
+                            (List.map
+                                (\group -> ( group.monthId, renderMonthSection lang model.viewMode group ))
+                                model.visibleGroups
+                            )
                         ]
-                    , Attr.href ("/opml." ++ currentGroup ++ ".xml")
-                    , Attr.download ""
+                    , -- Feed filter navigation
+                      renderFeedFilterNav lang model.selectedFeedTypes model.searchText model.viewMode
                     ]
-                    [ Html.text (I18n.translate lang I18n.DownloadOpml) ]
-                ]
-            ]
-        , siteLabel = I18n.translate lang I18n.FooterBrandName
-        , links = footerLinks lang
-        , copyright = I18n.translate lang I18n.ContentOwnership
-        , disclaimer =
-            [ I18n.translate lang I18n.LegoTrademark
-            , I18n.translate lang I18n.LegoDisclaimer
-            ]
-        }
+            , aboveFooter = []
+            , footer = Just { topMargin = False, extra = footerExtra lang model.generatedAt model.currentGroup }
+            , scrollToTop =
+                Just
+                    { visible = model.scrollY > 200
+                    , onClick = ScrollToTop
+                    , clearRightColumn = True
+                    }
+            , toasts = Nothing
+            , overlays = []
+            }
+        )
 
 
-{-| The canonical family links without this site, with the labels this site translates.
+{-| Lines under the footer's disclaimer: reporting, build time, OPML export
+and the link to the other language.
 -}
-footerLinks : Types.Lang -> List { label : String, href : String }
-footerLinks lang =
-    Family.linksExcept "https://linkit.palikkaharrastajat.fi"
-        |> List.map
-            (\link ->
-                if link.href == "https://palikkaharrastajat.fi" then
-                    { link | label = I18n.translate lang I18n.HomePage }
+footerExtra : Lang -> String -> String -> List (Html Msg)
+footerExtra lang timestamp currentGroup =
+    let
+        linkClasses =
+            classes
+                [ TwEx.text_white_80
+                , Bp.hover [ Tw.text_simple Th.white ]
+                , Tw.underline
+                , Bp.withVariant "motion-safe" [ Tw.transition_colors ]
+                , Bp.focus_visible [ Tw.outline_none, Tw.ring_2, TwEx.ring_brand_yellow ]
+                ]
+    in
+    [ Html.p []
+        [ Html.a
+            [ Attr.href (I18n.translate lang I18n.ReportInappropriateContentHref), linkClasses ]
+            [ Html.text (I18n.translate lang I18n.ReportInappropriateContent) ]
+        ]
+    , Html.p []
+        [ Html.text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | ")
+        , Html.a
+            [ linkClasses
+            , Attr.href ("/opml." ++ currentGroup ++ ".xml")
+            , Attr.download ""
+            ]
+            [ Html.text (I18n.translate lang I18n.DownloadOpml) ]
+        ]
+    , Html.p []
+        [ Html.a
+            [ Attr.href ("?lang=" ++ I18n.translate lang I18n.OtherLanguageCode)
+            , Attr.attribute "hreflang" (I18n.translate lang I18n.OtherLanguageCode)
+            , Attr.attribute "lang" (I18n.translate lang I18n.OtherLanguageCode)
+            , linkClasses
+            ]
+            [ Html.text (I18n.translate lang I18n.OtherLanguageName) ]
+        ]
+    ]
 
-                else
-                    link
-            )
 
-
-renderGroupToggle : String -> Html Msg
-renderGroupToggle currentGroup =
+renderGroupToggle : Lang -> String -> Html Msg
+renderGroupToggle lang currentGroup =
     div [ Attr.class "flex items-center gap-1 rounded-lg bg-white/10 p-1" ]
-        [ groupToggleButton currentGroup "fi" [ finnishFlagIcon ]
-        , groupToggleButton currentGroup "en" [ FeatherIcons.globe |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml decorativeIconAttrs ]
+        [ groupToggleButton lang currentGroup "fi" [ finnishFlagIcon ]
+        , groupToggleButton lang currentGroup "en" [ FeatherIcons.globe |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml decorativeIconAttrs ]
         ]
 
 
-groupToggleButton : String -> String -> List (Html Msg) -> Html Msg
-groupToggleButton currentGroup group iconContent =
+groupToggleButton : Lang -> String -> String -> List (Html Msg) -> Html Msg
+groupToggleButton lang currentGroup group iconContent =
     button
         [ Events.onClick (NavigateToGroup group)
         , Attr.class
@@ -182,7 +147,7 @@ groupToggleButton currentGroup group iconContent =
                         "text-white hover:bg-white/20"
                    )
             )
-        , Attr.attribute "aria-label" ("Navigate to " ++ String.toUpper group ++ " group")
+        , Attr.attribute "aria-label" (I18n.translate lang I18n.ShowGroup ++ String.toUpper group)
         , Attr.attribute "aria-pressed"
             (if currentGroup == group then
                 "true"
@@ -206,7 +171,7 @@ finnishFlagIcon =
         ]
 
 
-renderTimelineNav : Types.Lang -> List MonthGroup -> Html Msg
+renderTimelineNav : Lang -> List MonthGroup -> Html Msg
 renderTimelineNav lang groups =
     nav [ Attr.class "timeline-nav hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
         [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.Timeline) ]
@@ -228,7 +193,7 @@ renderTimelineNav lang groups =
         ]
 
 
-renderFeedFilterNav : Types.Lang -> List FeedType -> String -> ViewMode -> Html Msg
+renderFeedFilterNav : Lang -> List FeedType -> String -> ViewMode -> Html Msg
 renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
     let
         searchField =
@@ -310,111 +275,105 @@ decorativeIconAttrs =
     [ Attr.attribute "aria-hidden" "true", Attr.attribute "focusable" "false" ]
 
 
-renderMobileSidebar : ViewModel -> Html Msg
-renderMobileSidebar model =
+{-| What the mobile drawer shows: search, feed filters and the timeline.
+-}
+mobileSidebarContent : ViewModel -> List (Html Msg)
+mobileSidebarContent model =
     let
         searchField =
             Form.defaultField "mobile-search-input" (I18n.translate model.lang I18n.Search)
     in
-    MobileDrawer.view
-        { isOpen = model.isSidebarVisible
-        , id = "mobile-sidebar"
-        , label = I18n.translate model.lang I18n.Filters
-        , onClose = ToggleSidebar
-        , breakpoint = MobileDrawer.Md
-        , content =
-            [ nav [ Attr.class "p-4" ]
-                [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Filters) ]
-                , Form.textInput
-                    { searchField | labelHidden = True }
-                    { value = model.searchText
-                    , onInput = UpdateSearchText
-                    , inputType = Form.Search
-                    , placeholder = Just (I18n.translate model.lang I18n.SearchPlaceholder)
-                    }
-                , div [ Attr.class "flex flex-wrap gap-2 mb-4" ]
-                    (List.map
-                        (\feedType ->
-                            let
-                                isSelected =
-                                    List.member feedType model.selectedFeedTypes
-                            in
-                            Button.new
-                                { label = feedTypeToString model.lang feedType
-                                , onClick = ToggleFeedType feedType
-                                }
-                                |> Button.withVariant
-                                    (if isSelected then
-                                        Button.Primary
-
-                                     else
-                                        Button.Ghost
-                                    )
-                                |> Button.withSize Button.Medium
-                                |> Button.withIcon (feedTypeFeatherIcon feedType)
-                                |> Button.iconOnly
-                                |> Button.withPressed (Just isSelected)
-                                |> Button.toHtml
-                        )
-                        [ Feed, YouTube, Image ]
-                    )
-                , div [ Attr.class "mb-4" ]
-                    [ button
-                        [ Events.onClick
-                            (ToggleViewMode
-                                (if model.viewMode == Full then
-                                    Thumbnail
-
-                                 else
-                                    Full
-                                )
-                            )
-                        , Attr.class
-                            ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm border w-full font-semibold transition-colors duration-150 "
-                                ++ (if model.viewMode == Full then
-                                        "border-brand text-brand active:bg-brand-yellow"
-
-                                    else
-                                        "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
-                                   )
-                            )
-                        , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
-                        , Attr.attribute "aria-pressed"
-                            (if model.viewMode == Full then
-                                "true"
+    [ nav [ Attr.class "p-4" ]
+        [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Filters) ]
+        , Form.textInput
+            { searchField | labelHidden = True }
+            { value = model.searchText
+            , onInput = UpdateSearchText
+            , inputType = Form.Search
+            , placeholder = Just (I18n.translate model.lang I18n.SearchPlaceholder)
+            }
+        , div [ Attr.class "flex flex-wrap gap-2 mb-4" ]
+            (List.map
+                (\feedType ->
+                    let
+                        isSelected =
+                            List.member feedType model.selectedFeedTypes
+                    in
+                    Button.new
+                        { label = feedTypeToString model.lang feedType
+                        , onClick = ToggleFeedType feedType
+                        }
+                        |> Button.withVariant
+                            (if isSelected then
+                                Button.Primary
 
                              else
-                                "false"
+                                Button.Ghost
                             )
-                        ]
-                        [ span [] [ FeatherIcons.eye |> FeatherIcons.withSize 16 |> FeatherIcons.toHtml decorativeIconAttrs ]
-                        , span [] [ text (I18n.translate model.lang I18n.DescriptionsText) ]
-                        ]
-                    ]
-                ]
-            , nav [ Attr.class "p-4 border-t border-gray-200" ]
-                [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Timeline) ]
-                , ul [ Attr.class "space-y-2" ]
-                    (List.map
-                        (\group ->
-                            li []
-                                [ button
-                                    [ Events.onClick (NavigateToSection group.monthId)
-                                    , Attr.class "type-caption text-text-muted hover:text-brand hover:underline text-left w-full"
-                                    , Attr.style "cursor" "pointer"
-                                    , Attr.attribute "aria-label" (I18n.translate model.lang I18n.NavigateTo ++ group.monthLabel)
-                                    ]
-                                    [ text group.monthLabel ]
-                                ]
+                        |> Button.withSize Button.Medium
+                        |> Button.withIcon (feedTypeFeatherIcon feedType)
+                        |> Button.iconOnly
+                        |> Button.withPressed (Just isSelected)
+                        |> Button.toHtml
+                )
+                [ Feed, YouTube, Image ]
+            )
+        , div [ Attr.class "mb-4" ]
+            [ button
+                [ Events.onClick
+                    (ToggleViewMode
+                        (if model.viewMode == Full then
+                            Thumbnail
+
+                         else
+                            Full
                         )
-                        model.visibleGroups
+                    )
+                , Attr.class
+                    ("cursor-pointer flex items-center justify-center gap-2 px-3 py-1 text-sm border w-full font-semibold transition-colors duration-150 "
+                        ++ (if model.viewMode == Full then
+                                "border-brand text-brand active:bg-brand-yellow"
+
+                            else
+                                "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
+                           )
+                    )
+                , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
+                , Attr.attribute "aria-pressed"
+                    (if model.viewMode == Full then
+                        "true"
+
+                     else
+                        "false"
                     )
                 ]
+                [ span [] [ FeatherIcons.eye |> FeatherIcons.withSize 16 |> FeatherIcons.toHtml decorativeIconAttrs ]
+                , span [] [ text (I18n.translate model.lang I18n.DescriptionsText) ]
+                ]
             ]
-        }
+        ]
+    , nav [ Attr.class "p-4 border-t border-gray-200" ]
+        [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Timeline) ]
+        , ul [ Attr.class "space-y-2" ]
+            (List.map
+                (\group ->
+                    li []
+                        [ button
+                            [ Events.onClick (NavigateToSection group.monthId)
+                            , Attr.class "type-caption text-text-muted hover:text-brand hover:underline text-left w-full"
+                            , Attr.style "cursor" "pointer"
+                            , Attr.attribute "aria-label" (I18n.translate model.lang I18n.NavigateTo ++ group.monthLabel)
+                            ]
+                            [ text group.monthLabel ]
+                        ]
+                )
+                model.visibleGroups
+            )
+        ]
+    ]
 
 
-feedTypeToString : Types.Lang -> FeedType -> String
+feedTypeToString : Lang -> FeedType -> String
 feedTypeToString lang feedType =
     case feedType of
         Feed ->
@@ -427,24 +386,7 @@ feedTypeToString lang feedType =
             I18n.translate lang I18n.ImageName
 
 
-renderIntro : Types.Lang -> Html Msg
-renderIntro lang =
-    div [ Attr.class "mb-8 hidden md:block" ]
-        [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-4 w-fit" ]
-            [ -- Square-smile-full logo (official page-header lockup per design guide logos.jsonld#contextMapping.pageHeader)
-              img
-                [ Attr.src "/logo/square/square-smile.svg"
-                , Attr.alt ""
-                , Attr.attribute "aria-hidden" "true"
-                , Attr.class "w-20 h-20"
-                ]
-                []
-            , span [ Attr.class "type-h1 text-brand" ] [ text (I18n.translate lang I18n.Title) ]
-            ]
-        ]
-
-
-renderMonthSection : Types.Lang -> ViewMode -> MonthGroup -> Html Msg
+renderMonthSection : Lang -> ViewMode -> MonthGroup -> Html Msg
 renderMonthSection lang viewMode group =
     div
         [ Attr.id group.monthId
@@ -467,7 +409,7 @@ monthSectionScrollMarginTop =
     String.fromInt (Spacing.space16 + Spacing.space4) ++ "px"
 
 
-renderCard : Types.Lang -> ViewMode -> AppItem -> Html Msg
+renderCard : Lang -> ViewMode -> AppItem -> Html Msg
 renderCard lang viewMode item =
     case viewMode of
         Full ->
@@ -477,7 +419,7 @@ renderCard lang viewMode item =
             renderThumbnailCard lang item
 
 
-renderFullCard : Types.Lang -> AppItem -> Html Msg
+renderFullCard : Lang -> AppItem -> Html Msg
 renderFullCard lang item =
     div [ Attr.class "card-hover bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
         [ -- Card image
@@ -565,7 +507,7 @@ renderFullCard lang item =
         ]
 
 
-renderThumbnailCard : Types.Lang -> AppItem -> Html Msg
+renderThumbnailCard : Lang -> AppItem -> Html Msg
 renderThumbnailCard lang item =
     div [ Attr.class "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
         [ -- Card image only
@@ -630,7 +572,7 @@ feedTypeIcon feedType =
 
 {-| Get human-readable name for feed type
 -}
-feedTypeName : Types.Lang -> FeedType -> String
+feedTypeName : Lang -> FeedType -> String
 feedTypeName lang feedType =
     case feedType of
         Feed ->

@@ -1,6 +1,11 @@
 import './main.css'
 import { Elm } from './src/Main.elm'
 import lunr from 'lunr'
+import siteConfig from 'virtual:site-config'
+import { appSettings, pickLang, requestedLang, setDocumentLang } from './packages/site-config/browser.mjs'
+
+// App settings come from [app] in ../config.toml, in the language being shown.
+const settings = appSettings(siteConfig, pickLang(siteConfig))
 
 // Format date in Finnish locale with Europe/Helsinki timezone
 const now = new Date()
@@ -41,8 +46,12 @@ const app = Elm.Main.init({
     timestamp: formattedDate,
     viewMode: savedViewMode,
     selectedFeedTypes: savedSelectedFeedTypes,
+    siteConfig,
+    requestedLang: requestedLang(),
   },
 })
+
+app.ports.setDocumentLang.subscribe(setDocumentLang)
 
 // Handle saving view mode to localStorage
 app.ports.saveViewMode.subscribe(function (viewMode) {
@@ -175,7 +184,7 @@ function setupPullToRefresh() {
   ].join(';')
 
   const label = document.createElement('span')
-  label.textContent = '⟳ Päivitä sivu'
+  label.textContent = settings.refresh_label
 
   action.appendChild(label)
   indicator.appendChild(action)

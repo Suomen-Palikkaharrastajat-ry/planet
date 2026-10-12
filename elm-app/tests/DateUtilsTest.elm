@@ -1,12 +1,12 @@
 module DateUtilsTest exposing (suite)
 
 {-| Tests for DateUtils module
-
 -}
 
 import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (extractYearMonth, formatDate, formatMonthLabel, groupByMonth)
 import Expect
+import Lang exposing (Lang(..))
 import Test exposing (Test, describe, test)
 
 
@@ -32,16 +32,16 @@ suite =
         , describe "formatMonthLabel"
             [ test "formats January in Finnish" <|
                 \_ ->
-                    Expect.equal "tammikuu 2026" (formatMonthLabel "2026-01-08T19:27:04Z")
+                    Expect.equal "tammikuu 2026" (formatMonthLabel Fi "2026-01-08T19:27:04Z")
             , test "formats February in Finnish" <|
                 \_ ->
-                    Expect.equal "helmikuu 2026" (formatMonthLabel "2026-02-15T10:00:00Z")
+                    Expect.equal "helmikuu 2026" (formatMonthLabel Fi "2026-02-15T10:00:00Z")
             , test "formats December in Finnish" <|
                 \_ ->
-                    Expect.equal "joulukuu 2025" (formatMonthLabel "2025-12-25T00:00:00Z")
+                    Expect.equal "joulukuu 2025" (formatMonthLabel Fi "2025-12-25T00:00:00Z")
             , test "handles invalid month" <|
                 \_ ->
-                    Expect.equal "Tuntematon 2026" (formatMonthLabel "2026-99-99T00:00:00Z")
+                    Expect.equal "Tuntematon 2026" (formatMonthLabel Fi "2026-99-99T00:00:00Z")
             ]
         , describe "groupByMonth"
             [ test "groups items by month" <|
@@ -54,7 +54,7 @@ suite =
                             ]
 
                         groups =
-                            groupByMonth items
+                            groupByMonth Fi items
                     in
                     Expect.equal 2 (List.length groups)
             , test "handles items without dates" <|
@@ -65,7 +65,7 @@ suite =
                             ]
 
                         groups =
-                            groupByMonth items
+                            groupByMonth Fi items
 
                         firstGroup =
                             List.head groups
@@ -89,7 +89,7 @@ suite =
                             ]
 
                         groups =
-                            groupByMonth items
+                            groupByMonth Fi items
 
                         firstGroup =
                             List.head groups
@@ -102,7 +102,7 @@ suite =
                             Expect.fail "Expected at least one group"
             , test "empty list returns empty groups" <|
                 \_ ->
-                    Expect.equal [] (groupByMonth [])
+                    Expect.equal [] (groupByMonth Fi [])
             ]
         ]
 

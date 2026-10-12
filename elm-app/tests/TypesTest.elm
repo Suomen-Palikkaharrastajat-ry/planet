@@ -1,13 +1,14 @@
 module TypesTest exposing (suite)
 
 {-| Tests for Types module
-
 -}
 
 import Data exposing (FeedType(..))
 import Expect
+import Lang exposing (Lang(..))
 import RemoteData
 import Test exposing (Test, describe, test)
+import TestSite
 import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..))
 
 
@@ -30,7 +31,8 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , navKey = Nothing
-                            , lang = Types.Fi
+                            , lang = Lang.Fi
+                            , site = TestSite.site Lang.Fi
                             , currentGroup = "fi"
                             }
                     in

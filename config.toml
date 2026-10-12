@@ -1,0 +1,36 @@
+# Site configuration for Palikkalinkit.
+#
+# Layered on the family defaults in
+# vendor/master-builder/packages/site-config/family.toml, which supply the
+# icons, branding and footer. See vendor/master-builder/docs/site-config.md.
+#
+# The feeds themselves are configured in planet.toml.
+
+[i18n]
+default   = "fi"
+languages = ["fi", "en"]
+
+[site]
+url         = "https://linkit.palikkaharrastajat.fi"
+title       = "Palikkalinkit"
+description = "Suomen Palikkaharrastajat ry:n tuottama syötekooste"
+
+[site.en]
+title       = "Palikkalinkit"
+description = "Feed aggregator produced by Suomen Palikkaharrastajat ry"
+
+[navbar]
+variant = "app"
+
+[footer]
+# The linked content belongs to its authors, not to the association.
+copyright = "Sisältö on tekijöidensä omistamaa."
+
+[footer.en]
+copyright = "Content is owned by its creators."
+
+[app]
+refresh_label = "⟳ Päivitä sivu"
+
+[app.en]
+refresh_label = "⟳ Refresh page"

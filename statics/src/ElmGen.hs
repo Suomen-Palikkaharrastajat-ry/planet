@@ -25,6 +25,8 @@ generateElmModule config items =
      in T.unlines
             [ "module Data exposing (allAppItems, AppItem, FeedType(..), defaultGroup, allGroups)"
             , ""
+            , "-- i18n-exempt: generated feed content, not interface text."
+            , ""
             , "type FeedType"
             , "    = Feed"
             , "    | YouTube"

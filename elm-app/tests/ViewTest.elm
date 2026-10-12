@@ -3,16 +3,17 @@ module ViewTest exposing (suite)
 {-| Tests for View module
 -}
 
-import Component.Footer.Family as Family
 import Data exposing (AppItem, FeedType(..))
 import Expect
 import Html exposing (Html)
 import Html.Attributes
+import Lang exposing (Lang(..))
 import RemoteData
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
-import Types exposing (Lang(..), Model, Msg(..), ViewMode(..), ViewModel)
+import TestSite
+import Types exposing (Model, Msg(..), ViewMode(..), ViewModel)
 import View
 
 
@@ -36,6 +37,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -58,6 +60,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -80,6 +83,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -102,6 +106,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -125,11 +130,19 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
 
                         expected =
-                            Family.linksExcept "https://linkit.palikkaharrastajat.fi"
+                            [ "https://palikkaharrastajat.fi"
+                            , "https://kalenteri.palikkaharrastajat.fi"
+                            , "https://kartta.palikkaharrastajat.fi"
+                            , "https://forum.palikkaharrastajat.fi"
+                            , "https://kortti.palikkaharrastajat.fi"
+                            , "https://maksut.palikkaharrastajat.fi"
+                            , "https://palikkaharrastajat.fi/tietosuoja"
+                            ]
                     in
                     View.view model
                         |> Query.fromHtml
@@ -139,9 +152,9 @@ suite =
                         |> Expect.all
                             (Query.count (Expect.equal (List.length expected))
                                 :: List.indexedMap
-                                    (\i link ->
+                                    (\i href ->
                                         Query.index i
-                                            >> Query.has [ Selector.attribute (Html.Attributes.href link.href) ]
+                                            >> Query.has [ Selector.attribute (Html.Attributes.href href) ]
                                     )
                                     expected
                             )
@@ -161,6 +174,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -184,6 +198,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "en"
                             }
                     in
@@ -207,14 +222,15 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
                     View.view model
                         |> Query.fromHtml
                         |> Query.has
-                            [ Selector.attribute (Html.Attributes.attribute "aria-label" "Navigate to FI group")
-                            , Selector.attribute (Html.Attributes.attribute "aria-label" "Navigate to EN group")
+                            [ Selector.attribute (Html.Attributes.attribute "aria-label" "Näytä ryhmä FI")
+                            , Selector.attribute (Html.Attributes.attribute "aria-label" "Näytä ryhmä EN")
                             ]
             , test "renders title as link to root" <|
                 \_ ->
@@ -232,6 +248,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -282,6 +299,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -309,6 +327,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -333,6 +352,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -366,6 +386,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -424,6 +445,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -482,6 +504,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -503,6 +526,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -561,6 +585,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -619,6 +644,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -640,6 +666,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -663,6 +690,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -684,6 +712,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -707,6 +736,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -728,6 +758,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -749,6 +780,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -772,6 +804,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -793,6 +826,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -814,6 +848,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -835,6 +870,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -856,6 +892,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -889,6 +926,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -922,6 +960,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
 
@@ -968,6 +1007,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 300
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
 
@@ -980,14 +1020,14 @@ suite =
                                 |> Query.fromHtml
                                 |> Query.has
                                     [ Selector.tag "button"
-                                    , Selector.attribute (Html.Attributes.attribute "aria-label" "Siirry ylös")
+                                    , Selector.attribute (Html.Attributes.attribute "aria-label" "Takaisin ylös")
                                     ]
                         , \_ ->
                             View.view topModel
                                 |> Query.fromHtml
                                 |> Query.hasNot
                                     [ Selector.tag "button"
-                                    , Selector.attribute (Html.Attributes.attribute "aria-label" "Siirry ylös")
+                                    , Selector.attribute (Html.Attributes.attribute "aria-label" "Takaisin ylös")
                                     ]
                         ]
                         ()
@@ -1006,6 +1046,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
                     in
@@ -1030,6 +1071,7 @@ suite =
                             , searchedIds = []
                             , scrollY = 0
                             , lang = Fi
+                            , site = TestSite.site Fi
                             , currentGroup = "fi"
                             }
 
@@ -1055,6 +1097,60 @@ suite =
                                     ]
                         ]
                         ()
+            ]
+        , describe "English"
+            [ test "chrome, footer and month headings are English when the language is" <|
+                \_ ->
+                    let
+                        model : ViewModel
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = En
+                            , site = TestSite.site En
+                            , currentGroup = "fi"
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Expect.all
+                            [ Query.has [ Selector.text "Skip to main content" ]
+                            , Query.has [ Selector.text "Content is owned by its creators." ]
+                            , Query.has [ Selector.text "LEGO® is a registered trademark of the LEGO Group." ]
+                            , Query.has [ Selector.text "Homepage" ]
+                            , Query.has [ Selector.text "Suomeksi", Selector.attribute (Html.Attributes.href "?lang=fi") ]
+                            ]
+            , test "the Finnish page links to the English one" <|
+                \_ ->
+                    let
+                        model : ViewModel
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            , site = TestSite.site Fi
+                            , currentGroup = "fi"
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.text "In English", Selector.attribute (Html.Attributes.href "?lang=en") ]
             ]
         ]
 

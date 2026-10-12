@@ -7,6 +7,8 @@ module DateUtils exposing (extractYearMonth, formatDate, formatMonthLabel, group
 -}
 
 import Data exposing (AppItem)
+import I18n
+import Lang exposing (Lang)
 import Types exposing (MonthGroup)
 
 
@@ -17,59 +19,18 @@ extractYearMonth dateStr =
     String.left 7 dateStr
 
 
-{-| Extract month name from ISO date string
+{-| Month heading for an ISO date string, in the given language
+("2026-01-08…" → "tammikuu 2026").
 -}
-formatMonthLabel : String -> String
-formatMonthLabel dateStr =
+formatMonthLabel : Lang -> String -> String
+formatMonthLabel lang dateStr =
     let
-        monthNum =
+        month =
             String.slice 5 7 dateStr
-
-        year =
-            String.left 4 dateStr
-
-        monthName =
-            case monthNum of
-                "01" ->
-                    "tammikuu"
-
-                "02" ->
-                    "helmikuu"
-
-                "03" ->
-                    "maaliskuu"
-
-                "04" ->
-                    "huhtikuu"
-
-                "05" ->
-                    "toukokuu"
-
-                "06" ->
-                    "kesäkuu"
-
-                "07" ->
-                    "heinäkuu"
-
-                "08" ->
-                    "elokuu"
-
-                "09" ->
-                    "syyskuu"
-
-                "10" ->
-                    "lokakuu"
-
-                "11" ->
-                    "marraskuu"
-
-                "12" ->
-                    "joulukuu"
-
-                _ ->
-                    "Tuntematon"
+                |> String.toInt
+                |> Maybe.withDefault 0
     in
-    monthName ++ " " ++ year
+    I18n.monthName lang month ++ " " ++ String.left 4 dateStr
 
 
 {-| Format date for display (e.g., "2026-01-08T19:27:04Z" -> "2026-01-08")
@@ -81,8 +42,8 @@ formatDate dateStr =
 
 {-| Group items by month
 -}
-groupByMonth : List AppItem -> List MonthGroup
-groupByMonth items =
+groupByMonth : Lang -> List AppItem -> List MonthGroup
+groupByMonth lang items =
     let
         getMonthKey item =
             case item.itemDate of
@@ -111,10 +72,10 @@ groupByMonth items =
             in
             { monthLabel =
                 if monthKey == "0000-00" then
-                    "Vanhemmat / Päiväämättömät"
+                    I18n.translate lang I18n.UndatedItems
 
                 else
-                    formatMonthLabel first
+                    formatMonthLabel lang first
             , monthId = "m-" ++ monthKey
             , items = groupItems
             }

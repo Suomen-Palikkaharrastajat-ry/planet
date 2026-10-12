@@ -19,11 +19,13 @@ import Html exposing (Html)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Lang exposing (Lang(..))
 import Ports
 import Process
 import RemoteData
+import SiteSettings
 import Task
-import Types exposing (Lang(..), Model, Msg(..), SearchItem, ViewMode(..), ViewModel)
+import Types exposing (Model, Msg(..), SearchItem, ViewMode(..), ViewModel)
 import Url
 import View
 
@@ -34,6 +36,8 @@ type alias Flags =
     { timestamp : String
     , viewMode : String
     , selectedFeedTypes : String
+    , siteConfig : Decode.Value
+    , requestedLang : Maybe String
     }
 
 
@@ -156,7 +160,13 @@ main =
 -}
 view : Model -> Browser.Document Msg
 view model =
-    { title = "Palikkalinkit — Suomen Palikkaharrastajat ry"
+    { title =
+        case model.site.metadata.author of
+            Just author ->
+                model.site.site.title ++ " — " ++ author
+
+            Nothing ->
+                model.site.site.title
     , body = [ View.view (modelToViewModel model) ]
     }
 
@@ -177,6 +187,7 @@ modelToViewModel model =
     , scrollY = model.scrollY
     , lang = model.lang
     , currentGroup = model.currentGroup
+    , site = model.site
     }
 
 
@@ -218,6 +229,20 @@ init flags url navKey =
         group =
             groupFromPath url.path
 
+        localized =
+            Decode.decodeValue SiteSettings.localizedDecoder flags.siteConfig
+
+        lang =
+            localized
+                |> Result.map (SiteSettings.pickLang flags.requestedLang)
+                |> Result.withDefault Fi
+
+        site =
+            localized
+                |> Result.toMaybe
+                |> Maybe.andThen (SiteSettings.forLang lang)
+                |> Maybe.withDefault (SiteSettings.placeholder lang)
+
         model =
             { items = allAppItems
             , generatedAt = flags.timestamp
@@ -230,8 +255,9 @@ init flags url navKey =
             , searchedIds = []
             , scrollY = 0
             , navKey = Just navKey
-            , lang = Fi
+            , lang = lang
             , currentGroup = group
+            , site = site
             }
 
         redirectCmd =
@@ -245,7 +271,9 @@ init flags url navKey =
             else
                 Cmd.none
     in
-    ( recalculateVisibleGroups { model | visibleGroups = groupByMonth allAppItems }, redirectCmd )
+    ( recalculateVisibleGroups { model | visibleGroups = groupByMonth lang allAppItems }
+    , Cmd.batch [ redirectCmd, Ports.setDocumentLang (Lang.toString lang) ]
+    )
 
 
 
@@ -365,7 +393,12 @@ update msg model =
                 Browser.Internal url ->
                     case model.navKey of
                         Just key ->
-                            ( model, Browser.Navigation.pushUrl key (Url.toString url) )
+                            if String.contains "lang=" (Maybe.withDefault "" url.query) then
+                                -- The language is read at startup, so switching it reloads the page.
+                                ( model, Browser.Navigation.load (Url.toString url) )
+
+                            else
+                                ( model, Browser.Navigation.pushUrl key (Url.toString url) )
 
                         Nothing ->
                             ( model, Cmd.none )
@@ -417,7 +450,7 @@ recalculateVisibleGroups model =
                 |> List.filter (\item -> item.itemGroup == model.currentGroup)
                 |> List.filter (\item -> List.member item.itemType model.selectedFeedTypes)
     in
-    { model | visibleGroups = groupByMonth filteredItems }
+    { model | visibleGroups = groupByMonth model.lang filteredItems }
 
 
 {-| Check if an item matches the search text (case insensitive)

@@ -1,23 +1,24 @@
-module I18n exposing (MsgKey(..), translate)
+module I18n exposing (MsgKey(..), monthName, translate)
 
 {-| Internationalization module
 
-@docs MsgKey, translate
+@docs MsgKey, monthName, translate
 
 -}
 
-import Types exposing (Lang)
+import Lang exposing (Lang(..))
 
 
 {-| Translation keys
 -}
 type MsgKey
-    = SkipToContent
-    | Close
-    | Open
-    | CloseMenu
-    | OpenMenu
-    | Timeline
+    = Timeline
+    | UndatedItems
+    | ShowGroup
+    | ReportInappropriateContentHref
+    | OtherLanguageCode
+    | OtherLanguageName
+    | UnknownMonth
     | Search
     | SearchPlaceholder
     | FeedFilters
@@ -25,48 +26,40 @@ type MsgKey
     | View
     | Descriptions
     | DescriptionsText
-    | Title
     | Compiled
-    | Description
     | DownloadOpml
-    | ScrollToTop
     | FeedName
     | YouTubeName
     | ImageName
     | OpenInNewWindow
     | NavigateTo
-    | OrgName
-    | FooterBrandName
-    | HomePage
-    | BrickCalendar
-    | BrickLinks
-    | ContentOwnership
     | ReportInappropriateContent
-    | LegoTrademark
-    | LegoDisclaimer
 
 
 {-| Translate a key to the given language
 -}
-translate : Types.Lang -> MsgKey -> String
+translate : Lang -> MsgKey -> String
 translate lang key =
     case lang of
-        Types.Fi ->
+        Fi ->
             case key of
-                SkipToContent ->
-                    "Siirry pääsisältöön"
+                UndatedItems ->
+                    "Vanhemmat / Päiväämättömät"
 
-                Close ->
-                    "✕"
+                ShowGroup ->
+                    "Näytä ryhmä "
 
-                Open ->
-                    "≡"
+                ReportInappropriateContentHref ->
+                    "mailto:palikkaharrastajatry@outlook.com?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
 
-                CloseMenu ->
-                    "Sulje valikko"
+                OtherLanguageCode ->
+                    "en"
 
-                OpenMenu ->
-                    "Avaa valikko"
+                OtherLanguageName ->
+                    "In English"
+
+                UnknownMonth ->
+                    "Tuntematon"
 
                 Timeline ->
                     "Aikajana"
@@ -78,7 +71,7 @@ translate lang key =
                     "Hae..."
 
                 FeedFilters ->
-                    "Feed filters"
+                    "Syötesuodattimet"
 
                 Filters ->
                     "Suodattimet"
@@ -92,20 +85,11 @@ translate lang key =
                 DescriptionsText ->
                     "Kuvaukset"
 
-                Title ->
-                    "Palikkalinkit"
-
                 Compiled ->
                     "Kooste päivitetty "
 
-                Description ->
-                    "Suomen Palikkaharrastajat ry:n tuottama syötekooste"
-
                 DownloadOpml ->
                     "Lataa OPML"
-
-                ScrollToTop ->
-                    "Siirry ylös"
 
                 FeedName ->
                     "Syöte"
@@ -122,49 +106,28 @@ translate lang key =
                 NavigateTo ->
                     "Siirry "
 
-                OrgName ->
-                    "Suomen Palikkaharrastajat ry"
-
-                FooterBrandName ->
-                    "Palikkaharrastajat"
-
-                HomePage ->
-                    "Kotisivut"
-
-                BrickCalendar ->
-                    "Palikkakalenteri"
-
-                BrickLinks ->
-                    "Palikkalinkit"
-
-                ContentOwnership ->
-                    "Sisältö on tekijöidensä omistamaa."
-
                 ReportInappropriateContent ->
                     "Ilmoita asiattomasta sisällöstä."
 
-                LegoTrademark ->
-                    "LEGO® on LEGO Groupin rekisteröity tavaramerkki."
-
-                LegoDisclaimer ->
-                    "LEGO Group ei ylläpidä tai tue tätä itsenäistä sivustoa."
-
-        Types.En ->
+        En ->
             case key of
-                SkipToContent ->
-                    "Skip to main content"
+                UndatedItems ->
+                    "Older / undated"
 
-                Close ->
-                    "✕"
+                ShowGroup ->
+                    "Show group "
 
-                Open ->
-                    "≡"
+                ReportInappropriateContentHref ->
+                    "mailto:palikkaharrastajatry@outlook.com?subject=Report%20of%20inappropriate%20content%20on%20Palikkalinkit"
 
-                CloseMenu ->
-                    "Close menu"
+                OtherLanguageCode ->
+                    "fi"
 
-                OpenMenu ->
-                    "Open menu"
+                OtherLanguageName ->
+                    "Suomeksi"
+
+                UnknownMonth ->
+                    "Unknown"
 
                 Timeline ->
                     "Timeline"
@@ -190,20 +153,11 @@ translate lang key =
                 DescriptionsText ->
                     "Descriptions"
 
-                Title ->
-                    "Palikkalinkit"
-
                 Compiled ->
                     "Compiled "
 
-                Description ->
-                    "Feed aggregator produced by Suomen Palikkaharrastajat ry"
-
                 DownloadOpml ->
                     "Download OPML"
-
-                ScrollToTop ->
-                    "Scroll to top"
 
                 FeedName ->
                     "Feed"
@@ -220,29 +174,29 @@ translate lang key =
                 NavigateTo ->
                     "Navigate to "
 
-                OrgName ->
-                    "Suomen Palikkaharrastajat ry"
-
-                FooterBrandName ->
-                    "Palikkaharrastajat"
-
-                HomePage ->
-                    "Homepage"
-
-                BrickCalendar ->
-                    "Palikkakalenteri"
-
-                BrickLinks ->
-                    "Palikkalinkit"
-
-                ContentOwnership ->
-                    "Content is owned by its creators."
-
                 ReportInappropriateContent ->
                     "Report inappropriate content."
 
-                LegoTrademark ->
-                    "LEGO® is a registered trademark of the LEGO Group."
 
-                LegoDisclaimer ->
-                    "This site is not an official LEGO Group site."
+{-| Lower-case month name for a month number (1–12), as used in the timeline
+headings ("tammikuu 2026").
+-}
+monthName : Lang -> Int -> String
+monthName lang month =
+    let
+        names =
+            case lang of
+                Fi ->
+                    [ "tammikuu", "helmikuu", "maaliskuu", "huhtikuu", "toukokuu", "kesäkuu", "heinäkuu", "elokuu", "syyskuu", "lokakuu", "marraskuu", "joulukuu" ]
+
+                En ->
+                    [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]
+    in
+    if month < 1 then
+        translate lang UnknownMonth
+
+    else
+        names
+            |> List.drop (month - 1)
+            |> List.head
+            |> Maybe.withDefault (translate lang UnknownMonth)
