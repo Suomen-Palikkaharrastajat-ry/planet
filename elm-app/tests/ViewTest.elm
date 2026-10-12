@@ -3,6 +3,7 @@ module ViewTest exposing (suite)
 {-| Tests for View module
 -}
 
+import Component.Footer.Family as Family
 import Data exposing (AppItem, FeedType(..))
 import Expect
 import Html exposing (Html)
@@ -108,6 +109,42 @@ suite =
                         |> Query.fromHtml
                         |> Query.find [ Selector.tag "footer" ]
                         |> Query.has [ Selector.text "Kooste päivitetty 2026-01-09" ]
+            , test "footer links are the canonical family links without this site" <|
+                \_ ->
+                    let
+                        model : ViewModel
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            , currentGroup = "fi"
+                            }
+
+                        expected =
+                            Family.linksExcept "https://linkit.palikkaharrastajat.fi"
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.find [ Selector.tag "footer" ]
+                        |> Query.find [ Selector.tag "ul" ]
+                        |> Query.findAll [ Selector.tag "a" ]
+                        |> Expect.all
+                            (Query.count (Expect.equal (List.length expected))
+                                :: List.indexedMap
+                                    (\i link ->
+                                        Query.index i
+                                            >> Query.has [ Selector.attribute (Html.Attributes.href link.href) ]
+                                    )
+                                    expected
+                            )
             , test "renders OPML download link in footer" <|
                 \_ ->
                     let

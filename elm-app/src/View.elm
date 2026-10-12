@@ -104,7 +104,7 @@ view model =
 
 viewBrandFooter : Types.Lang -> String -> String -> Html Msg
 viewBrandFooter lang timestamp currentGroup =
-    Footer.viewWith
+    Family.viewWith
         { topMargin = False
         , extra =
             [ Html.p []
@@ -136,22 +136,29 @@ viewBrandFooter lang timestamp currentGroup =
                     [ Html.text (I18n.translate lang I18n.DownloadOpml) ]
                 ]
             ]
-        }
-        { logo = Just Family.logo
-        , siteLabel = Just (I18n.translate lang I18n.FooterBrandName)
-        , links =
-            [ { label = I18n.translate lang I18n.HomePage, href = "https://palikkaharrastajat.fi" }
-            , { label = I18n.translate lang I18n.BrickCalendar, href = "https://kalenteri.palikkaharrastajat.fi" }
-            , { label = I18n.translate lang I18n.BrickLinks, href = "https://linkit.palikkaharrastajat.fi" }
-            ]
-        , groups = []
+        , siteLabel = I18n.translate lang I18n.FooterBrandName
+        , links = footerLinks lang
         , copyright = I18n.translate lang I18n.ContentOwnership
         , disclaimer =
-            Just
-                [ I18n.translate lang I18n.LegoTrademark
-                , I18n.translate lang I18n.LegoDisclaimer
-                ]
+            [ I18n.translate lang I18n.LegoTrademark
+            , I18n.translate lang I18n.LegoDisclaimer
+            ]
         }
+
+
+{-| The canonical family links without this site, with the labels this site translates.
+-}
+footerLinks : Types.Lang -> List { label : String, href : String }
+footerLinks lang =
+    Family.linksExcept "https://linkit.palikkaharrastajat.fi"
+        |> List.map
+            (\link ->
+                if link.href == "https://palikkaharrastajat.fi" then
+                    { link | label = I18n.translate lang I18n.HomePage }
+
+                else
+                    link
+            )
 
 
 renderGroupToggle : String -> Html Msg
