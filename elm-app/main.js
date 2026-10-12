@@ -99,7 +99,15 @@ app.ports.scrollToElement.subscribe(function (elementId) {
 // Handle focus mobile search
 app.ports.focusMobileSearch.subscribe(function () {
   const el = document.getElementById('mobile-search-input')
-  if (el) el.focus()
+  if (!el) return
+  // This runs before Elm has rendered the open drawer, which is still `inert`,
+  // and focusing inside an inert subtree is a no-op. Lift it here instead of
+  // waiting for the render: iOS only raises the keyboard for a focus() made
+  // inside the tap that opened the drawer. Elm drops the attribute on its
+  // next frame anyway.
+  const drawer = el.closest('[inert]')
+  if (drawer) drawer.removeAttribute('inert')
+  el.focus()
 })
 
 // Listen for scroll events
