@@ -85,8 +85,7 @@ view model =
         )
 
 
-{-| Lines under the footer's disclaimer: reporting, build time, OPML export
-and the link to the other language.
+{-| Lines under the footer's disclaimer: reporting, build time and OPML export.
 -}
 footerExtra : Lang -> String -> String -> List (Html Msg)
 footerExtra lang timestamp currentGroup =
@@ -113,15 +112,6 @@ footerExtra lang timestamp currentGroup =
             , Attr.download ""
             ]
             [ Html.text (I18n.translate lang I18n.DownloadOpml) ]
-        ]
-    , Html.p []
-        [ Html.a
-            [ Attr.href ("?lang=" ++ I18n.translate lang I18n.OtherLanguageCode)
-            , Attr.attribute "hreflang" (I18n.translate lang I18n.OtherLanguageCode)
-            , Attr.attribute "lang" (I18n.translate lang I18n.OtherLanguageCode)
-            , linkClasses
-            ]
-            [ Html.text (I18n.translate lang I18n.OtherLanguageName) ]
         ]
     ]
 

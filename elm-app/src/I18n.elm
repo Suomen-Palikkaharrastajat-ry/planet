@@ -16,8 +16,6 @@ type MsgKey
     | UndatedItems
     | ShowGroup
     | ReportInappropriateContentHref
-    | OtherLanguageCode
-    | OtherLanguageName
     | UnknownMonth
     | Search
     | SearchPlaceholder
@@ -51,12 +49,6 @@ translate lang key =
 
                 ReportInappropriateContentHref ->
                     "mailto:palikkaharrastajatry@outlook.com?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
-
-                OtherLanguageCode ->
-                    "en"
-
-                OtherLanguageName ->
-                    "In English"
 
                 UnknownMonth ->
                     "Tuntematon"
@@ -119,12 +111,6 @@ translate lang key =
 
                 ReportInappropriateContentHref ->
                     "mailto:palikkaharrastajatry@outlook.com?subject=Report%20of%20inappropriate%20content%20on%20Palikkalinkit"
-
-                OtherLanguageCode ->
-                    "fi"
-
-                OtherLanguageName ->
-                    "Suomeksi"
 
                 UnknownMonth ->
                     "Unknown"

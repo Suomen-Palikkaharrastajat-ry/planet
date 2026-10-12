@@ -393,8 +393,8 @@ update msg model =
                 Browser.Internal url ->
                     case model.navKey of
                         Just key ->
-                            if String.contains "lang=" (Maybe.withDefault "" url.query) then
-                                -- The language is read at startup, so switching it reloads the page.
+                            if Lang.isSwitch model.lang url.query then
+                                -- The language is read at startup, so switching it loads the page.
                                 ( model, Browser.Navigation.load (Url.toString url) )
 
                             else
