@@ -6,17 +6,28 @@ module View exposing (view)
 
 -}
 
+import Component.Button as Button
+import Component.Footer as Footer
+import Component.Footer.Family as Family
+import Component.Form as Form
 import Component.MobileDrawer as MobileDrawer
+import Component.Navbar as Navbar
+import Component.ScrollToTop as ScrollToTop
+import Component.SkipLink as SkipLink
 import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (formatDate)
 import DesignTokens.Spacing as Spacing
 import FeatherIcons
-import Html exposing (Html, a, button, div, footer, h2, h3, header, img, input, label, li, main_, nav, p, span, text, ul)
+import Html exposing (Html, a, button, div, h2, h3, img, label, li, main_, nav, p, span, text, ul)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Keyed
 import I18n
 import Json.Decode as Decode
+import Tailwind as Tw exposing (classes)
+import Tailwind.Breakpoints as Bp
+import Tailwind.Theme as Th
+import TailwindExtra as TwEx
 import Types exposing (MonthGroup, Msg(..), ViewMode(..), ViewModel)
 
 
@@ -26,54 +37,33 @@ view : ViewModel -> Html Msg
 view model =
     div [ Attr.class "min-h-screen flex flex-col bg-bg-page" ]
         [ -- Skip to content link for accessibility
-          a
-            [ Attr.href "#main-content"
-            , Attr.class "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand focus:text-white focus:rounded-lg"
-            ]
-            [ text (I18n.translate model.lang I18n.SkipToContent) ]
-        , header [ Attr.class "bg-brand border-b border-brand sticky top-0 z-40 md:static" ]
-            [ div [ Attr.class "flex items-center justify-between px-4 h-14" ]
-                [ a [ Attr.href "/", Events.preventDefaultOn "click" (Decode.succeed ( ScrollToTop, True )), Attr.class "flex items-center gap-2" ]
-                    [ img
-                        [ Attr.src "/logo/square/square-smile.svg"
-                        , Attr.alt ""
-                        , Attr.attribute "aria-hidden" "true"
-                        , Attr.class "h-8 w-8"
-                        ]
-                        []
-                    , span [ Attr.class "type-h4 text-white" ] [ text (I18n.translate model.lang I18n.Title) ]
-                    ]
-                , div [ Attr.class "flex items-center gap-2" ]
-                    [ renderGroupToggle model.currentGroup
-                    , button
-                        [ Events.onClick ToggleSidebar
-                        , Attr.class "md:hidden p-2 rounded-lg text-white"
-                        , Attr.style "cursor" "pointer"
-                        , Attr.attribute "aria-label"
-                            (if model.isSidebarVisible then
-                                I18n.translate model.lang I18n.CloseMenu
-
-                             else
-                                I18n.translate model.lang I18n.OpenMenu
-                            )
-                        , Attr.attribute "aria-expanded"
-                            (if model.isSidebarVisible then
-                                "true"
-
-                             else
-                                "false"
-                            )
-                        , Attr.attribute "aria-controls" "mobile-sidebar"
-                        ]
-                        [ if model.isSidebarVisible then
-                            FeatherIcons.x |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml decorativeIconAttrs
-
-                          else
-                            FeatherIcons.menu |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml decorativeIconAttrs
-                        ]
-                    ]
-                ]
-            ]
+          SkipLink.view
+            { target = "main-content"
+            , label = I18n.translate model.lang I18n.SkipToContent
+            }
+        , Navbar.viewAppHeader
+            { brand =
+                Navbar.viewBrand
+                    { href = "/"
+                    , iconSrc = "/logo/square/square-smile.svg"
+                    , title = I18n.translate model.lang I18n.Title
+                    , onClick = Just ScrollToTop
+                    }
+            , navLabel = ""
+            , links = []
+            , trailing = [ renderGroupToggle model.currentGroup ]
+            , menuToggle =
+                Just
+                    (Navbar.viewMenuToggle
+                        { isOpen = model.isSidebarVisible
+                        , onToggle = ToggleSidebar
+                        , controls = "mobile-sidebar"
+                        , openLabel = I18n.translate model.lang I18n.OpenMenu
+                        , closeLabel = I18n.translate model.lang I18n.CloseMenu
+                        }
+                    )
+            , sticky = True
+            }
         , div [ Attr.class "flex flex-1" ]
             [ -- Timeline navigation
               renderTimelineNav model.lang model.visibleGroups
@@ -103,87 +93,53 @@ view model =
         , -- Brand footer
           viewBrandFooter model.lang model.generatedAt model.currentGroup
         , -- Scroll to top button
-          if model.scrollY > 200 then
-            button
-                [ Events.onClick ScrollToTop
-                , Attr.class "fixed bottom-4 md:right-52 right-4 z-50 p-3 text-white"
-                , Attr.style "mix-blend-mode" "difference"
-                , Attr.style "cursor" "pointer"
-                , Attr.attribute "aria-label" (I18n.translate model.lang I18n.ScrollToTop)
-                ]
-                [ FeatherIcons.arrowUp |> FeatherIcons.withSize 28 |> FeatherIcons.toHtml decorativeIconAttrs ]
-
-          else
-            text ""
+          ScrollToTop.view
+            { visible = model.scrollY > 200
+            , onClick = ScrollToTop
+            , label = I18n.translate model.lang I18n.ScrollToTop
+            , clearRightColumn = True
+            }
         ]
 
 
 viewBrandFooter : Types.Lang -> String -> String -> Html Msg
 viewBrandFooter lang timestamp currentGroup =
-    Html.footer
-        [ Attr.class "bg-brand text-white py-12 px-4" ]
-        [ Html.div [ Attr.class "max-w-5xl mx-auto" ]
-            [ Html.div
-                [ Attr.class "grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-8 sm:items-end" ]
-                [ -- Col 1: service links + logo
-                  Html.div [ Attr.class "flex items-start gap-4" ]
-                    [ Html.img
-                        [ Attr.src "/logo/square/square-smile-full-dark-bold.svg"
-                        , Attr.alt ""
-                        , Attr.attribute "aria-hidden" "true"
-                        , Attr.class "h-35 w-35 flex-shrink-0"
-                        ]
-                        []
-                    , Html.div [ Attr.class "space-y-3" ]
-                        [ Html.p [ Attr.class "text-xs font-semibold text-white/50 uppercase tracking-wider" ]
-                            [ Html.text (I18n.translate lang I18n.FooterBrandName) ]
-                        , Html.ul [ Attr.class "space-y-2 list-none m-0 p-0" ]
-                            [ Html.li []
-                                [ Html.a
-                                    [ Attr.href "https://palikkaharrastajat.fi"
-                                    , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
-                                    ]
-                                    [ Html.text (I18n.translate lang I18n.HomePage) ]
-                                ]
-                            , Html.li []
-                                [ Html.a
-                                    [ Attr.href "https://kalenteri.palikkaharrastajat.fi"
-                                    , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
-                                    ]
-                                    [ Html.text (I18n.translate lang I18n.BrickCalendar) ]
-                                ]
-                            , Html.li []
-                                [ Html.a
-                                    [ Attr.href "https://linkit.palikkaharrastajat.fi"
-                                    , Attr.class "text-sm text-white/80 hover:text-white underline transition-colors"
-                                    ]
-                                    [ Html.text (I18n.translate lang I18n.BrickLinks) ]
-                                ]
-                            ]
-                        ]
+    Footer.viewWith
+        { topMargin = False
+        , extra =
+            [ Html.p []
+                [ Html.a
+                    [ Attr.href "mailto:palikkaharrastajatry@outlook.com?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
+                    , classes [ TwEx.text_white_80, Bp.hover [ Tw.text_simple Th.white ], Tw.underline, Tw.transition_colors ]
                     ]
-                , -- Col 2: org name & legal
-                  Html.div [ Attr.class "space-y-1 sm:text-right" ]
-                    [ Html.div [ Attr.class "space-y-1 text-xs text-white/50" ]
-                        [ Html.p [] [ Html.text (I18n.translate lang I18n.ContentOwnership) ]
-                        , Html.p []
-                            [ Html.a
-                                [ Attr.href "mailto:palikkaharrastajatry@outlook.com?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
-                                , Attr.class "text-white/80 hover:text-white underline transition-colors"
-                                ]
-                                [ Html.text (I18n.translate lang I18n.ReportInappropriateContent) ]
-                            ]
-                        , Html.p []
-                            [ Html.text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | ")
-                            , a [ Attr.class "hover:text-white underline", Attr.href ("/opml." ++ currentGroup ++ ".xml"), Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ]
-                            ]
-                        , Html.p [] [ Html.text (I18n.translate lang I18n.LegoTrademark) ]
-                        , Html.p [] [ Html.text (I18n.translate lang I18n.LegoDisclaimer) ]
-                        ]
+                    [ Html.text (I18n.translate lang I18n.ReportInappropriateContent) ]
+                ]
+            , Html.p []
+                [ Html.text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | ")
+                , Html.a
+                    [ classes [ TwEx.text_white_80, Bp.hover [ Tw.text_simple Th.white ], Tw.underline, Tw.transition_colors ]
+                    , Attr.href ("/opml." ++ currentGroup ++ ".xml")
+                    , Attr.download ""
                     ]
+                    [ Html.text (I18n.translate lang I18n.DownloadOpml) ]
                 ]
             ]
-        ]
+        }
+        { logo = Just Family.logo
+        , siteLabel = Just (I18n.translate lang I18n.FooterBrandName)
+        , links =
+            [ { label = I18n.translate lang I18n.HomePage, href = "https://palikkaharrastajat.fi" }
+            , { label = I18n.translate lang I18n.BrickCalendar, href = "https://kalenteri.palikkaharrastajat.fi" }
+            , { label = I18n.translate lang I18n.BrickLinks, href = "https://linkit.palikkaharrastajat.fi" }
+            ]
+        , groups = []
+        , copyright = I18n.translate lang I18n.ContentOwnership
+        , disclaimer =
+            Just
+                [ I18n.translate lang I18n.LegoTrademark
+                , I18n.translate lang I18n.LegoDisclaimer
+                ]
+        }
 
 
 renderGroupToggle : String -> Html Msg
@@ -255,44 +211,42 @@ renderTimelineNav lang groups =
 
 renderFeedFilterNav : Types.Lang -> List FeedType -> String -> ViewMode -> Html Msg
 renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
+    let
+        searchField =
+            Form.defaultField "desktop-search-input" (I18n.translate lang I18n.Search)
+    in
     nav [ Attr.class "timeline-nav hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
         [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.FeedFilters) ]
-        , div [ Attr.class "mb-4" ]
-            [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.Search) ]
-            , input
-                [ Attr.type_ "text"
-                , Attr.placeholder (I18n.translate lang I18n.SearchPlaceholder)
-                , Attr.value searchText
-                , Events.onInput UpdateSearchText
-                , Attr.class "w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                ]
-                []
-            ]
+        , Form.textInput
+            { searchField | labelHidden = True }
+            { value = searchText
+            , onInput = UpdateSearchText
+            , inputType = Form.Search
+            , placeholder = Just (I18n.translate lang I18n.SearchPlaceholder)
+            }
         , div [ Attr.class "flex flex-wrap gap-2 mb-4" ]
             (List.map
                 (\feedType ->
-                    button
-                        [ Events.onClick (ToggleFeedType feedType)
-                        , Attr.class
-                            ("cursor-pointer p-2 border font-semibold transition-colors duration-150 "
-                                ++ (if List.member feedType selectedFeedTypes then
-                                        "border-brand text-brand active:bg-brand-yellow"
-
-                                    else
-                                        "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
-                                   )
-                            )
-                        , Attr.title (feedTypeToString lang feedType)
-                        , Attr.attribute "aria-label" (feedTypeToString lang feedType)
-                        , Attr.attribute "aria-pressed"
-                            (if List.member feedType selectedFeedTypes then
-                                "true"
+                    let
+                        isSelected =
+                            List.member feedType selectedFeedTypes
+                    in
+                    Button.new
+                        { label = feedTypeToString lang feedType
+                        , onClick = ToggleFeedType feedType
+                        }
+                        |> Button.withVariant
+                            (if isSelected then
+                                Button.Secondary
 
                              else
-                                "false"
+                                Button.Ghost
                             )
-                        ]
-                        [ feedTypeIcon feedType ]
+                        |> Button.withSize Button.Small
+                        |> Button.withIcon (feedTypeFeatherIcon feedType)
+                        |> Button.iconOnly
+                        |> Button.withPressed (Just isSelected)
+                        |> Button.toHtml
                 )
                 [ Feed, YouTube, Image ]
             )
@@ -340,6 +294,10 @@ decorativeIconAttrs =
 
 renderMobileSidebar : ViewModel -> Html Msg
 renderMobileSidebar model =
+    let
+        searchField =
+            Form.defaultField "mobile-search-input" (I18n.translate model.lang I18n.Search)
+    in
     MobileDrawer.view
         { isOpen = model.isSidebarVisible
         , id = "mobile-sidebar"
@@ -349,43 +307,36 @@ renderMobileSidebar model =
         , content =
             [ nav [ Attr.class "p-4" ]
                 [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Filters) ]
-                , div [ Attr.class "mb-4" ]
-                    [ label [ Attr.for "mobile-search-input", Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Search) ]
-                    , input
-                        [ Attr.type_ "text"
-                        , Attr.id "mobile-search-input"
-                        , Attr.placeholder (I18n.translate model.lang I18n.SearchPlaceholder)
-                        , Attr.value model.searchText
-                        , Events.onInput UpdateSearchText
-                        , Attr.class "w-full px-3 py-2 border border-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-                        ]
-                        []
-                    ]
+                , Form.textInput
+                    { searchField | labelHidden = True }
+                    { value = model.searchText
+                    , onInput = UpdateSearchText
+                    , inputType = Form.Search
+                    , placeholder = Just (I18n.translate model.lang I18n.SearchPlaceholder)
+                    }
                 , div [ Attr.class "flex flex-wrap gap-2 mb-4" ]
                     (List.map
                         (\feedType ->
-                            button
-                                [ Events.onClick (ToggleFeedType feedType)
-                                , Attr.class
-                                    ("cursor-pointer p-2 border font-semibold transition-colors duration-150 "
-                                        ++ (if List.member feedType model.selectedFeedTypes then
-                                                "border-brand text-brand active:bg-brand-yellow"
-
-                                            else
-                                                "border-transparent opacity-50 hover:text-brand active:bg-brand-yellow"
-                                           )
-                                    )
-                                , Attr.title (feedTypeToString model.lang feedType)
-                                , Attr.attribute "aria-label" (feedTypeToString model.lang feedType)
-                                , Attr.attribute "aria-pressed"
-                                    (if List.member feedType model.selectedFeedTypes then
-                                        "true"
+                            let
+                                isSelected =
+                                    List.member feedType model.selectedFeedTypes
+                            in
+                            Button.new
+                                { label = feedTypeToString model.lang feedType
+                                , onClick = ToggleFeedType feedType
+                                }
+                                |> Button.withVariant
+                                    (if isSelected then
+                                        Button.Secondary
 
                                      else
-                                        "false"
+                                        Button.Ghost
                                     )
-                                ]
-                                [ feedTypeIcon feedType ]
+                                |> Button.withSize Button.Small
+                                |> Button.withIcon (feedTypeFeatherIcon feedType)
+                                |> Button.iconOnly
+                                |> Button.withPressed (Just isSelected)
+                                |> Button.toHtml
                         )
                         [ Feed, YouTube, Image ]
                     )
@@ -638,17 +589,26 @@ renderThumbnailCard lang item =
 
 {-| Get feather icon for feed type
 -}
-feedTypeIcon : FeedType -> Html Msg
-feedTypeIcon feedType =
+feedTypeFeatherIcon : FeedType -> FeatherIcons.Icon
+feedTypeFeatherIcon feedType =
     case feedType of
         Feed ->
-            FeatherIcons.rss |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml decorativeIconAttrs
+            FeatherIcons.rss
 
         YouTube ->
-            FeatherIcons.youtube |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml decorativeIconAttrs
+            FeatherIcons.youtube
 
         Image ->
-            FeatherIcons.camera |> FeatherIcons.withSize 24 |> FeatherIcons.toHtml decorativeIconAttrs
+            FeatherIcons.camera
+
+
+{-| Render feather icon HTML for feed type
+-}
+feedTypeIcon : FeedType -> Html Msg
+feedTypeIcon feedType =
+    feedTypeFeatherIcon feedType
+        |> FeatherIcons.withSize 24
+        |> FeatherIcons.toHtml decorativeIconAttrs
 
 
 {-| Get human-readable name for feed type

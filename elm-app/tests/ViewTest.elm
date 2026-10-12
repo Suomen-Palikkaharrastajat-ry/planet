@@ -1,7 +1,6 @@
 module ViewTest exposing (suite)
 
 {-| Tests for View module
-
 -}
 
 import Data exposing (AppItem, FeedType(..))
@@ -805,6 +804,103 @@ suite =
                     View.view model
                         |> Query.fromHtml
                         |> Query.hasNot [ Selector.class "bg-black/50" ]
+            , test "desktop search input has associated label" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            , currentGroup = "fi"
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has
+                            [ Selector.tag "label"
+                            , Selector.attribute (Html.Attributes.for "desktop-search-input")
+                            ]
+            , test "mobile search input has associated label" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = True
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            , currentGroup = "fi"
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has
+                            [ Selector.tag "label"
+                            , Selector.attribute (Html.Attributes.for "mobile-search-input")
+                            ]
+            , test "filter buttons expose aria-pressed attribute for selected and unselected states" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            , lang = Fi
+                            , currentGroup = "fi"
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has
+                            [ Selector.tag "button"
+                            , Selector.attribute (Html.Attributes.attribute "aria-pressed" "true")
+                            , Selector.attribute (Html.Attributes.attribute "aria-label" "Syöte")
+                            ]
+            , test "renders scroll to top button when scrolled" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = ""
+                            , viewMode = Types.Full
+                            , visibleGroups = []
+                            , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 300
+                            , lang = Fi
+                            , currentGroup = "fi"
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has
+                            [ Selector.tag "button"
+                            , Selector.attribute (Html.Attributes.attribute "aria-label" "Siirry ylös")
+                            ]
             ]
         ]
 
