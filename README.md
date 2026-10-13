@@ -66,7 +66,8 @@ on the family defaults of the hub; the format is documented in
 [`vendor/master-builder/docs/site-config.md`](vendor/master-builder/docs/site-config.md).
 
 - Text in the default language (Finnish) sits directly in a section; English
-  goes in a sub-table such as `[site.en]` or `[app.en]`.
+  goes in a sub-table such as `[site.en]`; the app's own text sits in
+  `[app.strings]` and `[app.en.strings]`.
 - Vite generates the document head and `site.webmanifest` from it, so
   `elm-app/index.html` carries no title, description or icon tags.
 - Two committed files are derived from it: `elm-app/tests/SiteFixture.elm`

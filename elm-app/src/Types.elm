@@ -53,6 +53,7 @@ type alias Model =
     , lang : Lang
     , currentGroup : String
     , site : SiteSettings
+    , contactEmail : String
     }
 
 
@@ -72,6 +73,7 @@ type alias ViewModel =
     , lang : Lang
     , currentGroup : String
     , site : SiteSettings
+    , contactEmail : String
     }
 
 

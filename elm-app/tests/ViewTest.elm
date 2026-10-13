@@ -7,6 +7,7 @@ import Data exposing (AppItem, FeedType(..))
 import Expect
 import Html exposing (Html)
 import Html.Attributes
+import I18n
 import Lang exposing (Lang(..))
 import RemoteData
 import Test exposing (Test, describe, test)
@@ -38,6 +39,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -61,6 +63,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -84,6 +87,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -107,6 +111,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -131,6 +136,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
 
@@ -175,6 +181,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -199,6 +206,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "en"
                             }
                     in
@@ -223,6 +231,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -249,6 +258,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -300,6 +310,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -328,6 +339,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -353,6 +365,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -387,6 +400,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -446,6 +460,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -505,6 +520,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -527,6 +543,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -586,6 +603,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -645,6 +663,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -667,6 +686,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -691,6 +711,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -713,6 +734,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -737,6 +759,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -759,6 +782,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -781,6 +805,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -805,6 +830,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -827,6 +853,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -849,6 +876,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -871,6 +899,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -893,6 +922,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -927,6 +957,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -961,6 +992,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
 
@@ -1008,6 +1040,7 @@ suite =
                             , scrollY = 300
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
 
@@ -1047,6 +1080,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -1072,6 +1106,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
 
@@ -1116,6 +1151,7 @@ suite =
                             , scrollY = 0
                             , lang = En
                             , site = TestSite.site En
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in
@@ -1128,6 +1164,13 @@ suite =
                             , Query.has [ Selector.text "Homepage" ]
                             , Query.has [ Selector.text "Suomeksi", Selector.attribute (Html.Attributes.href "?lang=fi") ]
                             ]
+            , test "the report link goes to the configured address with a subject in the language" <|
+                \_ ->
+                    ( I18n.reportContentMailto Fi "a@example.org", I18n.reportContentMailto En "a@example.org" )
+                        |> Expect.equal
+                            ( "mailto:a@example.org?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
+                            , "mailto:a@example.org?subject=Report%20of%20inappropriate%20content%20on%20Palikkalinkit"
+                            )
             , test "the Finnish page links to the English one" <|
                 \_ ->
                     let
@@ -1145,6 +1188,7 @@ suite =
                             , scrollY = 0
                             , lang = Fi
                             , site = TestSite.site Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in

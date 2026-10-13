@@ -15,7 +15,7 @@ module SiteConfig (
     author,
     monthNames,
     weekdayAbbrs,
-    appRefreshLabel,
+    appContactEmail,
 ) where
 
 -- | The languages the site declares in @[i18n] languages@.
@@ -60,7 +60,7 @@ weekdayAbbrs :: Lang -> [String]
 weekdayAbbrs Fi = ["ma", "ti", "ke", "to", "pe", "la", "su"]
 weekdayAbbrs En = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
--- | @[app] refresh_label@.
-appRefreshLabel :: Lang -> String
-appRefreshLabel Fi = "\10227\& P\228\&ivit\228\& sivu"
-appRefreshLabel En = "\10227\& Refresh page"
+-- | @[app] contact_email@.
+appContactEmail :: Lang -> String
+appContactEmail Fi = "palikkaharrastajatry@outlook.com"
+appContactEmail En = "palikkaharrastajatry@outlook.com"

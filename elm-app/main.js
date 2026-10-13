@@ -55,6 +55,7 @@ const app = Elm.Main.init({
 })
 
 app.ports.setDocumentLang.subscribe((lang) => showLanguage(siteConfig, lang))
+app.ports.reportError.subscribe((problem) => console.error(problem))
 
 // Handle saving view mode to localStorage
 app.ports.saveViewMode.subscribe(function (viewMode) {
@@ -187,7 +188,7 @@ function setupPullToRefresh() {
   ].join(';')
 
   const label = document.createElement('span')
-  label.textContent = settings.refresh_label
+  label.textContent = settings.strings.refresh
 
   action.appendChild(label)
   indicator.appendChild(action)

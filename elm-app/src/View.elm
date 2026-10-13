@@ -72,7 +72,7 @@ view model =
                       renderFeedFilterNav lang model.selectedFeedTypes model.searchText model.viewMode
                     ]
             , aboveFooter = []
-            , footer = Just { topMargin = False, extra = footerExtra lang model.generatedAt model.currentGroup }
+            , footer = Just { topMargin = False, extra = footerExtra lang model.contactEmail model.generatedAt model.currentGroup }
             , scrollToTop =
                 Just
                     { visible = model.scrollY > 200
@@ -87,8 +87,8 @@ view model =
 
 {-| Lines under the footer's disclaimer: reporting, build time and OPML export.
 -}
-footerExtra : Lang -> String -> String -> List (Html Msg)
-footerExtra lang timestamp currentGroup =
+footerExtra : Lang -> String -> String -> String -> List (Html Msg)
+footerExtra lang contactEmail timestamp currentGroup =
     let
         linkClasses =
             classes
@@ -101,7 +101,7 @@ footerExtra lang timestamp currentGroup =
     in
     [ Html.p []
         [ Html.a
-            [ Attr.href (I18n.translate lang I18n.ReportInappropriateContentHref), linkClasses ]
+            [ Attr.href (I18n.reportContentMailto lang contactEmail), linkClasses ]
             [ Html.text (I18n.translate lang I18n.ReportInappropriateContent) ]
         ]
     , Html.p []
@@ -455,10 +455,10 @@ renderFullCard lang item =
                         , Attr.attribute "aria-label" (item.itemSourceTitle ++ I18n.translate lang I18n.OpenInNewWindow)
                         , Attr.class "type-overline text-text-muted hover:underline"
                         ]
-                        [ text item.itemSourceTitle ]
+                        [ span (itemLang lang item) [ text item.itemSourceTitle ] ]
 
                 Nothing ->
-                    span [ Attr.class "type-overline text-text-muted" ] [ text item.itemSourceTitle ]
+                    span [ Attr.class "type-overline text-text-muted" ] [ span (itemLang lang item) [ text item.itemSourceTitle ] ]
             , -- Title
               h3 [ Attr.class "type-h4 text-brand mt-1 line-clamp-2" ]
                 [ a
@@ -468,7 +468,7 @@ renderFullCard lang item =
                     , Attr.attribute "aria-label" (item.itemTitle ++ I18n.translate lang I18n.OpenInNewWindow)
                     , Attr.class "hover:underline"
                     ]
-                    [ text item.itemTitle ]
+                    [ span (itemLang lang item) [ text item.itemTitle ] ]
                 ]
             , -- Description (truncated)
               case item.itemDescSnippet of
@@ -573,3 +573,15 @@ feedTypeName lang feedType =
 
         Image ->
             I18n.translate lang I18n.ImageName
+
+
+{-| The `lang` attribute for a feed item's own text: items are in the language
+of their group ("fi", "en"), which may differ from the interface language.
+-}
+itemLang : Lang -> AppItem -> List (Html.Attribute msg)
+itemLang lang item =
+    if item.itemGroup == Lang.toString lang then
+        []
+
+    else
+        [ Attr.lang item.itemGroup ]

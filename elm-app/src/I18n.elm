@@ -1,12 +1,13 @@
-module I18n exposing (MsgKey(..), monthName, translate)
+module I18n exposing (MsgKey(..), monthName, reportContentMailto, translate)
 
 {-| Internationalization module
 
-@docs MsgKey, monthName, translate
+@docs MsgKey, monthName, reportContentMailto, translate
 
 -}
 
 import Lang exposing (Lang(..))
+import Url
 
 
 {-| Translation keys
@@ -15,7 +16,6 @@ type MsgKey
     = Timeline
     | UndatedItems
     | ShowGroup
-    | ReportInappropriateContentHref
     | UnknownMonth
     | Search
     | SearchPlaceholder
@@ -46,9 +46,6 @@ translate lang key =
 
                 ShowGroup ->
                     "Näytä ryhmä "
-
-                ReportInappropriateContentHref ->
-                    "mailto:palikkaharrastajatry@outlook.com?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
 
                 UnknownMonth ->
                     "Tuntematon"
@@ -108,9 +105,6 @@ translate lang key =
 
                 ShowGroup ->
                     "Show group "
-
-                ReportInappropriateContentHref ->
-                    "mailto:palikkaharrastajatry@outlook.com?subject=Report%20of%20inappropriate%20content%20on%20Palikkalinkit"
 
                 UnknownMonth ->
                     "Unknown"
@@ -186,3 +180,21 @@ monthName lang month =
             |> List.drop (month - 1)
             |> List.head
             |> Maybe.withDefault (translate lang UnknownMonth)
+
+
+{-| `mailto:` link for reporting inappropriate content to the given address,
+with a subject in the language.
+-}
+reportContentMailto : Lang -> String -> String
+reportContentMailto lang address =
+    "mailto:"
+        ++ address
+        ++ "?subject="
+        ++ Url.percentEncode
+            (case lang of
+                Fi ->
+                    "Ilmoitus asiattomasta palikkalinkistä"
+
+                En ->
+                    "Report of inappropriate content on Palikkalinkit"
+            )

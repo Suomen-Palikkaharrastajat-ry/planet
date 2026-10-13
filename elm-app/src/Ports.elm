@@ -1,4 +1,4 @@
-port module Ports exposing (focusMobileSearch, loadSelectedFeedTypes, loadViewMode, onScroll, performSearch, saveSelectedFeedTypes, saveViewMode, scrollToElement, scrollToTop, searchResults, setDocumentLang)
+port module Ports exposing (focusMobileSearch, loadSelectedFeedTypes, loadViewMode, onScroll, performSearch, reportError, saveSelectedFeedTypes, saveViewMode, scrollToElement, scrollToTop, searchResults, setDocumentLang)
 
 {-| Ports for communicating with JavaScript for localStorage persistence, search, and scroll
 -}
@@ -57,3 +57,9 @@ port scrollToElement : String -> Cmd msg
 {-| Sets the document's `lang` attribute to the language being shown.
 -}
 port setDocumentLang : String -> Cmd msg
+
+
+{-| Writes a problem the visitor cannot act on (unreadable configuration) to
+the browser console.
+-}
+port reportError : String -> Cmd msg

@@ -188,6 +188,7 @@ modelToViewModel model =
     , lang = model.lang
     , currentGroup = model.currentGroup
     , site = model.site
+    , contactEmail = model.contactEmail
     }
 
 
@@ -229,19 +230,22 @@ init flags url navKey =
         group =
             groupFromPath url.path
 
-        localized =
-            Decode.decodeValue SiteSettings.localizedDecoder flags.siteConfig
+        settings =
+            SiteSettings.fromFlags flags.requestedLang flags.siteConfig
 
         lang =
-            localized
-                |> Result.map (SiteSettings.pickLang flags.requestedLang)
-                |> Result.withDefault Fi
+            settings.lang
 
         site =
-            localized
-                |> Result.toMaybe
-                |> Maybe.andThen (SiteSettings.forLang lang)
-                |> Maybe.withDefault (SiteSettings.placeholder lang)
+            settings.site
+
+        reportConfigError =
+            case settings.error of
+                Just problem ->
+                    Ports.reportError problem
+
+                Nothing ->
+                    Cmd.none
 
         model =
             { items = allAppItems
@@ -258,6 +262,10 @@ init flags url navKey =
             , lang = lang
             , currentGroup = group
             , site = site
+            , contactEmail =
+                flags.siteConfig
+                    |> Decode.decodeValue (SiteSettings.appDecoder lang (Decode.field "contact_email" Decode.string))
+                    |> Result.withDefault ""
             }
 
         redirectCmd =
@@ -272,7 +280,7 @@ init flags url navKey =
                 Cmd.none
     in
     ( recalculateVisibleGroups { model | visibleGroups = groupByMonth lang allAppItems }
-    , Cmd.batch [ redirectCmd, Ports.setDocumentLang (Lang.toString lang) ]
+    , Cmd.batch [ redirectCmd, Ports.setDocumentLang (Lang.toString lang), reportConfigError ]
     )
 
 

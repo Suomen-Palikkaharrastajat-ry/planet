@@ -30,7 +30,11 @@ copyright = "Sisältö on tekijöidensä omistamaa."
 copyright = "Content is owned by its creators."
 
 [app]
-refresh_label = "⟳ Päivitä sivu"
+contact_email = "palikkaharrastajatry@outlook.com"
 
-[app.en]
-refresh_label = "⟳ Refresh page"
+# Text main.js renders itself.
+[app.strings]
+refresh = "⟳ Päivitä sivu"
+
+[app.en.strings]
+refresh = "⟳ Refresh page"

@@ -33,6 +33,7 @@ suite =
                             , navKey = Nothing
                             , lang = Lang.Fi
                             , site = TestSite.site Lang.Fi
+                            , contactEmail = "toimisto@example.org"
                             , currentGroup = "fi"
                             }
                     in

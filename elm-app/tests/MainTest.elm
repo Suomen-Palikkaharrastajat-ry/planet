@@ -30,6 +30,7 @@ createTestModel =
     , navKey = Nothing
     , lang = Fi
     , site = TestSite.site Fi
+    , contactEmail = "toimisto@example.org"
     , currentGroup = "fi"
     }
 
