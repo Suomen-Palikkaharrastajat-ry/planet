@@ -8,6 +8,7 @@ i18n-exempt: generated from config.toml, where the text lives.
 module SiteConfig (
     Lang (..),
     defaultLang,
+    langCode,
     siteUrl,
     siteTitle,
     siteDescription,
@@ -24,6 +25,11 @@ data Lang = Fi | En
 -- | @[i18n] default@: the language static files are generated in.
 defaultLang :: Lang
 defaultLang = Fi
+
+-- | The two-letter code of a language.
+langCode :: Lang -> String
+langCode Fi = "fi"
+langCode En = "en"
 
 -- | @[site] url@, without a trailing slash.
 siteUrl :: String

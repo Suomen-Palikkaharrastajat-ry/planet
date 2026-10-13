@@ -58,6 +58,27 @@ vendor/master-builder  Shared Elm design tokens and UI components
 .github/workflows CI/CD workflows
 ```
 
+## Configuration and Translations
+
+The site describes itself in [`config.toml`](config.toml): URL, title,
+description, languages, and the app's own settings under `[app]`. It is layered
+on the family defaults of the hub; the format is documented in
+[`vendor/master-builder/docs/site-config.md`](vendor/master-builder/docs/site-config.md).
+
+- Text in the default language (Finnish) sits directly in a section; English
+  goes in a sub-table such as `[site.en]` or `[app.en]`.
+- Vite generates the document head and `site.webmanifest` from it, so
+  `elm-app/index.html` carries no title, description or icon tags.
+- Two committed files are derived from it: `elm-app/tests/SiteFixture.elm`
+  and `statics/src/SiteConfig.hs` (used by the generator). After editing
+  `config.toml`, run `make site-config`; `make site-config-check` (part of
+  `make elm-check` and of CI) fails when they are stale.
+- Interface text lives in `elm-app/src/I18n.elm`, per language. Views take a
+  `Lang` and contain no text of their own; the same check fails on Finnish
+  text outside translations. To add a string, add a key (or a function, when
+  the wording depends on a number) with its Finnish and English text.
+- A visitor switches language with the footer link or `?lang=en`.
+
 ## Shared Frontend Conventions
 
 The frontend follows the Suomen Palikkaharrastajat design guide:

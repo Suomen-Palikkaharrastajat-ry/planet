@@ -61,7 +61,8 @@ site-config: ## Regenerate the files derived from config.toml
 site-config-check: ## Check config.toml, its derived files, and that display text stays in translations
 	node $(SITE_CONFIG)/gen-fixture.mjs --config config.toml --out elm-app/tests/SiteFixture.elm --check
 	node $(SITE_CONFIG)/gen-haskell.mjs --config config.toml --out statics/src/SiteConfig.hs --check
-	node vendor/master-builder/script/check-i18n.mjs elm-app/src elm-app/main.js statics/src statics/app
+	@# Data.elm is generated feed content (and git-ignored), not interface text.
+	node vendor/master-builder/script/check-i18n.mjs $(filter-out elm-app/src/Data.elm,$(wildcard elm-app/src/*.elm)) elm-app/main.js statics/src statics/app
 
 # ── Elm frontend ──────────────────────────────────────────────────────────────
 
@@ -128,7 +129,7 @@ statics-check: ## Lint Haskell source (hlint)
 
 .PHONY: statics-format
 statics-format: ## Auto-format Haskell source (fourmolu)
-	find statics/src statics/app statics/tests -name '*.hs' | xargs $(FOURMOLU) --mode inplace
+	find statics/src statics/app statics/tests -name '*.hs' ! -name SiteConfig.hs | xargs $(FOURMOLU) --mode inplace
 
 .PHONY: build
 build: elm-build ## Production build of Elm SPA
