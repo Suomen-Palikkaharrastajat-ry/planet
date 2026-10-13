@@ -1,4 +1,4 @@
-port module Ports exposing (focusMobileSearch, loadSelectedFeedTypes, loadViewMode, onScroll, performSearch, reportError, saveSelectedFeedTypes, saveViewMode, scrollToElement, scrollToTop, searchResults, setDocumentLang)
+port module Ports exposing (focusMobileSearch, onScroll, performSearch, reportError, saveSelectedFeedTypes, saveViewMode, scrollToElement, scrollToTop, searchResults, setDocumentLang)
 
 {-| Ports for communicating with JavaScript for localStorage persistence, search, and scroll
 -}
@@ -9,19 +9,9 @@ port module Ports exposing (focusMobileSearch, loadSelectedFeedTypes, loadViewMo
 port saveViewMode : String -> Cmd msg
 
 
-{-| Receive view mode from JavaScript on app initialization
--}
-port loadViewMode : (String -> msg) -> Sub msg
-
-
 {-| Send selected feed types to JavaScript to save in localStorage
 -}
 port saveSelectedFeedTypes : String -> Cmd msg
-
-
-{-| Receive selected feed types from JavaScript on app initialization
--}
-port loadSelectedFeedTypes : (String -> msg) -> Sub msg
 
 
 {-| Send search query to JavaScript for lunr.js search

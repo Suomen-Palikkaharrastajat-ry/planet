@@ -13,6 +13,7 @@ This module orchestrates the Elm application, delegating to specialized modules:
 
 import Browser
 import Browser.Navigation
+import Component.Layout as Layout
 import Data exposing (AppItem, FeedType(..), allAppItems, defaultGroup)
 import DateUtils exposing (groupByMonth)
 import Html exposing (Html)
@@ -365,7 +366,7 @@ update msg model =
                         Ports.focusMobileSearch ()
 
                     else
-                        Cmd.none
+                        Layout.onMenuClosed NoOp
             in
             ( { model | isSidebarVisible = newVisible }, cmd )
 
@@ -375,12 +376,6 @@ update msg model =
                     { model | searchIndex = RemoteData.fromResult result }
             in
             ( recalculateVisibleGroups newModel, Cmd.none )
-
-        LoadViewMode viewModeStr ->
-            ( { model | viewMode = parseViewMode viewModeStr }, Cmd.none )
-
-        LoadSelectedFeedTypes feedTypesStr ->
-            ( { model | selectedFeedTypes = decodeSelectedFeedTypes feedTypesStr } |> recalculateVisibleGroups, Cmd.none )
 
         ScrollY y ->
             ( { model | scrollY = y }, Cmd.none )
@@ -507,10 +502,9 @@ matchesSearch model item =
 {-| Subscriptions for ports
 -}
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.batch
-        [ Ports.loadViewMode LoadViewMode
-        , Ports.loadSelectedFeedTypes LoadSelectedFeedTypes
+        [ Layout.subscriptions { isOpen = model.isSidebarVisible, onClose = ToggleSidebar }
         , Ports.searchResults OnSearchResults
         , Ports.onScroll ScrollY
         ]

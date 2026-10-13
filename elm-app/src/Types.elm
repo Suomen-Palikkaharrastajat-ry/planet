@@ -97,8 +97,6 @@ type Msg
     | ToggleSidebar
     | OnSearchIndexFetch (Result Http.Error (List SearchItem))
     | OnSearchResults (List Int)
-    | LoadViewMode String
-    | LoadSelectedFeedTypes String
     | ScrollY Float
     | ScrollToTop
     | NavigateToSection String

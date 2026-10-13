@@ -47,22 +47,12 @@ shell: ## Enter devenv shell
 
 # ── Site configuration ────────────────────────────────────────────────────────
 
-# config.toml is the single source of the site's URL, title, text and settings
-# (see vendor/master-builder/docs/site-config.md). Vite reads it directly; the
-# files below are derived from it and committed.
-SITE_CONFIG := vendor/master-builder/packages/site-config
-
-.PHONY: site-config
-site-config: ## Regenerate the files derived from config.toml
-	node $(SITE_CONFIG)/gen-fixture.mjs --config config.toml --out elm-app/tests/SiteFixture.elm
-	node $(SITE_CONFIG)/gen-haskell.mjs --config config.toml --out statics/src/SiteConfig.hs
-
-.PHONY: site-config-check
-site-config-check: ## Check config.toml, its derived files, and that display text stays in translations
-	node $(SITE_CONFIG)/gen-fixture.mjs --config config.toml --out elm-app/tests/SiteFixture.elm --check
-	node $(SITE_CONFIG)/gen-haskell.mjs --config config.toml --out statics/src/SiteConfig.hs --check
-	@# Data.elm is generated feed content (and git-ignored), not interface text.
-	node vendor/master-builder/script/check-i18n.mjs $(filter-out elm-app/src/Data.elm,$(wildcard elm-app/src/*.elm)) elm-app/main.js statics/src statics/app
+# config.toml is the single source of the site's URL, title, text and settings.
+# The shared targets `site-config` and `site-config-check` come from the hub.
+SITE_CONFIG_HASKELL := statics/src/SiteConfig.hs
+# Data.elm is generated feed content (and git-ignored), not interface text.
+SITE_CONFIG_I18N := $(filter-out elm-app/src/Data.elm,$(wildcard elm-app/src/*.elm)) elm-app/main.js statics/src statics/app
+include vendor/master-builder/mk/site-config.mk
 
 # ── Elm frontend ──────────────────────────────────────────────────────────────
 
@@ -84,7 +74,7 @@ elm-app/.elm-tailwind/.stamp: elm-app/elm.json elm-app/vite.config.mjs elm-app/m
 	mkdir -p elm-app/.elm-tailwind
 	touch $@
 
-dist/.elm-stamp: elm-app/.elm-tailwind/.stamp $(ELM_APP_SOURCES) $(ELM_PACKAGE_SOURCES) elm-app/elm.json elm-app/vite.config.mjs elm-app/index.html elm-app/src/Data.elm elm-app/main.js elm-app/main.css config.toml $(SITE_CONFIG)/family.toml $(wildcard $(SITE_CONFIG)/*.mjs)
+dist/.elm-stamp: elm-app/.elm-tailwind/.stamp $(ELM_APP_SOURCES) $(ELM_PACKAGE_SOURCES) elm-app/elm.json elm-app/vite.config.mjs elm-app/index.html elm-app/src/Data.elm elm-app/main.js elm-app/main.css $(SITE_CONFIG_DEPS)
 	cd elm-app && vite build $(VITE_FLAGS)
 	touch $@
 

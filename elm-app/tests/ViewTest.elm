@@ -144,6 +144,7 @@ suite =
                             [ "https://palikkaharrastajat.fi"
                             , "https://kalenteri.palikkaharrastajat.fi"
                             , "https://kartta.palikkaharrastajat.fi"
+                            , "https://oppaat.palikkaharrastajat.fi"
                             , "https://forum.palikkaharrastajat.fi"
                             , "https://kortti.palikkaharrastajat.fi"
                             , "https://maksut.palikkaharrastajat.fi"

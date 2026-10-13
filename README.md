@@ -79,6 +79,11 @@ on the family defaults of the hub; the format is documented in
   text outside translations. To add a string, add a key (or a function, when
   the wording depends on a number) with its Finnish and English text.
 - A visitor switches language with the footer link or `?lang=en`.
+- The family's icons, social image and logos are not kept here: the Vite
+  plugin serves them from the hub's `public/`. `elm-app/public` holds only what
+  is this app's own.
+- The header, drawer, footer, account controls and menu keyboard behaviour come
+  from the hub (`Component.Layout`, `Component.Account`).
 
 ## Shared Frontend Conventions
 
