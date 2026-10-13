@@ -38,3 +38,6 @@ Thumbs.db
 TODO*
 /dist/
 review/elm-stuff/
+
+# --- Logs / local test artifacts ---
+*.log
