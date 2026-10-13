@@ -55,10 +55,12 @@ SITE_CONFIG := vendor/master-builder/packages/site-config
 .PHONY: site-config
 site-config: ## Regenerate the files derived from config.toml
 	node $(SITE_CONFIG)/gen-fixture.mjs --config config.toml --out elm-app/tests/SiteFixture.elm
+	node $(SITE_CONFIG)/gen-haskell.mjs --config config.toml --out statics/src/SiteConfig.hs
 
 .PHONY: site-config-check
 site-config-check: ## Check config.toml, its derived files, and that display text stays in translations
 	node $(SITE_CONFIG)/gen-fixture.mjs --config config.toml --out elm-app/tests/SiteFixture.elm --check
+	node $(SITE_CONFIG)/gen-haskell.mjs --config config.toml --out statics/src/SiteConfig.hs --check
 	node vendor/master-builder/script/check-i18n.mjs elm-app/src elm-app/main.js statics/src statics/app
 
 # ── Elm frontend ──────────────────────────────────────────────────────────────

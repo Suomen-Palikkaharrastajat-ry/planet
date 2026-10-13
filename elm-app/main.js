@@ -2,7 +2,7 @@ import './main.css'
 import { Elm } from './src/Main.elm'
 import lunr from 'lunr'
 import siteConfig from 'virtual:site-config'
-import { appSettings, pickLang, requestedLang, setDocumentLang } from './packages/site-config/browser.mjs'
+import { appSettings, pickLang, requestedLang, showLanguage } from './packages/site-config/browser.mjs'
 
 // App settings come from [app] in ../config.toml, in the language being shown.
 const lang = pickLang(siteConfig)
@@ -54,7 +54,7 @@ const app = Elm.Main.init({
   },
 })
 
-app.ports.setDocumentLang.subscribe(setDocumentLang)
+app.ports.setDocumentLang.subscribe((lang) => showLanguage(siteConfig, lang))
 
 // Handle saving view mode to localStorage
 app.ports.saveViewMode.subscribe(function (viewMode) {

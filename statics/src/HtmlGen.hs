@@ -30,13 +30,14 @@ import HtmlSanitizer
 import I18n
 import Scripts
 import Styles
+import qualified SiteConfig as SC
 
 -- HTML Generation Components
 renderHead :: Config -> H.Html
 renderHead config = H.head $ do
     H.meta H.! A.charset "UTF-8"
     H.meta H.! A.name "viewport" H.! A.content "width=device-width, initial-scale=1.0"
-    H.title (H.toHtml $ configTitle config <> " \x2014 Suomen Palikkaharrastajat ry")
+    H.title (H.toHtml $ configTitle config <> " \x2014 " <> T.pack (SC.author SC.defaultLang))
     H.link H.! A.rel "icon" H.! A.href "/favicon/favicon.ico"
     H.link
         H.! A.rel "icon"

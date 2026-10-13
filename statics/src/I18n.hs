@@ -18,9 +18,11 @@ module I18n (
 
 import Data.Aeson (ToJSON (..))
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time (UTCTime)
 import Data.Time.Format (TimeLocale (..), defaultTimeLocale)
 import GHC.Generics (Generic)
+import qualified SiteConfig as SC
 
 -- Configuration Types
 data FeedType = Feed | YouTube | Image
@@ -68,7 +70,7 @@ messagesEn =
         { msgLatestVideos = "Latest Videos"
         , msgLatestPosts = "Latest Posts"
         , msgGeneratedOn = "Generated on"
-        , msgPoweredBy = "Powered by Haskell Planet Generator"
+        , msgPoweredBy = T.pack (SC.siteDescription SC.En)
         , msgCookieConsentTitle = "Cookie Consent"
         , msgCookieConsentText =
             "This site uses external images that may track you. Do you agree to load them?"
@@ -85,7 +87,7 @@ messagesFi =
         { msgLatestVideos = "Uusimmat videot"
         , msgLatestPosts = "Uusimmat kirjoitukset"
         , msgGeneratedOn = "Koottu"
-        , msgPoweredBy = "Suomen Palikkaharrastajat ry:n tuottama syötekooste"
+        , msgPoweredBy = T.pack (SC.siteDescription SC.Fi)
         , msgCookieConsentTitle = "Yksityisyys"
         , msgCookieConsentText =
             "Tämä sivu käyttää ulkoisia kuvia, jotka voivat seurata sinua. Sallitko niiden lataamisen?"
