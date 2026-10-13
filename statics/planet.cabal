@@ -15,8 +15,6 @@ library
       SiteConfig
       I18n
       FeedParser
-      Styles
-      Scripts
       Config
       HtmlSanitizer
       ElmGen
@@ -42,7 +40,6 @@ library
     , http-conduit
     , http-client
     , http-client-tls
-    , blaze-html
     , uri-bytestring
     , async
     , tagsoup
@@ -93,7 +90,6 @@ test-suite planet-tests
     , http-conduit
     , http-client
     , http-client-tls
-    , blaze-html
     , uri-bytestring
     , async
     , tagsoup

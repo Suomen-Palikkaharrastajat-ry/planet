@@ -386,10 +386,10 @@ update msg model =
         NavigateToSection sectionId ->
             case model.navKey of
                 Just key ->
-                    ( { model | isSidebarVisible = False }, Cmd.batch [ Browser.Navigation.pushUrl key ("#" ++ sectionId), Ports.scrollToElement sectionId ] )
+                    ( { model | isSidebarVisible = False }, Cmd.batch [ Browser.Navigation.pushUrl key ("#" ++ sectionId), Ports.scrollToElement sectionId, menuClosedCmd model ] )
 
                 Nothing ->
-                    ( { model | isSidebarVisible = False }, Ports.scrollToElement sectionId )
+                    ( { model | isSidebarVisible = False }, Cmd.batch [ Ports.scrollToElement sectionId, menuClosedCmd model ] )
 
         UrlRequested urlRequest ->
             case urlRequest of
@@ -497,6 +497,19 @@ matchesSearch model item =
 
 
 -- SUBSCRIPTIONS
+
+
+{-| Returns focus to the menu button when a message closes an open menu as a
+side effect (navigation, signing out). Otherwise focus is left inside the
+closed, inert drawer and drops to the top of the page.
+-}
+menuClosedCmd : Model -> Cmd Msg
+menuClosedCmd model =
+    if model.isSidebarVisible then
+        Layout.onMenuClosed NoOp
+
+    else
+        Cmd.none
 
 
 {-| Subscriptions for ports

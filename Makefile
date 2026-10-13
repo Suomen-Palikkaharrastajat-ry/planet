@@ -52,7 +52,8 @@ shell: ## Enter devenv shell
 SITE_CONFIG_HASKELL := statics/src/SiteConfig.hs
 # Data.elm is generated feed content (and git-ignored), not interface text.
 SITE_CONFIG_I18N := $(filter-out elm-app/src/Data.elm,$(wildcard elm-app/src/*.elm)) elm-app/main.js statics/src statics/app
-include vendor/master-builder/mk/site-config.mk
+# `-include`: the file only exists once `make vendor` has fetched the submodule.
+-include vendor/master-builder/mk/site-config.mk
 
 # ── Elm frontend ──────────────────────────────────────────────────────────────
 
