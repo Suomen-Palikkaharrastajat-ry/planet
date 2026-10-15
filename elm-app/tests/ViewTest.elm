@@ -141,10 +141,10 @@ suite =
                             }
 
                         expected =
-                            [ "https://palikkaharrastajat.fi"
-                            , "https://kalenteri.palikkaharrastajat.fi"
+                            [ "https://kalenteri.palikkaharrastajat.fi"
                             , "https://kartta.palikkaharrastajat.fi"
                             , "https://oppaat.palikkaharrastajat.fi"
+                            , "https://palikkaharrastajat.fi"
                             , "https://forum.palikkaharrastajat.fi"
                             , "https://kortti.palikkaharrastajat.fi"
                             , "https://maksut.palikkaharrastajat.fi"
@@ -1172,7 +1172,7 @@ suite =
                             ( "mailto:a@example.org?subject=Ilmoitus%20asiattomasta%20palikkalinkist%C3%A4"
                             , "mailto:a@example.org?subject=Report%20of%20inappropriate%20content%20on%20Palikkalinkit"
                             )
-            , test "the Finnish page links to the English one" <|
+            , test "the Finnish page does not offer the hidden English one" <|
                 \_ ->
                     let
                         model : ViewModel
@@ -1195,7 +1195,7 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.has [ Selector.text "In English", Selector.attribute (Html.Attributes.href "?lang=en") ]
+                        |> Query.hasNot [ Selector.text "In English" ]
             ]
         ]
 
