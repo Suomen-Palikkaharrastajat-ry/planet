@@ -63,6 +63,17 @@ jobs:
           key: cabal-store-${{ runner.os }}-${{ hashFiles('cabal.project.freeze', 'statics/planet.cabal', 'devenv.lock', 'devenv.nix', 'overrides.nix') }}
           restore-keys: cabal-store-${{ runner.os }}-
 
+      # Last good copy of every feed. YouTube answers 404 for hours at a
+      # time; the generator then falls back to these cached bodies. Cache
+      # entries are immutable, so each run saves under a fresh key and
+      # restores the newest one by prefix.
+      - name: Restore feed cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .feed-cache
+          key: feed-cache-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: feed-cache-
+
       - name: Update Cabal package index
         if: ${{ !inputs.skip-tests }}
         run: devenv shell --profile ci -- cabal update
@@ -77,6 +88,12 @@ jobs:
 
       - name: Build
         run: devenv shell --profile ci -- make dist-ci
+
+      - name: Save feed cache
+        uses: actions/cache/save@v4
+        with:
+          path: .feed-cache
+          key: feed-cache-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save Cabal store cache
         uses: actions/cache/save@v4

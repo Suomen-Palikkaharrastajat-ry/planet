@@ -18,6 +18,7 @@ import qualified Text.XML as XML
 
 import Config
 import ElmGen
+import FeedCache (pruneFeedCache)
 import FeedParser
 import I18n
 
@@ -72,6 +73,10 @@ feedToOutline feed =
             , XML.elementNodes = []
             }
 
+-- | Last good copy of every feed, persisted between CI runs by actions/cache.
+feedCacheDir :: FilePath
+feedCacheDir = ".feed-cache"
+
 main :: IO ()
 main = do
     configContent <- TIO.readFile "planet.toml"
@@ -83,7 +88,8 @@ main = do
             putStrLn $ "Found " ++ show (length $ configFeeds config) ++ " feeds."
 
             -- Fetch feeds concurrently
-            allItems <- concat <$> mapConcurrently fetchFeed (configFeeds config)
+            allItems <- concat <$> mapConcurrently (fetchFeed feedCacheDir) (configFeeds config)
+            pruneFeedCache feedCacheDir (map feedUrl (configFeeds config))
 
             -- Sort by date descending
             let sortedItems = sortOn (Down . itemDate) allItems

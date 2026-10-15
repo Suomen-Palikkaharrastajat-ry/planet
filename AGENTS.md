@@ -93,6 +93,8 @@ Treat these as generated:
 
 If you need them refreshed, use the Make targets instead of hand-editing.
 
+The generator also keeps `.feed-cache/` (gitignored) in the repo root: the last good body of each feed, used when a fetch fails and persisted between CI runs with actions/cache. Deleting it is safe; it only loses the fallback.
+
 ## Frontend Guidance
 
 Prefer the shared Elm packages already vendored into the repo:

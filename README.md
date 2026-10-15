@@ -110,4 +110,6 @@ GitHub Actions builds and deploys the site through `devenv` using frozen Cabal r
 - [`deploy.yml`](/workspaces/planet/.github/workflows/deploy.yml)
 - [`scheduled.yml`](/workspaces/planet/.github/workflows/scheduled.yml)
 
+The generator keeps the last good copy of every feed in `.feed-cache/`, and both workflows carry that directory between runs with the GitHub Actions cache. When a feed fails (an error status such as YouTube's recurring 404s, a network error, or a response that is not a feed), its cached copy is used instead, so its items do not vanish from the site.
+
 Human-facing usage lives here in `README.md`. Agent-specific development instructions live in [`AGENTS.md`](/workspaces/planet/AGENTS.md).

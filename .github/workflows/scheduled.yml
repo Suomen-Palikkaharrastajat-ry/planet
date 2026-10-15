@@ -26,11 +26,29 @@ jobs:
         run: make vendor
 
       - name: Restore Native Binary
+        id: native-bin
         uses: actions/cache/restore@v4
         with:
           path: .bin
           key: planet-native-bin-${{ github.sha }}
           restore-keys: planet-native-bin-
+
+      # The binary is only rebuilt after a fully successful deploy; an older
+      # one silently lacks newer generator features (e.g. the feed cache).
+      - name: Warn about a stale binary
+        if: steps.native-bin.outputs.cache-matched-key != format('planet-native-bin-{0}', github.sha)
+        run: echo "::warning::Using generator binary '${{ steps.native-bin.outputs.cache-matched-key }}', not one built from ${{ github.sha }}."
+
+      # Last good copy of every feed. YouTube answers 404 for hours at a
+      # time; the generator then falls back to these cached bodies. Cache
+      # entries are immutable, so each run saves under a fresh key and
+      # restores the newest one by prefix.
+      - name: Restore feed cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .feed-cache
+          key: feed-cache-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: feed-cache-
 
       # planet's generator feeds the frontend build: it writes elm-app/src/Data.elm
       # and the OPML/search-index assets that Vite then bundles. It therefore runs
@@ -38,6 +56,12 @@ jobs:
       # the generator emits into dist/ afterwards.
       - name: Run Generator
         run: ./.bin/planet
+
+      - name: Save feed cache
+        uses: actions/cache/save@v4
+        with:
+          path: .feed-cache
+          key: feed-cache-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Restore Elm cache
         uses: actions/cache/restore@v4

@@ -3,7 +3,11 @@
 module FeedParser (
     FeedHandler (..),
     getFeedHandler,
+    Download (..),
     fetchFeed,
+    fetchFeedWith,
+    maxCacheAge,
+    parseFeedBody,
     filterExcludedItems,
     parseItem,
     getMediaDescription,
@@ -38,14 +42,15 @@ import Control.Monad (when)
 import qualified Data.ByteString.Lazy as LBS
 import Data.Char (isDigit)
 import Data.List (find)
-import Data.Maybe (mapMaybe)
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Text.Encoding (decodeUtf8, decodeUtf8With, encodeUtf8)
+import Data.Text.Encoding (decodeUtf8With, encodeUtf8)
 import Data.Text.Encoding.Error (lenientDecode)
 
 -- Re-added missing import
 
+import Data.Time (NominalDiffTime, diffUTCTime, getCurrentTime, nominalDay)
 import Data.Time.Format (defaultTimeLocale, parseTimeM) -- Re-added missing import
 import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.XML.Types (Content (..), Element (..), Name (..), Node (..))
@@ -71,6 +76,7 @@ import Text.HTML.TagSoup (Tag (..), parseTags, renderTags)
 import qualified Text.RSS.Syntax as RSS
 
 import Config
+import FeedCache
 import I18n
 
 -- Normalizes URLs by replacing multiple slashes in the protocol part
@@ -89,55 +95,126 @@ getFeedHandler YouTube = FeedHandler{fhGetMediaDescription = getYouTubeMediaDesc
 getFeedHandler Image = FeedHandler{fhGetMediaDescription = getFlickrMediaDescription}
 
 -- Fetching
-fetchFeed :: FeedConfig -> IO [AppItem]
-fetchFeed fc = do
-    let displayTitle = case feedTitle fc of
-            Just t -> t
-            Nothing -> feedUrl fc
-    putStrLn $ "Fetching " ++ T.unpack displayTitle ++ "..."
-    req <- parseRequest (T.unpack $ feedUrl fc)
-    result <- try (httpLBS req) :: IO (Either SomeException (Response LBS.ByteString))
-    case result of
+
+-- | A received HTTP response, reduced to what feed handling needs.
+data Download = Download
+    { downloadStatus :: Int
+    , downloadContentType :: Text
+    , downloadBody :: LBS.ByteString
+    }
+
+downloadFeed :: FeedConfig -> IO (Either Text Download)
+downloadFeed fc = do
+    result <- try $ do
+        req <- parseRequest (T.unpack $ feedUrl fc)
+        httpLBS req
+    return $ case result :: Either SomeException (Response LBS.ByteString) of
+        Left err -> Left (T.pack $ show err)
+        Right response ->
+            Right
+                Download
+                    { downloadStatus = getResponseStatusCode response
+                    , downloadContentType =
+                        case getResponseHeader "Content-Type" response of
+                            ct : _ -> decodeUtf8With lenientDecode ct
+                            [] -> "(missing)"
+                    , downloadBody = getResponseBody response
+                    }
+
+{- | How long a cached copy may stand in for a failing feed. Outages last
+hours; a feed failing for longer is probably gone and should drop out.
+-}
+maxCacheAge :: NominalDiffTime
+maxCacheAge = 14 * nominalDay
+
+{- | Fetch a feed, falling back to the copy in @cacheDir@ when the upstream
+fails (error status, network error, or an unparseable or empty body).
+-}
+fetchFeed :: FilePath -> FeedConfig -> IO [AppItem]
+fetchFeed = fetchFeedWith downloadFeed
+
+fetchFeedWith :: (FeedConfig -> IO (Either Text Download)) -> FilePath -> FeedConfig -> IO [AppItem]
+fetchFeedWith download cacheDir fc = do
+    let displayTitle = T.unpack $ fromMaybe (feedUrl fc) (feedTitle fc)
+        cachePath = feedCachePath cacheDir (feedUrl fc)
+    putStrLn $ "Fetching " ++ displayTitle ++ "..."
+    result <- download fc
+    fresh <- case result of
         Left err -> do
-            putStrLn $ "Error fetching " ++ T.unpack displayTitle ++ ": " ++ show err
-            return []
-        Right response -> do
-            let statusCode = getResponseStatusCode response
-            let contentType =
-                    case getResponseHeader "Content-Type" response of
-                        ct : _ -> decodeUtf8With lenientDecode ct
-                        [] -> "(missing)"
-            let content = LBS.toStrict $ getResponseBody response
-            let cleanedContent = T.replace "</media:keywords>" "" (decodeUtf8 content)
-            case parseFeedSource (LBS.fromStrict $ encodeUtf8 cleanedContent) of
+            putStrLn $ "Error fetching " ++ displayTitle ++ ": " ++ T.unpack err
+            return Nothing
+        Right dl
+            | downloadStatus dl < 200 || downloadStatus dl >= 300 -> do
+                putStrLn $ "Error fetching " ++ displayTitle ++ ": HTTP " ++ show (downloadStatus dl)
+                return Nothing
+            | otherwise -> case parseFeedBody fc (downloadBody dl) of
                 Nothing -> do
-                    putStrLn $
-                        "Failed to parse feed: " ++ T.unpack displayTitle ++ ": invalid or unsupported feed format"
-                    putStrLn $
-                        "  Debug: url="
-                            ++ T.unpack (feedUrl fc)
-                            ++ ", status="
-                            ++ show statusCode
-                            ++ ", content-type="
-                            ++ T.unpack contentType
-                    putStrLn $
-                        "  Debug: body-preview=\"" ++ T.unpack (debugBodyPreview $ getResponseBody response) ++ "\""
-                    when
-                        (T.isInfixOf "<html" (T.toLower cleanedContent))
-                        ( putStrLn
-                            "  Hint: response looks like HTML, which often indicates bot protection or an error page instead of RSS/Atom XML."
-                        )
+                    logParseFailure displayTitle dl
+                    return Nothing
+                Just items -> do
+                    writeFeedCache cachePath (downloadBody dl)
+                    return (Just items)
+    items <- case fresh of
+        Just items -> return items
+        Nothing -> do
+            cached <- readFeedCache cachePath
+            case cached of
+                Nothing -> do
+                    putStrLn $ "  No cached copy of " ++ displayTitle ++ "; skipping it"
                     return []
-                Just feed ->
-                    let altLink = feedLink fc <|> getFeedAlternateLink feed
-                        extractedTitle = getFeedTitle feed
-                        finalTitle = case feedTitle fc of
-                            Just t -> t
-                            Nothing -> case extractedTitle of
-                                Just t -> t
-                                Nothing -> T.pack "Unknown Feed"
-                        items = mapMaybe (parseItem (fc{feedTitle = Just finalTitle}) altLink) (getFeedItems feed)
-                     in return $ filterExcludedItems fc items
+                Just (stamp, body) -> do
+                    now <- getCurrentTime
+                    if diffUTCTime now stamp > maxCacheAge
+                        then do
+                            putStrLn $
+                                "  WARNING: cached copy of "
+                                    ++ displayTitle
+                                    ++ " is from "
+                                    ++ show stamp
+                                    ++ ", older than the maximum age; the feed may be gone for good, skipping it"
+                            return []
+                        else case parseFeedBody fc body of
+                            Nothing -> do
+                                putStrLn $ "  Cached copy of " ++ displayTitle ++ " is unparseable; skipping it"
+                                return []
+                            Just items -> do
+                                putStrLn $ "  Using cached copy of " ++ displayTitle ++ " from " ++ show stamp
+                                return items
+    return $ filterExcludedItems fc items
+  where
+    logParseFailure displayTitle dl = do
+        putStrLn $
+            "Failed to parse feed: " ++ displayTitle ++ ": invalid, unsupported or empty feed"
+        putStrLn $
+            "  Debug: url="
+                ++ T.unpack (feedUrl fc)
+                ++ ", status="
+                ++ show (downloadStatus dl)
+                ++ ", content-type="
+                ++ T.unpack (downloadContentType dl)
+        putStrLn $
+            "  Debug: body-preview=\"" ++ T.unpack (debugBodyPreview $ downloadBody dl) ++ "\""
+        when
+            (T.isInfixOf "<html" (T.toLower (decodeUtf8With lenientDecode (LBS.toStrict (downloadBody dl)))))
+            ( putStrLn
+                "  Hint: response looks like HTML, which often indicates bot protection or an error page instead of RSS/Atom XML."
+            )
+
+{- | Parse a raw feed body into items (before exclusion filtering).
+Nothing when the body is not a usable feed or has no items.
+-}
+parseFeedBody :: FeedConfig -> LBS.ByteString -> Maybe [AppItem]
+parseFeedBody fc body = do
+    let cleanedContent = T.replace "</media:keywords>" "" (decodeUtf8With lenientDecode (LBS.toStrict body))
+    feed <- parseFeedSource (LBS.fromStrict $ encodeUtf8 cleanedContent)
+    let altLink = feedLink fc <|> getFeedAlternateLink feed
+        finalTitle = fromMaybe "Unknown Feed" (feedTitle fc <|> getFeedTitle feed)
+        items = mapMaybe (parseItem (fc{feedTitle = Just finalTitle}) altLink) (getFeedItems feed)
+    -- An empty result is not trusted: parseFeedSource accepts any
+    -- well-formed XML (an XHTML error page, say), and upstreams sometimes
+    -- serve an empty feed during an outage. Either would otherwise replace
+    -- a good cached copy.
+    if null items then Nothing else Just items
 
 filterExcludedItems :: FeedConfig -> [AppItem] -> [AppItem]
 filterExcludedItems fc items =

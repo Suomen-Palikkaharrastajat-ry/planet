@@ -6,6 +6,7 @@ import Test.Tasty (defaultMain, testGroup)
 
 import ConfigSpec (configTests)
 import ElmGenSpec (elmGenTests)
+import FeedCacheSpec (feedCacheTests)
 import FeedParserSpec (feedParserTests)
 import HtmlSanitizerSpec (htmlSanitizerTests)
 import I18nSpec (i18nTests)
@@ -19,6 +20,7 @@ main =
             [ configTests
             , i18nTests
             , feedParserTests
+            , feedCacheTests
             , elmGenTests
             , htmlSanitizerTests
             , planetTests

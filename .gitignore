@@ -41,3 +41,6 @@ review/elm-stuff/
 
 # --- Logs / local test artifacts ---
 *.log
+
+# --- Feed cache (persisted between CI runs by actions/cache) ---
+.feed-cache/
