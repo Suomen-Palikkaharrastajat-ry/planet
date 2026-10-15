@@ -9,6 +9,7 @@
 [i18n]
 default   = "fi"
 languages = ["fi", "en"]
+hidden    = ["en"]
 
 [site]
 url         = "https://linkit.palikkaharrastajat.fi"
