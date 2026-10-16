@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "./public/fonts/outfit.css";
+@import "../vendor/master-builder/public/fonts/outfit.css";
 @import "./packages/design-tokens/design-tokens.css";
 @import "./packages/ui-components/ui-components.css";
 @source "./src";
