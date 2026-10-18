@@ -25,19 +25,29 @@ jobs:
       - name: Setup vendor
         run: make vendor
 
+      # Only the binary built from this commit will do: it writes Data.elm for this
+      # commit's Elm sources, and an older one lacks newer features (e.g. the feed cache).
       - name: Restore Native Binary
         id: native-bin
         uses: actions/cache/restore@v4
         with:
           path: .bin
           key: planet-native-bin-${{ github.sha }}
-          restore-keys: planet-native-bin-
 
-      # The binary is only rebuilt after a fully successful deploy; an older
-      # one silently lacks newer generator features (e.g. the feed cache).
-      - name: Warn about a stale binary
-        if: steps.native-bin.outputs.cache-matched-key != format('planet-native-bin-{0}', github.sha)
-        run: echo "::warning::Using generator binary '${{ steps.native-bin.outputs.cache-matched-key }}', not one built from ${{ github.sha }}."
+      - name: Setup Native Haskell
+        if: steps.native-bin.outputs.cache-hit != 'true'
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: '9.6.7'
+          cabal-version: '3.10.3.0'
+          update-index: false
+
+      - name: Build Native Binary
+        if: steps.native-bin.outputs.cache-hit != 'true'
+        run: |
+          rm -f cabal.project.freeze
+          bash -c "cd /tmp && cabal update"
+          cabal install planet --installdir=.bin --install-method=copy
 
       # Last good copy of every feed. YouTube answers 404 for hours at a
       # time; the generator then falls back to these cached bodies. Cache
