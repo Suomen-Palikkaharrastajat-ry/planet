@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Planet (main, generateOpml) where
+module Planet (main, generateOpml, runPipeline) where
 
 import Control.Concurrent.Async (mapConcurrently)
 import Control.Monad (forM_)
@@ -13,7 +13,9 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Lazy.Encoding as LT
-import System.Directory (createDirectoryIfMissing)
+import Network.HTTP.Client.TLS (newTlsManager)
+import System.Directory (createDirectoryIfMissing, doesFileExist)
+import System.Environment (getEnvironment)
 import qualified Text.XML as XML
 
 import Config
@@ -21,6 +23,7 @@ import ElmGen
 import FeedCache (pruneFeedCache)
 import FeedParser
 import I18n
+import PocketBase
 
 generateOpml :: Config -> Maybe T.Text -> LT.Text
 generateOpml config mGroup =
@@ -77,44 +80,90 @@ feedToOutline feed =
 feedCacheDir :: FilePath
 feedCacheDir = ".feed-cache"
 
+loadBaseConfig :: IO Config
+loadBaseConfig = do
+    exists <- doesFileExist "planet.toml"
+    if exists
+        then do
+            content <- TIO.readFile "planet.toml"
+            case parseConfig content of
+                Right cfg -> return cfg
+                Left _ -> return defaultBaseConfig
+        else return defaultBaseConfig
+  where
+    defaultBaseConfig =
+        Config
+            { configTitle = "Palikkalinkit"
+            , configFeeds = []
+            , configLocale = Fi
+            , configTimezone = "Europe/Helsinki"
+            , configDefaultGroup = "fi"
+            }
+
+runPipeline :: Config -> [AppItem] -> IO ()
+runPipeline config items = do
+    -- Sort by date descending
+    let sortedItems = sortOn (Down . itemDate) items
+
+    let elmModule = generateElmModule config sortedItems
+
+    -- Generate search index
+    let searchIndex = generateSearchIndex sortedItems
+    createDirectoryIfMissing True "elm-app/public"
+    LBS.writeFile "elm-app/public/search-index.json" searchIndex
+    putStrLn "Search index generated in elm-app/public/search-index.json"
+
+    -- Generate OPML export: opml.xml for default group (backwards-compat)
+    let defaultGrp = configDefaultGroup config
+    LBS.writeFile "elm-app/public/opml.xml" $ LT.encodeUtf8 $ generateOpml config (Just defaultGrp)
+    putStrLn "OPML export generated in elm-app/public/opml.xml"
+
+    -- Generate per-group OPML files
+    let groups = nub (defaultGrp : map feedGroup (configFeeds config))
+    forM_ groups $ \grp -> do
+        let path = "elm-app/public/opml." <> T.unpack grp <> ".xml"
+        LBS.writeFile path $ LT.encodeUtf8 $ generateOpml config (Just grp)
+        putStrLn $ "OPML export generated in " <> path
+
+    -- Elm data module
+    createDirectoryIfMissing True "elm-app/src"
+    TIO.writeFile "elm-app/src/Data.elm" elmModule
+    putStrLn "Elm data module generated in elm-app/src/Data.elm"
+
 main :: IO ()
 main = do
-    configContent <- TIO.readFile "planet.toml"
-    case parseConfig configContent of
-        Left err -> TIO.putStrLn $ "Error parsing configuration: " <> err
-        Right config -> do
-            putStrLn $ "Generating planet for: " ++ T.unpack (configTitle config)
-            putStrLn $ "Locale: " ++ show (configLocale config)
-            putStrLn $ "Found " ++ show (length $ configFeeds config) ++ " feeds."
+    env <- getEnvironment
+    case detectBackend env of
+        PocketBaseBackend pbConfig -> do
+            putStrLn "Using PocketBase backend"
+            putStrLn $ "PocketBase URL: " ++ T.unpack (pbUrl pbConfig)
+            putStrLn $ "Feeds collection: " ++ T.unpack (pbFeedsCollection pbConfig)
+            putStrLn $ "Items collection: " ++ T.unpack (pbItemsCollection pbConfig)
 
-            -- Fetch feeds concurrently
-            allItems <- concat <$> mapConcurrently (fetchFeed feedCacheDir) (configFeeds config)
-            pruneFeedCache feedCacheDir (map feedUrl (configFeeds config))
+            baseConfig <- loadBaseConfig
+            manager <- newTlsManager
 
-            -- Sort by date descending
-            let sortedItems = sortOn (Down . itemDate) allItems
+            putStrLn "Fetching feeds from PocketBase..."
+            feeds <- fetchPocketBaseFeeds manager pbConfig
+            putStrLn $ "Found " ++ show (length feeds) ++ " active feeds in PocketBase."
 
-            let elmModule = generateElmModule config sortedItems
+            putStrLn "Fetching items from PocketBase..."
+            items <- fetchPocketBaseItems manager pbConfig
+            putStrLn $ "Found " ++ show (length items) ++ " items in PocketBase."
 
-            -- Generate search index
-            let searchIndex = generateSearchIndex sortedItems
-            createDirectoryIfMissing True "elm-app/public"
-            LBS.writeFile "elm-app/public/search-index.json" searchIndex
-            putStrLn "Search index generated in elm-app/public/search-index.json"
+            let config = baseConfig{configFeeds = feeds}
+            runPipeline config items
+        TomlBackend -> do
+            configContent <- TIO.readFile "planet.toml"
+            case parseConfig configContent of
+                Left err -> TIO.putStrLn $ "Error parsing configuration: " <> err
+                Right config -> do
+                    putStrLn $ "Generating planet for: " ++ T.unpack (configTitle config)
+                    putStrLn $ "Locale: " ++ show (configLocale config)
+                    putStrLn $ "Found " ++ show (length $ configFeeds config) ++ " feeds."
 
-            -- Generate OPML export: opml.xml for default group (backwards-compat)
-            let defaultGrp = configDefaultGroup config
-            LBS.writeFile "elm-app/public/opml.xml" $ LT.encodeUtf8 $ generateOpml config (Just defaultGrp)
-            putStrLn "OPML export generated in elm-app/public/opml.xml"
+                    -- Fetch feeds concurrently
+                    allItems <- concat <$> mapConcurrently (fetchFeed feedCacheDir) (configFeeds config)
+                    pruneFeedCache feedCacheDir (map feedUrl (configFeeds config))
 
-            -- Generate per-group OPML files
-            let groups = nub (defaultGrp : map feedGroup (configFeeds config))
-            forM_ groups $ \grp -> do
-                let path = "elm-app/public/opml." <> T.unpack grp <> ".xml"
-                LBS.writeFile path $ LT.encodeUtf8 $ generateOpml config (Just grp)
-                putStrLn $ "OPML export generated in " <> path
-
-            -- No longer creating public/data.json
-            createDirectoryIfMissing True "elm-app/src"
-            TIO.writeFile "elm-app/src/Data.elm" elmModule
-            putStrLn "Elm data module generated in elm-app/src/Data.elm"
+                    runPipeline config allItems

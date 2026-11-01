@@ -12,6 +12,7 @@ build-type:     Simple
 library
   exposed-modules:
       Planet
+      PocketBase
       SiteConfig
       I18n
       FeedParser
@@ -74,6 +75,7 @@ test-suite planet-tests
       HtmlSanitizerSpec
       I18nSpec
       PlanetSpec
+      PocketBaseSpec
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       base >=4.7 && <5
@@ -97,6 +99,7 @@ test-suite planet-tests
     , tagsoup
     , tz
     , tzdata
+    , aeson
     , tasty
     , tasty-hunit
     , tasty-quickcheck

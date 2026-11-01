@@ -58,6 +58,30 @@ vendor/master-builder  Shared Elm design tokens and UI components
 .github/workflows CI/CD workflows
 ```
 
+## Backend Selection (TOML vs PocketBase)
+
+The generator supports dual backends for syndication data:
+
+1. **TOML Backend (Default)**:
+   - Reads feed definitions directly from [`planet.toml`](planet.toml).
+   - Fetches and parses external RSS/Atom/Flickr feeds concurrently over HTTP.
+   - Uses local `.feed-cache/` to cache responses and provide offline fallback.
+
+2. **PocketBase Backend**:
+   - Fetches centralized feed definitions and moderated items directly from a PocketBase instance (`/api/collections/feeds/records` and `/api/collections/feed_items/records`).
+   - Automatically filters out hidden items (`filter=(is_hidden=false)`).
+   - Resolves feed groups, thumbnails, and clean titles directly into `Data.elm`.
+
+### Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `PLANET_BACKEND` | Explicit backend selector: `"toml"` (or `"file"`) vs `"pocketbase"` (or `"pb"`). Takes precedence over `POCKETBASE_URL`. | `"toml"` (or `"pocketbase"` if `POCKETBASE_URL` is set) |
+| `POCKETBASE_URL` | Base URL of the PocketBase instance. If `PLANET_BACKEND` is unset, setting this enables PocketBase. | `http://127.0.0.1:8090` |
+| `POCKETBASE_TOKEN` | Optional auth token / admin bearer token for PocketBase API requests. | None |
+| `POCKETBASE_FEEDS_COLLECTION` | Collection name for feeds in PocketBase. | `feeds` |
+| `POCKETBASE_ITEMS_COLLECTION` | Collection name for feed items in PocketBase. | `feed_items` |
+
 ## Feed Configuration and Processing
 
 Community feeds are declared in [`planet.toml`](planet.toml). The Haskell generator fetches and post-processes all entries:

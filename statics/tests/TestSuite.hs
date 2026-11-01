@@ -11,6 +11,7 @@ import FeedParserSpec (feedParserTests)
 import HtmlSanitizerSpec (htmlSanitizerTests)
 import I18nSpec (i18nTests)
 import PlanetSpec (planetTests)
+import PocketBaseSpec (pocketBaseTests)
 
 main :: IO ()
 main =
@@ -24,4 +25,5 @@ main =
             , elmGenTests
             , htmlSanitizerTests
             , planetTests
+            , pocketBaseTests
             ]

@@ -140,6 +140,45 @@ devenv shell -- make dist
 
 ## 4. Feed Processing, Caching & Routing
 
+### Dual Backend Architecture (TOML vs PocketBase)
+
+The generator CLI supports two data ingestion backends:
+
+1. **TOML Backend (`TomlBackend`)**:
+   - Reads feed declarations from `planet.toml`.
+   - Concurrently downloads all RSS/Atom/Flickr feeds via `FeedParser.fetchFeed`.
+   - Caches responses in `.feed-cache/` for robust offline/fallback operation.
+   - Selected by default when no PocketBase environment variables are present.
+
+2. **PocketBase Backend (`PocketBaseBackend`)**:
+   - Fetches centralized feed definitions and moderated articles from PocketBase via REST API.
+   - Enforces the database-level moderation boundary (`filter=(is_hidden=false)`).
+   - Resolves group relationships (`expand=feed,feed.groups`), clean titles, and media thumbnails.
+   - Supports paginated collection queries (500 records per page).
+
+#### Backend Detection & Environment Variables
+
+Backend selection is handled by `PocketBase.detectBackend :: [(String, String)] -> BackendType`:
+
+| Variable | Description | Default | Precedence |
+| :--- | :--- | :--- | :--- |
+| `PLANET_BACKEND` | Explicit toggle: `"toml"` (or `"file"`) vs `"pocketbase"` (or `"pb"`). Case-insensitive. | None | **Highest**: If set, overrides `POCKETBASE_URL`. |
+| `POCKETBASE_URL` | PocketBase API base URL (e.g. `http://127.0.0.1:8090`). | `http://127.0.0.1:8090` | If `PLANET_BACKEND` is unset, setting this enables PocketBase. |
+| `POCKETBASE_TOKEN` | Bearer token / admin auth token for PocketBase API requests. | `Nothing` | Optional (used if set). |
+| `POCKETBASE_FEEDS_COLLECTION` | PocketBase feeds collection name. | `"feeds"` | Fallback: `"feeds"`. |
+| `POCKETBASE_ITEMS_COLLECTION` | PocketBase feed items collection name. | `"feed_items"` | Fallback: `"feed_items"`. |
+
+```bash
+# Force TOML backend
+PLANET_BACKEND=toml make run
+
+# Force PocketBase backend with custom host
+PLANET_BACKEND=pocketbase POCKETBASE_URL=http://127.0.0.1:8090 make run
+
+# Automatic PocketBase detection via URL
+POCKETBASE_URL=https://pb.palikkaharrastajat.fi make run
+```
+
 ### Feed Configuration (`planet.toml`)
 Feeds are declared in `planet.toml` under `[[feeds]]`:
 ```toml
