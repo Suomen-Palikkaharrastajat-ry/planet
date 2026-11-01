@@ -191,6 +191,38 @@ feedParserTests =
                         , itemLink = "http://example.com/2"
                         }
             map itemTitle (filterExcludedItems feedConfig [item1, item2]) @?= ["Good"]
+        , testCase "isYouTubeShort identifies valid shorts URLs" $ do
+            assertBool "www.youtube.com" (isYouTubeShort "https://www.youtube.com/shorts/dQw4w9WgXcQ")
+            assertBool "youtube.com" (isYouTubeShort "https://youtube.com/shorts/dQw4w9WgXcQ")
+            assertBool "m.youtube.com" (isYouTubeShort "https://m.youtube.com/shorts/dQw4w9WgXcQ")
+            assertBool "trailing dot host" (isYouTubeShort "https://youtube.com./shorts/dQw4w9WgXcQ")
+            assertBool "youtu.be" (isYouTubeShort "https://youtu.be/shorts/dQw4w9WgXcQ")
+            assertBool
+                "with query params"
+                (isYouTubeShort "https://www.youtube.com/shorts/dQw4w9WgXcQ?feature=share")
+        , testCase "isYouTubeShort rejects non-shorts and spoofed hosts" $ do
+            assertBool
+                "suffix attack on youtube.com"
+                (not (isYouTubeShort "https://youtube.com.evil.com/shorts/dQw4w9WgXcQ"))
+            assertBool
+                "prefix hyphen on youtube.com"
+                (not (isYouTubeShort "https://evil-youtube.com/shorts/dQw4w9WgXcQ"))
+            assertBool
+                "suffix attack on youtu.be"
+                (not (isYouTubeShort "https://youtu.be.evil.com/shorts/dQw4w9WgXcQ"))
+            assertBool
+                "regular watch video"
+                (not (isYouTubeShort "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+            assertBool "empty short id" (not (isYouTubeShort "https://www.youtube.com/shorts/"))
+            assertBool "no trailing slash or id" (not (isYouTubeShort "https://www.youtube.com/shorts"))
+        , testCase "filterExcludedItems automatically excludes YouTube Shorts" $ do
+            let feedConfig = FeedConfig YouTube (Just "YT") "http://example.com" "fi" [] [] Nothing
+                shortItem = dummyAppItem{itemTitle = "Short Video", itemLink = "https://www.youtube.com/shorts/12345"}
+                regularItem = dummyAppItem{itemTitle = "Regular Video", itemLink = "https://www.youtube.com/watch?v=67890"}
+            map itemTitle (filterExcludedItems feedConfig [shortItem, regularItem]) @?= ["Regular Video"]
+        , testCase "cleanTitle decodes entities and strips invisible characters" $ do
+            cleanTitle "LEGO &amp;amp; Brick &quot;Showcase&quot; #lego" @?= "LEGO & Brick \"Showcase\""
+            cleanTitle "Special\x200B MOC\x202E #10305 #afol" @?= "Special MOC #10305"
         ]
   where
     dummyAppItem = AppItem "" "" Nothing Nothing Nothing Nothing Nothing "" Nothing Feed ""

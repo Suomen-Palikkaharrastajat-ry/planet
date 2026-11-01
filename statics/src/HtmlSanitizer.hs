@@ -1,12 +1,121 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HtmlSanitizer (cleanAndTruncate, normalizeVoids, pruneTree, takeWithLimit, stripHtmlTags) where
+module HtmlSanitizer (
+    cleanAndTruncate,
+    normalizeVoids,
+    pruneTree,
+    takeWithLimit,
+    stripHtmlTags,
+    isInvisibleFormat,
+    stripInvisibleCharacters,
+    decodeHtmlEntities,
+) where
 
-import Data.Char (isSpace)
+import Data.Char (chr, isControl, isDigit, isHexDigit, isSpace)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Numeric (readDec, readHex)
 import Text.HTML.TagSoup (Tag (..), parseTags, renderTags)
 import Text.HTML.TagSoup.Tree (TagTree (..), flattenTree, tagTree)
+
+{- | Checks whether a character is an invisible formatting character:
+zero-width spaces/joiners, bidi overrides/controls, word joiners, and BOM.
+-}
+isInvisibleFormat :: Char -> Bool
+isInvisibleFormat c =
+    c >= '\x200B' && c <= '\x200F'
+        || c >= '\x202A' && c <= '\x202E'
+        || c >= '\x2060' && c <= '\x206F'
+        || c == '\xFEFF'
+
+-- | Strips invisible formatting characters from text.
+stripInvisibleCharacters :: Text -> Text
+stripInvisibleCharacters = T.filter (not . isInvisibleFormat)
+
+{- | Decodes HTML character references (named and numeric entities).
+Handles double-escaped entities (e.g. &amp;quot; -> ", &amp;amp; -> &),
+but strictly refuses to decode invisible format and control characters.
+-}
+decodeHtmlEntities :: Text -> Text
+decodeHtmlEntities = decodeLoop (2 :: Int)
+  where
+    decodeLoop n t
+        | n <= 0 = t
+        | otherwise =
+            let next = decodeSinglePass t
+             in if next == t
+                    then t
+                    else decodeLoop (n - 1) next
+
+    decodeSinglePass t
+        | T.null t = ""
+        | otherwise =
+            let (before, rest) = T.break (== '&') t
+             in if T.null rest
+                    then before
+                    else before <> decodeAmp (T.drop 1 rest)
+
+    decodeAmp rest =
+        let candidate = T.take 11 rest
+         in case T.findIndex (== ';') candidate of
+                Just semiIdx ->
+                    let entityName = T.take semiIdx candidate
+                        afterSemi = T.drop (semiIdx + 1) rest
+                     in case entityChar entityName of
+                            Just c -> T.cons c (decodeSinglePass afterSemi)
+                            Nothing -> T.cons '&' (decodeSinglePass rest)
+                Nothing -> T.cons '&' (decodeSinglePass rest)
+
+    entityChar name
+        | Just numStr <- T.stripPrefix "#" name =
+            let (digits, radix) = case T.uncons numStr of
+                    Just (x, rest) | x == 'x' || x == 'X' -> (rest, 16 :: Int)
+                    _ -> (numStr, 10 :: Int)
+             in if T.null digits || not (T.all (isValidDigit radix) digits)
+                    then Nothing
+                    else case parseRadix radix digits of
+                        Just n
+                            | n <= 0x10FFFF && not (n >= 0xD800 && n <= 0xDFFF) ->
+                                let c = chr n
+                                 in if isSpace c || not (isControl c || isInvisibleFormat c)
+                                        then Just c
+                                        else Nothing
+                        _ -> Nothing
+        | otherwise = case name of
+            "quot" -> Just '"'
+            "amp" -> Just '&'
+            "apos" -> Just '\''
+            "lt" -> Just '<'
+            "gt" -> Just '>'
+            "nbsp" -> Just '\xA0'
+            "ndash" -> Just '–'
+            "mdash" -> Just '—'
+            "hellip" -> Just '…'
+            "lsquo" -> Just '‘'
+            "rsquo" -> Just '’'
+            "ldquo" -> Just '“'
+            "rdquo" -> Just '”'
+            "laquo" -> Just '«'
+            "raquo" -> Just '»'
+            "copy" -> Just '©'
+            "reg" -> Just '®'
+            "trade" -> Just '™'
+            "deg" -> Just '°'
+            "times" -> Just '×'
+            "middot" -> Just '·'
+            "bull" -> Just '•'
+            _ -> Nothing
+
+    isValidDigit 16 c = isHexDigit c
+    isValidDigit _ c = isDigit c
+
+    parseRadix 16 s = case readHex (T.unpack s) of
+        [(n, "")] -> Just n
+        _ -> Nothing
+    parseRadix 10 s = case readDec (T.unpack s) of
+        [(n, "")] -> Just n
+        _ -> Nothing
+    parseRadix _ _ = Nothing
 
 -- HTML sanitization and cleaning utilities
 cleanAndTruncate :: Int -> Text -> Text

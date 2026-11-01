@@ -2,6 +2,7 @@
 
 module FeedParser (
     FeedHandler (..),
+    isYouTubeShort,
     getFeedHandler,
     Download (..),
     fetchFeed,
@@ -77,7 +78,41 @@ import qualified Text.RSS.Syntax as RSS
 
 import Config
 import FeedCache
+import HtmlSanitizer (decodeHtmlEntities, isInvisibleFormat, stripInvisibleCharacters)
 import I18n
+
+{- | Whether a URL points to a YouTube Short (youtube.com/shorts/<id> or youtu.be/shorts/<id>).
+Uses strict host isolation to avoid matching suffix attack domains (e.g. youtube.com.evil.com).
+-}
+isYouTubeShort :: Text -> Bool
+isYouTubeShort url =
+    case extractHostAndPath url of
+        Just (rawHost, path) ->
+            let host = T.dropWhileEnd (== '.') (T.toLower rawHost)
+                isMatch domain = host == domain || ("." <> domain) `T.isSuffixOf` host
+                validHost = isMatch "youtube.com" || isMatch "youtu.be"
+                hasShortsPrefix = "/shorts/" `T.isPrefixOf` path
+                shortId = T.takeWhile (\c -> c /= '/' && c /= '?' && c /= '#') (T.drop 8 path)
+             in validHost && hasShortsPrefix && not (T.null shortId)
+        Nothing -> False
+  where
+    extractHostAndPath u =
+        let withoutFragment = T.takeWhile (/= '#') u
+            withoutQuery = T.takeWhile (/= '?') withoutFragment
+            afterScheme = case () of
+                _
+                    | "https://" `T.isPrefixOf` withoutQuery -> T.drop 8 withoutQuery
+                    | "http://" `T.isPrefixOf` withoutQuery -> T.drop 7 withoutQuery
+                    | "//" `T.isPrefixOf` withoutQuery -> T.drop 2 withoutQuery
+                    | otherwise -> withoutQuery
+            (auth, restPath) = T.break (== '/') afterScheme
+            hostPart = case T.break (== '@') auth of
+                (_, "") -> auth
+                (_, withAt) -> T.drop 1 withAt
+            cleanHost = case T.break (== ':') hostPart of
+                (h, _) -> h
+            path = if T.null restPath then "/" else restPath
+         in if T.null cleanHost then Nothing else Just (cleanHost, path)
 
 -- Normalizes URLs by replacing multiple slashes in the protocol part
 normalizeUrl :: Text -> Text
@@ -222,7 +257,8 @@ filterExcludedItems fc items =
         excludedWords = map T.toLower (feedExcludeKeywords fc)
         containsExcludedWord txt = any (`T.isInfixOf` T.toLower txt) excludedWords
         isNotExcluded i =
-            itemLink i `notElem` excludedLinks
+            not (isYouTubeShort (itemLink i))
+                && itemLink i `notElem` excludedLinks
                 && not (containsExcludedWord (itemTitle i))
                 && not (maybe False containsExcludedWord (itemDescText i))
      in filter isNotExcluded items
@@ -252,14 +288,15 @@ parseItem fc altLink item = do
             _ -> join $ getItemPublishDate item
     let defaultDesc = getItemDescription item
     let mediaDesc = getMediaDescription fc item
-    let desc = mediaDesc <|> defaultDesc
+    let rawDesc = mediaDesc <|> defaultDesc
+    let desc = fmap stripInvisibleCharacters rawDesc
     originalLink <- normalizeUrl <$> getItemLink item
-    let link = resolveFollowItTrackingLink originalLink desc
-    let descText = fmap stripHtml desc
+    let link = resolveFollowItTrackingLink originalLink rawDesc
+    let descText = fmap (stripInvisibleCharacters . decodeHtmlEntities . stripHtml) rawDesc
     let descSnippet = fmap (T.take 250) descText
     let thumb =
             getItemThumbnail item
-                <|> (desc >>= extractFirstImage)
+                <|> (rawDesc >>= extractFirstImage)
                 <|> (defaultDesc >>= extractFirstImage)
                 <|> (getContentEncoded item >>= extractFirstImage)
     let sourceTitle = case feedTitle fc of
@@ -312,13 +349,11 @@ getAtomMediaDescription item = case item of
 
 stripFirstPTag :: Text -> Text
 stripFirstPTag html =
-    let decodedHtml = decodeEntities html
+    let decodedHtml = decodeHtmlEntities html
         tags = parseTags decodedHtml
         remainingTags = skipToFirstPTag tags
      in renderTags remainingTags
   where
-    decodeEntities :: Text -> Text
-    decodeEntities = T.replace "&lt;" "<" . T.replace "&gt;" ">" . T.replace "&quot;" "\"" . T.replace "&amp;" "&"
     skipToFirstPTag :: [Tag Text] -> [Tag Text]
     skipToFirstPTag [] = []
     skipToFirstPTag (TagOpen "p" _ : rest) =
@@ -333,8 +368,9 @@ stripFirstPTag html =
          in (tag : skipped, remaining)
 
 cleanTitle :: Text -> Text
-cleanTitle title =
-    let wordList = T.words title
+cleanTitle rawTitle =
+    let decoded = stripInvisibleCharacters (decodeHtmlEntities rawTitle)
+        wordList = T.words decoded
         cleaned = reverse $ dropWhile isHashtagToRemove $ reverse wordList
      in T.unwords cleaned
   where

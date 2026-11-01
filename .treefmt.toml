@@ -2,8 +2,10 @@
 command = "fourmolu"
 options = ["--mode", "inplace"]
 includes = ["statics/**/*.hs"]
+excludes = ["statics/src/SiteConfig.hs"]
 
 [formatter.elm-format]
 command = "elm-format"
 options = ["--yes"]
 includes = ["elm-app/src/**/*.elm"]
+excludes = ["elm-app/src/Data.elm"]

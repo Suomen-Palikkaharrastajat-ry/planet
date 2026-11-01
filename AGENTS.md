@@ -1,174 +1,224 @@
-# AGENTS.md
+# AGENTS.md — Planet (Suomen Palikkaharrastajat Feed Aggregator)
 
-This file is for coding agents working on `planet`.
+This document contains authoritative development instructions, architecture details, build/test workflows, and change rules for AI coding agents working on the `planet` project.
 
-## Project Overview
+---
 
-`planet` is a feed aggregator for *Suomen Palikkaharrastajat ry*.
+## 1. Project Overview & Role in the Ecosystem
 
-It has two main parts:
+`planet` is the official community feed aggregator and static web portal for **Suomen Palikkaharrastajat ry** (the Finnish LEGO® Enthusiasts Association), hosted at [palikkaharrastajat.fi](https://palikkaharrastajat.fi).
 
-- A Haskell CLI that reads [`planet.toml`](planet.toml), fetches RSS/Atom/photo feeds, generates OPML and a search index, and writes Elm data into [`elm-app/src/Data.elm`](elm-app/src/Data.elm).
-- An Elm 0.19 frontend built with Vite and Tailwind CSS 4 that renders the aggregated feed content as a static site.
+It serves as the sister project to [`brickbot`](../brickbot):
+- While `brickbot` operates in real time within the association's Discord server to announce updates, sync calendar events, and host collaborative building sessions,
+- `planet` provides the permanent public web archive, search portal, and multi-format syndication reader (RSS, Atom, Flickr, member blogs) for the wider internet and LUG community.
 
-There is no `pnpm` in the current project. Frontend tooling is provided through Nix via [`pkgs/npm-tools.nix`](pkgs/npm-tools.nix).
+### System Architecture
 
-## Repository Layout
+The application is structured into two main decoupled subsystems:
 
-```text
-statics/src/          Haskell library modules
-statics/app/          Haskell executable entry point
-statics/tests/        Active Haskell test suite used by `make test`
-elm-app/              Elm frontend
-  src/                Elm application modules
-  tests/              Elm unit tests
-  .elm-tailwind/      Generated elm-tailwind-classes output
-  packages/           Symlink to shared Elm packages in vendor/master-builder
-pkgs/                 Nix-managed Node/Vite/Elm tooling manifest + lockfile
-review/               elm-review config (shared LlmAgent rules via vendor/master-builder)
-vendor/master-builder Shared Elm packages for design tokens and UI components
-.github/workflows/    CI/CD workflows
-devenv.nix            Dev shell and CI profile
-Makefile              Main entry point for development, build, and test commands
-cabal.project         Cabal project config with pinned index-state
-cabal.project.freeze  Frozen Cabal dependency plan for CI/reproducibility
-planet.toml           Feed configuration
+1. **Haskell CLI Generator** (`statics/`):
+   - Reads [`planet.toml`](planet.toml) for feed specifications.
+   - Fetches and parses RSS/Atom feeds and photo streams concurrently via HTTP.
+   - Maintains a local `.feed-cache/` fallback cache to guarantee builds succeed even if external member blogs are temporarily down.
+   - Generates:
+     - Typed Elm data module in [`elm-app/src/Data.elm`](elm-app/src/Data.elm) (gitignored).
+     - Global and per-group OPML subscription files in [`elm-app/public/opml.xml`](elm-app/public/opml.xml) and `elm-app/public/opml.<group>.xml`.
+     - Static search index in [`elm-app/public/search-index.json`](elm-app/public/search-index.json).
+2. **Elm 0.19 Single-Page Application** (`elm-app/`):
+   - Built with Vite and Tailwind CSS 4.
+   - Implements the Elm Architecture (Model-Update-View) for high reliability and zero runtime exceptions.
+   - Renders posts, thumbnails, author avatars, and timestamps.
+   - Integrates association design tokens and UI components from the vendored [`vendor/master-builder`](vendor/master-builder) repository.
+   - Uses typed Tailwind classes generated into [`elm-app/.elm-tailwind/`](elm-app/.elm-tailwind/).
+
+```mermaid
+flowchart TD
+    Config["planet.toml & config.toml"] --> HaskellCLI["Haskell Generator (statics/)"]
+    FeedCache[".feed-cache/ (fallback)"] <--> HaskellCLI
+    WebFeeds["External RSS/Atom/Flickr Feeds"] --> HaskellCLI
+    
+    HaskellCLI -->|generates| ElmData["elm-app/src/Data.elm"]
+    HaskellCLI -->|generates| PublicAssets["elm-app/public/ (search-index.json, opml*.xml)"]
+    
+    MasterBuilder["vendor/master-builder (DesignTokens & Components)"] --> ElmApp["Elm SPA (elm-app/src/)"]
+    ElmData --> ElmApp
+    TailwindGen["elm-tailwind-classes gen"] --> ElmTailwind["elm-app/.elm-tailwind/"]
+    ElmTailwind --> ElmApp
+    
+    ElmApp --> ViteBuild["Vite Build"]
+    PublicAssets --> ViteBuild
+    ViteBuild --> Dist["dist/"]
+    Dist --> DistAssemble["make dist-assemble (Per-group directory routing)"]
+    DistAssemble --> FinalOutput["Final Dist Output (dist/<group>/index.html)"]
 ```
 
-## Development Environment
+---
 
-Use `devenv`.
+## 2. Repository Layout
 
-Run commands either:
+```text
+planet/
+├── cabal.project         # Cabal multi-package configuration with pinned index-state
+├── cabal.project.freeze  # Frozen Haskell dependency plan for reproducible builds
+├── config.toml           # Site-level metadata (URL, title, i18n languages, description)
+├── devenv.nix            # Declarative development environment (profiles: shell, ci)
+├── devenv.yaml / .lock   # devenv inputs and lockfile
+├── dist/                 # Production static site output generated by make dist / make dist-ci
+├── elm-app/              # Elm 0.19 frontend application
+│   ├── index.html        # Vite SPA entry HTML template
+│   ├── main.js           # JavaScript bootstrap & search index fetcher
+│   ├── main.css          # Project-specific CSS & Tailwind root
+│   ├── vite.config.mjs   # Vite configuration (runs with --configLoader runner)
+│   ├── elm.json          # Elm package dependencies and source directories
+│   ├── src/              # Elm source modules (Main.elm, I18n.elm, etc.)
+│   ├── tests/            # Elm unit tests (elm-test)
+│   ├── public/           # Static public assets (search-index.json, opml*.xml)
+│   ├── .elm-tailwind/    # Generated typed Tailwind Elm modules (elm-tailwind-classes)
+│   ├── packages/         # Symlink to vendor/master-builder/packages
+│   └── node_modules/     # Symlink to Nix store planet-npm-tools
+├── node_modules/         # Root symlink to Nix store planet-npm-tools
+├── overrides.nix         # Local Haskell package set overrides
+├── pkgs/                 # Node / frontend tooling Nix derivation and package-lock.json
+│   ├── npm-tools.nix     # Thin wrapper specifying pinned hash
+│   ├── package.json      # Vite, Tailwind 4, elm-tailwind-classes
+│   └── package-lock.json # Frozen npm dependencies
+├── planet.toml           # Feed configuration (feed URLs, titles, groups, authors)
+├── review/               # elm-review configuration using shared LlmAgent rules
+├── statics/              # Haskell feed generator CLI
+│   ├── planet.cabal      # Cabal package definition
+│   ├── app/Main.hs       # CLI executable entry point
+│   ├── src/              # Core Haskell generator modules (Planet, Config, FeedParser, etc.)
+│   └── tests/            # Haskell unit tests (planet-tests)
+└── vendor/master-builder # Git submodule containing shared design system, components, and make rules
+```
 
-- interactively with `make shell`
-- or one-off with `devenv shell --profile ci -- ...` / `devenv shell -- ...`
+---
 
-Key commands:
+## 3. Development Workflows & Commands
 
-- `make shell` — open the dev shell
-- `make build` — build the Elm app (SPA) → `dist/` (alias for `make elm-build`)
-- `make run` — build and run the Haskell CLI to regenerate [`elm-app/src/Data.elm`](elm-app/src/Data.elm)
-- `make elm-build` — build the Elm app
-- `make dist` — full local build → dist/
-- `make elm-test` — run Elm tests
-- `make elm-review` — run elm-review with the shared LlmAgent rules from `vendor/master-builder`
-- `make check` — elm-format --validate + elm-review + hlint (no changes)
-- `make test` — Elm + Haskell test suites (`make elm-test statics-test`)
-- `make statics-build` — build the Haskell generator → `statics/planet`
-- `make statics-test` — Haskell tests only (`cabal test planet-tests`)
-- `make dist-ci` — produce CI-ready static output in `dist/`
-- `make watch` — run the generator and start Vite dev mode
+All development, builds, and tests run inside `devenv`. Always run commands from the `planet/` directory.
 
-## Source of Truth
+### Quick Command Reference
 
-When changing behavior, use this order of trust:
+| Make Target | Description | Underlying Tooling |
+| :--- | :--- | :--- |
+| `make shell` | Opens interactive devenv shell | `devenv shell` |
+| `make test` | Runs both Elm and Haskell test suites | `make elm-test statics-test` |
+| `make check` | Full linting & validation check | `make elm-check statics-check` |
+| `make format` | Formats Elm, Haskell, and TOML/Nix files | `elm-format`, `fourmolu`, `treefmt` |
+| `make run` | Compiles & runs Haskell CLI to refresh feed data | `./statics/planet` |
+| `make elm-dev` | Starts Elm + Vite dev server with hot reload | `vite --configLoader runner` |
+| `make elm-build` | Builds Elm SPA into `dist/` | `vite build` |
+| `make dist` | Full production build (Haskell run + Elm build + assemble) | `make dist/.elm-stamp dist-assemble` |
+| `make dist-ci` | CI build using prebuilt Nix generator binary (`PLANET_NIX=1`) | `make dist PLANET_NIX=1` |
+| `make elm-test` | Runs Elm tests | `elm-test` |
+| `make elm-review` | Runs elm-review with shared LlmAgent rules | `elm-review --config ../review` |
+| `make statics-build` | Compiles Haskell generator binary | `cabal build planet` |
+| `make statics-test` | Runs Haskell test suite | `cabal test planet-tests` |
+| `make statics-check` | Lints Haskell source code | `hlint statics/src/ statics/app/ statics/tests/` |
+| `make statics-format` | Formats Haskell code in-place | `fourmolu --mode inplace` |
+| `make site-config` | Regenerates Elm/Haskell site config from `config.toml` | Shared `site-config.mk` generator |
+| `make site-config-check` | Validates site configs and checks for unlocalized Finnish | Shared `site-config.mk` linter |
+| `make vendor` | Initializes and clones the `vendor/master-builder` submodule | `git submodule update --init` |
+| `make watch` | Watches Haskell/TOML and restarts Vite dev server | `entr` + `vite dev` |
+| `make clean` | Cleans build artifacts (`dist/`, `statics/planet`, `.elm-tailwind`) | `rm -rf` + `cabal clean` |
 
-1. Active tests in [`statics/tests/`](statics/tests) and [`elm-app/tests/`](elm-app/tests)
-2. Current code and build pipeline
-3. Inline comments and docs
+### Running Commands via Devenv
+Run one-off commands non-interactively without opening a shell:
+```bash
+# Run tests
+devenv shell -- make test
 
-The old `agents/adrs` and `agents/stories` material is gone. Do not assume those files exist.
+# Run full checks (elm-format validate, elm-review, site-config-check, hlint)
+devenv shell -- make check
 
-## Change Rules
+# Regenerate feed data and build static site
+devenv shell -- make dist
+```
 
-- Update or add tests before changing behavior.
-- Keep changes minimal and aligned with the existing architecture.
-- Do not rewrite generated files by hand unless that is the explicit task.
-- Do not reintroduce `pnpm`, `elm-app/package.json`, or ad hoc Node installs.
-- Do not modify `elm-app/node_modules`; it is a symlink created by `devenv`.
-- Do not change Cabal dependency resolution casually. If Haskell dependencies change:
-  1. update the relevant Cabal metadata
-  2. refresh [`cabal.project.freeze`](cabal.project.freeze)
-  3. verify with `devenv shell --profile ci -- make test`
+---
 
-## Generated Files
+## 4. Feed Processing, Caching & Routing
 
-Treat these as generated:
+### Feed Configuration (`planet.toml`)
+Feeds are declared in `planet.toml` under `[[feeds]]`:
+```toml
+title = "Suomen Palikkaharrastajat"
+description = "Suomen Palikkaharrastajien blogi- ja uutisfeedit"
+default_group = "all"
+locale = "fi"
 
-- [`elm-app/src/Data.elm`](elm-app/src/Data.elm) — generated by the Haskell CLI
-- [`elm-app/.elm-tailwind/`](elm-app/.elm-tailwind) — generated by `elm-tailwind-classes gen`
-- [`elm-app/public/search-index.json`](elm-app/public/search-index.json) — generated by the Haskell CLI
-- [`elm-app/public/opml.xml`](elm-app/public/opml.xml) — generated by the Haskell CLI
+[[feeds]]
+title = "Palikkablogi"
+url = "https://example.com/feed.xml"
+group = "blogs"
+author = "Member Name"
+avatar = "https://example.com/avatar.jpg"
+content_type = "blog"
+```
 
-If you need them refreshed, use the Make targets instead of hand-editing.
+### Fallback Feed Cache (`.feed-cache/`)
+- During `make run`, `fetchFeed` caches the raw XML content of each feed inside `.feed-cache/<hash>`.
+- If an external blog or RSS endpoint is unreachable or fails to respond, the generator transparently falls back to the last good cached response.
+- `pruneFeedCache` automatically cleans up cache entries for feeds that are removed from `planet.toml`.
+- `.feed-cache/` is gitignored and safe to clear; clearing it simply forces fresh network fetches.
 
-The generator also keeps `.feed-cache/` (gitignored) in the repo root: the last good body of each feed, used when a fetch fails and persisted between CI runs with actions/cache. Deleting it is safe; it only loses the fallback.
+### Group-Based Routing (`make dist-assemble`)
+- Feeds can belong to different groups (e.g. `blogs`, `media`, `announcements`).
+- The generator produces:
+  - Default OPML: `elm-app/public/opml.xml`
+  - Per-group OPML: `elm-app/public/opml.<group>.xml`
+- During `make dist`, Vite outputs the compiled SPA into `dist/`.
+- `make dist-assemble` reads every `dist/opml.<group>.xml` and creates a corresponding subdirectory `dist/<group>/index.html` copying the root `index.html`. This ensures that static web servers (GitHub Pages, Netlify) correctly serve the SPA for group URLs.
 
-## Frontend Guidance
+---
 
-Prefer the shared Elm packages already vendored into the repo:
+## 5. Design System & Frontend Guidance
 
-- `DesignTokens.*` for typed design-token values
-- `Component.*` for reusable shared UI
-- generated `Tailwind`, `Tailwind.Theme`, and `Tailwind.Breakpoints` modules from `.elm-tailwind/` for typed Tailwind usage
+UI components and styling must conform to the **Suomen Palikkaharrastajat** brand identity:
 
-Raw Tailwind class strings are acceptable in legacy code, but new code should prefer the shared packages and generated modules where practical.
+- **Reference Documentation**: [`vendor/master-builder/AGENTS.md`](vendor/master-builder/AGENTS.md)
+- **Brand Tokens**:
+  - Primary Brand Black: `#05131D`
+  - Brand Yellow: `#FAC80A` (used for CTAs, badges, and highlights)
+  - Typography: Use defined typography classes (`type-*`) rather than arbitrary font sizes.
+  - Spacing: Use named spacing tokens (`space-*`).
+  - Reduced Motion: Always respect `@media (prefers-reduced-motion: reduce)`.
+- **Shared Elm Packages**:
+  - `DesignTokens.*`: Strongly typed brand design tokens.
+  - `Component.*`: Standard shared UI components (buttons, headers, cards).
+  - Page Chrome: Header and drawer navigation come from `master-builder`'s `Component.Layout`. Do NOT hand-roll bespoke navigation chrome.
+- **Typed Tailwind**:
+  - Generated into `elm-app/.elm-tailwind/` via `make elm-tailwind-gen`.
+  - Prefer typed modules (`Tailwind`, `Tailwind.Theme`, `Tailwind.Breakpoints`) in new code over raw string classes.
 
-For UI work, follow the Suomen Palikkaharrastajat brand guide:
+---
 
-- Design-system reference (single source of truth): [`vendor/master-builder/AGENTS.md`](vendor/master-builder/AGENTS.md), section "Design system"
-- Human guide: https://logo.palikkaharrastajat.fi/
-- Canonical CSS tokens: https://logo.palikkaharrastajat.fi/brand.css
+## 6. Site Configuration & Localization Rules
 
-Important design constraints:
+- [`config.toml`](config.toml) is the single source of truth for site-wide settings (URL, title, description, supported languages).
+- Whenever `config.toml` is modified, run:
+  ```bash
+  make site-config
+  ```
+  This regenerates `elm-app/tests/SiteFixture.elm` and `statics/src/SiteConfig.hs`.
+- **Strict Localization Rule**:
+  - Never hardcode Finnish display strings inside Elm views, `main.js`, or Haskell generators.
+  - All user-facing strings must be localized in [`elm-app/src/I18n.elm`](elm-app/src/I18n.elm) (supporting both Finnish and English).
+  - `make site-config-check` statically checks the codebase and fails the build if Finnish text is detected outside `I18n.elm` or `config.toml`.
 
-- use brand black `#05131D` as the primary brand color
-- use brand yellow `#FAC80A` for emphasis and CTAs
-- use `type-*` text utilities instead of ad hoc typography
-- use named spacing tokens and semantic colors
-- respect reduced-motion rules
+---
 
-Shared package layout:
+## 7. Change Rules & Source of Truth
 
-- [`elm-app/packages`](elm-app/packages) is a symlink to [`vendor/master-builder/packages`](vendor/master-builder/packages)
-- import shared UI as `Component.*`
-- import shared tokens as `DesignTokens.*`
-- keep project-specific CSS in [`elm-app/main.css`](elm-app/main.css)
+When making changes, follow this hierarchy of trust:
+1. Active unit and regression tests in [`statics/tests/`](statics/tests) and [`elm-app/tests/`](elm-app/tests).
+2. Existing codebase patterns and working CI pipelines.
+3. Documentation and comments.
 
-## Tooling Notes
-
-### Node / frontend deps
-
-Node tooling is defined in:
-
-- [`pkgs/package.json`](pkgs/package.json)
-- [`pkgs/package-lock.json`](pkgs/package-lock.json)
-- [`pkgs/npm-tools.nix`](pkgs/npm-tools.nix) — a thin wrapper; the shared derivation logic lives in `vendor/master-builder/pkgs/mk-npm-tools.nix`. The repo-specific hash stays in this wrapper.
-
-If you need to update frontend tooling:
-
-1. edit [`pkgs/package.json`](pkgs/package.json)
-2. regenerate the lockfile with `npm install --package-lock-only` in `pkgs/`
-3. update the hash in [`pkgs/npm-tools.nix`](pkgs/npm-tools.nix)
-4. verify in `devenv`
-
-### Cabal / Haskell deps
-
-The repo uses frozen Cabal inputs:
-
-- [`cabal.project`](cabal.project)
-- [`cabal.project.freeze`](cabal.project.freeze)
-
-CI should build from those frozen resources. Do not switch CI back to an unfrozen `cabal update`.
-
-## Testing Expectations
-
-Before finishing substantive work, run the smallest relevant verification and then the broader suite when appropriate:
-
-- Elm-only change: `make elm-test`
-- Haskell-only change: `make statics-test` (never bare `cabal test` — the repo root is not a package directory, see `vendor/master-builder/docs/conventions.md`)
-- build pipeline / integration change: `devenv shell --profile ci -- make test` and `devenv shell --profile ci -- make dist-ci`
-
-## Documentation Split
-
-- [`README.md`](README.md) is for humans using the project
-- [`AGENTS.md`](AGENTS.md) is for coding agents developing the project
-
-Keep that split clean when editing docs.
-
-## Configuration and translations
-
-- `config.toml` is the single source of the site URL, title, description, languages and `[app]` settings (see `vendor/master-builder/docs/site-config.md`). After editing it run `make site-config` and commit the regenerated `elm-app/tests/SiteFixture.elm` and `statics/src/SiteConfig.hs`; `make site-config-check` fails in CI otherwise.
-- No display text in views, `main.js` or the Haskell generators: put it in `elm-app/src/I18n.elm` (Finnish and English) or in `config.toml`. `make site-config-check` flags Finnish text elsewhere.
-- Page chrome comes from the hub's `Component.Layout`; do not assemble header, drawer or footer here.
+### Golden Rules for Agents:
+- **Never reintroduce Node package managers**: There is no `npm`, `pnpm`, or `yarn` in this repository. All frontend tools are hermetically built by Nix via [`pkgs/npm-tools.nix`](pkgs/npm-tools.nix).
+- **Never touch symlinked `node_modules`**: Both `node_modules` and `elm-app/node_modules` point to read-only paths in `/nix/store`.
+- **Preserve Cabal Dependency Freezes**: If Haskell dependencies in `statics/planet.cabal` are updated, re-freeze dependencies via `cabal.project.freeze` and verify using `devenv shell -- make test`.
+- **Stage untracked files with Git**: Nix sandbox builds filter out files not tracked by Git. Always run `git add <file>` when adding new modules.
+- **Always run verification before completing**: Run `devenv shell -- make check` and `devenv shell -- make test`.
