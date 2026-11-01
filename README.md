@@ -81,6 +81,7 @@ The generator supports dual backends for syndication data:
 | `POCKETBASE_TOKEN` | Optional auth token / admin bearer token for PocketBase API requests. | None |
 | `POCKETBASE_FEEDS_COLLECTION` | Collection name for feeds in PocketBase. | `feeds` |
 | `POCKETBASE_ITEMS_COLLECTION` | Collection name for feed items in PocketBase. | `feed_items` |
+| `POCKETBASE_SINCE` | Earliest publication date of posts to include (e.g. `2026-01-01` or `2026-01-01T00:00:00Z`). Aliases: `PLANET_POCKETBASE_SINCE`, `POCKETBASE_FIRST_DATE`, `PLANET_SINCE`. | None (all non-hidden posts) |
 
 ## Feed Configuration and Processing
 

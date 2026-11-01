@@ -139,6 +139,9 @@ main = do
             putStrLn $ "PocketBase URL: " ++ T.unpack (pbUrl pbConfig)
             putStrLn $ "Feeds collection: " ++ T.unpack (pbFeedsCollection pbConfig)
             putStrLn $ "Items collection: " ++ T.unpack (pbItemsCollection pbConfig)
+            case pbSince pbConfig of
+                Just sinceDate -> putStrLn $ "Filtering posts published since: " ++ show sinceDate
+                Nothing -> pure ()
 
             baseConfig <- loadBaseConfig
             manager <- newTlsManager

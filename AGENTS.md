@@ -167,6 +167,7 @@ Backend selection is handled by `PocketBase.detectBackend :: [(String, String)] 
 | `POCKETBASE_TOKEN` | Bearer token / admin auth token for PocketBase API requests. | `Nothing` | Optional (used if set). |
 | `POCKETBASE_FEEDS_COLLECTION` | PocketBase feeds collection name. | `"feeds"` | Fallback: `"feeds"`. |
 | `POCKETBASE_ITEMS_COLLECTION` | PocketBase feed items collection name. | `"feed_items"` | Fallback: `"feed_items"`. |
+| `POCKETBASE_SINCE` | Earliest publication date to include (e.g. `2026-01-01`, `2026-01-01T00:00:00Z`). Aliases: `PLANET_POCKETBASE_SINCE`, `POCKETBASE_FIRST_DATE`, `PLANET_SINCE`. | `Nothing` (all non-hidden posts) | Optional. |
 
 ```bash
 # Force TOML backend

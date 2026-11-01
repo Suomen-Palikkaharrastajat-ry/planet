@@ -34,7 +34,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Time (UTCTime)
-import Data.Time.Format (defaultTimeLocale, parseTimeM)
+import Data.Time.Format (defaultTimeLocale, formatTime, parseTimeM)
 import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Network.HTTP.Client (
     Manager,
@@ -59,6 +59,7 @@ data PocketBaseConfig = PocketBaseConfig
     , pbToken :: !(Maybe Text)
     , pbFeedsCollection :: !Text
     , pbItemsCollection :: !Text
+    , pbSince :: !(Maybe UTCTime)
     }
     deriving (Show, Eq)
 
@@ -95,11 +96,18 @@ buildConfig env =
         itemsCol = case lookup "POCKETBASE_ITEMS_COLLECTION" env of
             Just i | not (null (trim i)) -> T.pack (trim i)
             _ -> "feed_items"
+        mSince = case lookup "POCKETBASE_SINCE" env
+            <|> lookup "PLANET_POCKETBASE_SINCE" env
+            <|> lookup "POCKETBASE_FIRST_DATE" env
+            <|> lookup "PLANET_SINCE" env of
+            Just s | not (null (trim s)) -> parsePocketBaseDate (T.pack (trim s))
+            _ -> Nothing
      in PocketBaseConfig
             { pbUrl = rawUrl
             , pbToken = mToken
             , pbFeedsCollection = feedsCol
             , pbItemsCollection = itemsCol
+            , pbSince = mSince
             }
   where
     stripTrailingSlash s = reverse (dropWhile (== '/') (reverse s))
@@ -328,18 +336,28 @@ fetchPocketBaseFeeds manager config = do
 
 fetchPocketBaseItems :: Manager -> PocketBaseConfig -> IO [AppItem]
 fetchPocketBaseItems manager config = do
+    let baseFilter = "is_hidden=false"
+        filterParam = case pbSince config of
+            Nothing -> "(" <> baseFilter <> ")"
+            Just sinceTime ->
+                let formatted = T.pack (formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S.000Z" sinceTime)
+                 in "(" <> baseFilter <> " && published_at >= '" <> formatted <> "')"
     records <-
         fetchPaginated
             manager
             config
             (pbItemsCollection config)
-            [ ("filter", Just "(is_hidden=false)")
+            [ ("filter", Just (encodeUtf8 filterParam))
             , ("sort", Just "-published_at")
             , ("expand", Just "feed,feed.groups")
             , ("perPage", Just "500")
             ]
     let visibleRecords = filter (\r -> pbiIsHidden r /= Just True) records
-    return (map toAppItem visibleRecords)
+        allItems = map toAppItem visibleRecords
+        filteredItems = case pbSince config of
+            Nothing -> allItems
+            Just sinceTime -> filter (maybe False (>= sinceTime) . itemDate) allItems
+    return filteredItems
 
 fetchPaginated
     :: (FromJSON a)

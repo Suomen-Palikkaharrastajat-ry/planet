@@ -5,7 +5,6 @@ module PocketBaseSpec (pocketBaseTests) where
 import Data.Aeson (eitherDecode)
 import qualified Data.ByteString.Lazy.Char8 as LBS8
 import Data.Maybe (isJust)
-import qualified Data.Text as T
 import Data.Time.Calendar (fromGregorian)
 import Data.Time.Clock (UTCTime (..), secondsToDiffTime)
 import Test.Tasty (TestTree, testGroup)
@@ -76,6 +75,33 @@ backendDetectionTests =
                     pbToken cfg @?= Just "secret123"
                     pbFeedsCollection cfg @?= "custom_feeds"
                     pbItemsCollection cfg @?= "custom_items"
+                    pbSince cfg @?= Nothing
+                TomlBackend -> assertFailure "Expected PocketBaseBackend"
+        , testCase "reads POCKETBASE_SINCE from environment" $ do
+            let env =
+                    [ ("PLANET_BACKEND", "pocketbase")
+                    , ("POCKETBASE_SINCE", "2026-10-15")
+                    ]
+            case detectBackend env of
+                PocketBaseBackend cfg -> do
+                    let expectedDate = UTCTime (fromGregorian 2026 10 15) 0
+                    pbSince cfg @?= Just expectedDate
+                TomlBackend -> assertFailure "Expected PocketBaseBackend"
+        , testCase "reads PLANET_POCKETBASE_SINCE and POCKETBASE_FIRST_DATE aliases" $ do
+            let env1 =
+                    [("POCKETBASE_URL", "http://localhost:8090"), ("PLANET_POCKETBASE_SINCE", "2026-06-01T12:00:00Z")]
+                env2 = [("POCKETBASE_URL", "http://localhost:8090"), ("POCKETBASE_FIRST_DATE", "2026-06-01 12:00:00Z")]
+                expected = UTCTime (fromGregorian 2026 6 1) (secondsToDiffTime (12 * 3600))
+            case detectBackend env1 of
+                PocketBaseBackend cfg -> pbSince cfg @?= Just expected
+                TomlBackend -> assertFailure "Expected PocketBaseBackend"
+            case detectBackend env2 of
+                PocketBaseBackend cfg -> pbSince cfg @?= Just expected
+                TomlBackend -> assertFailure "Expected PocketBaseBackend"
+        , testCase "handles invalid POCKETBASE_SINCE gracefully as Nothing" $ do
+            let env = [("PLANET_BACKEND", "pocketbase"), ("POCKETBASE_SINCE", "not-a-valid-date")]
+            case detectBackend env of
+                PocketBaseBackend cfg -> pbSince cfg @?= Nothing
                 TomlBackend -> assertFailure "Expected PocketBaseBackend"
         ]
 
