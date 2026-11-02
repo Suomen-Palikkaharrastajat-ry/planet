@@ -65,6 +65,9 @@ jobs:
       # *before* the frontend build, unlike event-calendar and service-map where
       # the generator emits into dist/ afterwards.
       - name: Run Generator
+        env:
+          POCKETBASE_URL: ${{ vars.POCKETBASE_URL }}
+          POCKETBASE_SINCE: ${{ vars.POCKETBASE_SINCE }}
         run: ./.bin/planet
 
       - name: Save feed cache

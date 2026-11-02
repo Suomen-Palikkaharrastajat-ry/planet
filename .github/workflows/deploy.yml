@@ -22,6 +22,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      POCKETBASE_URL: ${{ vars.POCKETBASE_URL }}
+      POCKETBASE_SINCE: ${{ vars.POCKETBASE_SINCE }}
 
     steps:
       - uses: actions/checkout@v4
