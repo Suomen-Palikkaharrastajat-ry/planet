@@ -7,6 +7,8 @@ check_url() {
   echo "Smoke test passed: $url"
 }
 
+SITE_URL="${SITE_URL%/}"
+
 check_url "$SITE_URL"
 check_url "$SITE_URL/fi/"
-check_url "$SITE_URL/en/"
+# en is hidden in config.toml, so /en/ is expected to 404 until it is published.
