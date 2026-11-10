@@ -151,6 +151,7 @@ jsonDecodingTests =
                             , "  \"site_url\": \"https://example.com\","
                             , "  \"feed_type\": \"rss\","
                             , "  \"enabled\": true,"
+                            , "  \"include_keywords\": [\"lego\"],"
                             , "  \"exclude_keywords\": [\"spoiler\"],"
                             , "  \"exclude_urls\": [\"https://example.com/ad\"],"
                             , "  \"expand\": {"
@@ -168,6 +169,7 @@ jsonDecodingTests =
                     pbfSiteUrl feed @?= Just "https://example.com"
                     pbfFeedType feed @?= Just "rss"
                     pbfEnabled feed @?= Just True
+                    pbfIncludeKeywords feed @?= Just ["lego"]
                     pbfExcludeKeywords feed @?= Just ["spoiler"]
                     pbfExcludeUrls feed @?= Just ["https://example.com/ad"]
                     case pbfExpand feed >>= pbfeGroups of
@@ -230,6 +232,7 @@ mapperTests =
                         , pbfFeedType = Just "youtube"
                         , pbfGroups = Nothing
                         , pbfEnabled = Just True
+                        , pbfIncludeKeywords = Just ["lego"]
                         , pbfExcludeKeywords = Just ["spam"]
                         , pbfExcludeUrls = Just ["https://example.com/ignore"]
                         , pbfExpand =
@@ -244,6 +247,7 @@ mapperTests =
             feedUrl cfg @?= "https://example.com/atom"
             feedGroup cfg @?= "en"
             feedExcludeList cfg @?= ["https://example.com/ignore"]
+            feedIncludeKeywords cfg @?= ["lego"]
             feedExcludeKeywords cfg @?= ["spam"]
             feedLink cfg @?= Just "https://example.com"
         , testCase "toAppItem converts PBItemRecord and cleans title" $ do
@@ -256,6 +260,7 @@ mapperTests =
                         , pbfFeedType = Just "rss"
                         , pbfGroups = Nothing
                         , pbfEnabled = Just True
+                        , pbfIncludeKeywords = Nothing
                         , pbfExcludeKeywords = Nothing
                         , pbfExcludeUrls = Nothing
                         , pbfExpand =

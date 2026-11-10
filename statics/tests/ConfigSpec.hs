@@ -158,6 +158,18 @@ configTests =
                     let feed = head (configFeeds config)
                     feedExcludeKeywords feed @?= ["shorts", "sponsored"]
                 Left err -> assertFailure ("Parse failed: " ++ T.unpack err)
+        , testCase "supports feed include_keywords" $ do
+            let toml =
+                    T.unlines
+                        [ "[[feeds]]"
+                        , "type = \"rss\""
+                        , "title = \"Filtered Feed\""
+                        , "url = \"http://example.com/feed.xml\""
+                        , "include_keywords = [\"lego\", \"moc\"]"
+                        ]
+            case parseConfig toml of
+                Right config -> feedIncludeKeywords (head (configFeeds config)) @?= ["lego", "moc"]
+                Left err -> assertFailure ("Parse failed: " ++ T.unpack err)
         , testCase "supports optional feed link override" $ do
             let toml =
                     T.unlines

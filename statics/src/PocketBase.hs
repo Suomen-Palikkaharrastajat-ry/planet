@@ -180,6 +180,7 @@ data PBFeedRecord = PBFeedRecord
     , pbfFeedType :: !(Maybe Text)
     , pbfGroups :: !(Maybe [Text])
     , pbfEnabled :: !(Maybe Bool)
+    , pbfIncludeKeywords :: !(Maybe [Text])
     , pbfExcludeKeywords :: !(Maybe [Text])
     , pbfExcludeUrls :: !(Maybe [Text])
     , pbfExpand :: !(Maybe PBFeedExpand)
@@ -196,6 +197,7 @@ instance FromJSON PBFeedRecord where
             <*> o .:? "feed_type"
             <*> (Just <$> o .: "groups" <|> fmap (: []) <$> o .: "groups" <|> pure Nothing)
             <*> o .:? "enabled"
+            <*> o .:? "include_keywords"
             <*> o .:? "exclude_keywords"
             <*> (o .:? "exclude_urls" <|> o .:? "exclude_list")
             <*> o .:? "expand"
@@ -258,6 +260,7 @@ toFeedConfig feed =
             Just l | not (T.null (T.strip l)) -> Just (T.strip l)
             _ -> Nothing
         exUrls = fromMaybe [] (pbfExcludeUrls feed)
+        inKw = fromMaybe [] (pbfIncludeKeywords feed)
         exKw = fromMaybe [] (pbfExcludeKeywords feed)
         groupName = case pbfExpand feed >>= pbfeGroups of
             Just (g : _) -> pbgName g
@@ -268,6 +271,7 @@ toFeedConfig feed =
             , feedUrl = pbfUrl feed
             , feedGroup = groupName
             , feedExcludeList = exUrls
+            , feedIncludeKeywords = inKw
             , feedExcludeKeywords = exKw
             , feedLink = mLink
             }

@@ -253,15 +253,24 @@ parseFeedBody fc body = do
 
 filterExcludedItems :: FeedConfig -> [AppItem] -> [AppItem]
 filterExcludedItems fc items =
-    let excludedLinks = feedExcludeList fc
+    let includedWords = map T.toLower (feedIncludeKeywords fc)
         excludedWords = map T.toLower (feedExcludeKeywords fc)
+        containsWord wordsToMatch txt = any (`T.isInfixOf` T.toLower txt) wordsToMatch
+        matchesIncludedWord i =
+            containsWord includedWords (itemTitle i)
+                || maybe False (containsWord includedWords) (itemDescText i)
+        includedItems =
+            if null includedWords
+                then items
+                else filter matchesIncludedWord items
+        excludedLinks = feedExcludeList fc
         containsExcludedWord txt = any (`T.isInfixOf` T.toLower txt) excludedWords
         isNotExcluded i =
             not (isYouTubeShort (itemLink i))
                 && itemLink i `notElem` excludedLinks
                 && not (containsExcludedWord (itemTitle i))
                 && not (maybe False containsExcludedWord (itemDescText i))
-     in filter isNotExcluded items
+     in filter isNotExcluded includedItems
 
 -- Helper for date join
 join :: Maybe (Maybe a) -> Maybe a

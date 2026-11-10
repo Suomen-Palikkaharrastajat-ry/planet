@@ -111,6 +111,7 @@ testFeed =
         "fi"
         []
         []
+        []
         Nothing
 
 respond :: Int -> LBS.ByteString -> FeedConfig -> IO (Either Text Download)

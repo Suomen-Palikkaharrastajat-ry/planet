@@ -88,7 +88,7 @@ The generator supports dual backends for syndication data:
 Community feeds are declared in [`planet.toml`](planet.toml). The Haskell generator fetches and post-processes all entries:
 
 - **Automatic YouTube Shorts filtering**: Entries with `/shorts/<id>` URLs on `youtube.com` or `youtu.be` are automatically filtered out.
-- **Manual exclusions**: Individual feeds can define `exclude_list` (list of exact article URLs to ignore) and `exclude_keywords` (case-insensitive title keywords to drop).
+- **Keyword filtering**: Individual feeds can define `include_keywords` (keep only entries whose title or description contains at least one keyword, case-insensitively) and `exclude_keywords` (drop entries whose title or description contains any keyword). Include filtering runs first; `exclude_list` still removes exact article URLs.
 - **Title cleaning**: HTML entities are fully decoded (supporting named entities, numeric/hex entities, and double-escaped forms like `&amp;amp;`), and invisible Unicode control/formatting characters are stripped.
 - **HTML sanitization**: Feed content and descriptions are sanitized, truncated, and stripped of tracking wrappers before Elm data generation.
 
