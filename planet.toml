@@ -94,6 +94,11 @@ type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC_ZxMr62Y6KLz-2muI1hCGw"
 exclude_keywords = ["minecraft"]
 
+[[feeds]]
+# title = "StarDadTV"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC5HxqPbra584U5oq4j-v40w"
+exclude_keywords = ["StarCitizen"]
+
 # en
 
 [[feeds]]
