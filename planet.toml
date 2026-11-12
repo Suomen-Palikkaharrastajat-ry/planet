@@ -99,6 +99,10 @@ exclude_keywords = ["minecraft"]
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC5HxqPbra584U5oq4j-v40w"
 include_keywords= ["lego"]
 
+[[feeds]]
+# title = "Brick Experiment Channel"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UClsFdM0HzTdF1JYoraQ0aUw"
+
 # en
 
 [[feeds]]
